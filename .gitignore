@@ -1,0 +1,20 @@
+#IDEA
+/.idea/
+.idea/
+*.ipr
+*.iml
+*.iws
+
+#Log
+/logs/
+
+#Svn
+.svn/
+/.svn/
+
+# Maven
+target/
+
+# Gradle
+.gradle/
+build/
