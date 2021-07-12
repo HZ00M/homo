@@ -11,7 +11,10 @@
     <packaging>pom</packaging>
     <modules>
         <module>homo-core</module>
-        <module>homo-utils</module>
+        <module>homo-core-utils</module>
+        <module>homo-core-proto</module>
+        <module>homo-core-discover</module>
+        <module>homo-core-test</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -27,11 +30,21 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <lombok.version>1.16.10</lombok.version>
+        <os-maven-plugin.version>1.6.2</os-maven-plugin.version>
+        <protobuf-parent.version>3.11.0</protobuf-parent.version>
+        <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+        <protoc.version>3.6.1</protoc.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-parent</artifactId>
+                <version>${protobuf-parent.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

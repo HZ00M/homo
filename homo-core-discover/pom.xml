@@ -9,19 +9,11 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>homo-core</artifactId>
+    <artifactId>homo-core-discover</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <artifactId>homo-core-utils</artifactId>
-            <groupId>com.homo</groupId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
-    </dependencies>
 </project>
