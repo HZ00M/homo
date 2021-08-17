@@ -1,5 +1,6 @@
 package com.homo.core.root.cache;
 
+import com.homo.core.facade.cache.CacheDriver;
 import com.homo.core.root.Comp;
 import com.homo.core.root.Configurable;
 import com.homo.core.root.comp.LocalCacheComp;
@@ -15,8 +16,8 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public enum Cache implements Comp {
-    Local(LocalCacheComp.class,"本地缓存系统", LocalCacheConfigurable.class),
-    Redis(RedisCacheComp.class,"redis缓存系统", RedisCacheConfigurable.class),
+    Local(LocalCacheComp.class, "本地缓存系统", LocalCacheConfigurable.class),
+    Redis(RedisCacheComp.class, "redis缓存系统", RedisCacheConfigurable.class),
     ;
     Class<? extends Comp> comp;
     String describe;

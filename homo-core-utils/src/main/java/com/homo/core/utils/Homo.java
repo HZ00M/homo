@@ -1,6 +1,5 @@
 package com.homo.core.utils;
 
-import com.homo.core.utils.exception.LockFailException;
 import com.homo.core.utils.fun.FuncEx;
 import lombok.extern.log4j.Log4j2;
 import reactor.core.CoreSubscriber;
@@ -160,17 +159,8 @@ public class Homo<T> extends Mono<T> {
         return predicate;
     });
 
-    public Homo<T> lockRetry(int retries) {
-        Predicate predicate = retryFun.apply(retries, Arrays.asList(LockFailException.class));
-        return Homo.warp(
-                mono.retryWhen(
-                        Retry.max(retries)
-                                .filter(predicate)
-                                .doBeforeRetry(res -> System.out.println("retry begin"))
-                                .doAfterRetry(res -> System.out.println("retry finished"))));
-    }
 
-    public Homo<T> retry(int retries, Class<? extends Throwable>... exceptions) {
+    public final Homo<T> retry(int retries, Class<? extends Throwable>... exceptions) {
         Predicate retryPredicate = retryFun.apply(retries, Arrays.asList(exceptions));
         return Homo.warp(
                 mono.retryWhen(

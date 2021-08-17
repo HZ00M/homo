@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>homo-core</artifactId>
+    <artifactId>homo-core-facade</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -20,11 +20,6 @@
         <dependency>
             <artifactId>homo-core-utils</artifactId>
             <groupId>com.homo</groupId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-facade</artifactId>
         </dependency>
     </dependencies>
 </project>
