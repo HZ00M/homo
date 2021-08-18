@@ -1,8 +1,8 @@
 package com.homo.core.utils.callback;
 
-public interface CallBack<R> {
+public interface CallBack<T> {
 
-    void onBack(R r);
+    void onBack(T t);
 
     void onError(Throwable t);
 }

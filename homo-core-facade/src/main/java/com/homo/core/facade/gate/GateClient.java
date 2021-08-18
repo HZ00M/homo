@@ -9,14 +9,14 @@ import com.homo.core.utils.callback.CallBack2;
  */
 public interface GateClient {
     /**
-     * 消息回调函数
+     * 处理客户端消息
      * @param msgType 消息类型
      * @param data 消息数据
      */
     void onMsg(String msgType, byte[] data) throws Exception;
 
     /**
-     * 消息回调函数
+     * 处理客户端消息
      * @param msgType 消息类型
      * @param data 消息数据
      * @param callBack 回调函数
@@ -36,7 +36,7 @@ public interface GateClient {
     void opClose(String reason);
 
     /**
-     * 获取GateServer实例指针
+     * 获取GateServer实例指针（与GateServer双向绑定）
      * @return GateServer实例指针
      */
     GateServer getGateServer();

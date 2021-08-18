@@ -1,9 +1,12 @@
 package com.homo.core.facade.gate;
 
+import com.homo.core.facade.Driver;
+import com.homo.core.utils.callback.CallBack;
+
 /**
  * tcp服务器驱动
  */
-public interface GateDriver {
+public interface GateDriver extends Driver {
     /**
      * 开启一个服务器
      * @param gateServer
@@ -29,4 +32,12 @@ public interface GateDriver {
      * @param msg
      */
     void sendToClient(GateClient gateClient,String msgType,byte[] msg);
+
+    /**
+     * 消息内部寻址转发
+     * @param msgType
+     * @param msg
+     * @param callBack
+     */
+    void dispatcher(String msgType, byte[] msg, CallBack callBack);
 }

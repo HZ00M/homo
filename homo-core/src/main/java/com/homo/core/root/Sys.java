@@ -2,6 +2,7 @@ package com.homo.core.root;
 
 import com.homo.core.facade.Driver;
 import com.homo.core.facade.cache.CacheDriver;
+import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.root.cache.Cache;
 import com.homo.core.root.config.ConfigCenter;
 import com.homo.core.root.configurable.*;
@@ -25,7 +26,7 @@ public enum Sys {
     Msg_Sys(Msg.class,"消息系统", MsgConfigurable.class,Driver.class),
     Config_Sys(ConfigCenter.class,"配置中心", ConfigCenterConfigurable.class,Driver.class),
     Job_Sys(Job.class,"调度中心", JobConfigurable.class,Driver.class),
-    Gate_Sys(Gate.class,"网关服务", GateConfigurable.class,Driver.class)
+    Gate_Sys(Gate.class,"网关服务", GateConfigurable.class, GateDriver.class)
     ;
     Class<? extends Comp> comp;
     String describe;

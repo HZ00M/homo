@@ -1,5 +1,7 @@
 package com.homo.core.root.gate;
 
+import com.homo.core.facade.gate.GateClient;
+import com.homo.core.facade.gate.GateServer;
 import com.homo.core.root.Comp;
 import com.homo.core.root.Configurable;
 import com.homo.core.root.comp.DispatcherGateComp;
@@ -16,10 +18,10 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public enum Gate implements Comp {
-    Dispatcher(DispatcherGateComp.class,"内部寻址转发", DispatcherConfigurable.class),
-    Proxy(ProxyGateComp.class,"外部消息代理", ProxyGateConfigurable.class),
+    Client(GateClient.class,"保持与客户端连接，处理客户端消息，给客户端发送消息", ProxyGateConfigurable.class),
+    Server(GateServer.class,"作为内部通信的服务器，负责处理客户端连接，内部Rpc消息转发", DispatcherConfigurable.class),
     ;
-    Class<? extends ActualComp> comp;
+    Class<?> comp;
     String describe;
     Class<? extends Configurable> config;
 }
