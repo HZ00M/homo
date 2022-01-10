@@ -13,10 +13,9 @@
         <module>homo-core</module>
         <module>homo-core-utils</module>
         <module>homo-core-proto</module>
-        <module>homo-core-discover</module>
         <module>homo-core-test</module>
         <module>homo-core-facade</module>
-        <module>homo-cache-driver-redis</module>
+        <module>homo-core-module</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -85,6 +84,11 @@
             </dependency>
             <dependency>
                 <artifactId>homo-core-facade</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-module</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

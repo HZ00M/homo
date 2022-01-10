@@ -1,15 +1,12 @@
 package com.homo.core.facade.cache;
 
 import com.homo.core.facade.Driver;
-import com.homo.core.utils.Homo;
+import com.homo.core.utils.callback.CallBack;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * 直接操作redis，不落地
- */
 public interface CacheDriver extends Driver {
 
     /**
@@ -21,7 +18,7 @@ public interface CacheDriver extends Driver {
      * @param keyList key列表
      * @return 返回值列表
      */
-    Homo<Map<String,byte[]>> get(String appId, String regionId, Integer logicType , String ownerId, List<String> keyList);
+    void get(String appId, String regionId, Integer logicType , String ownerId, List<String> keyList, CallBack<Map<String,byte[]>> callBack);
 
     /**
      * 获得所有key 和 value
@@ -31,7 +28,7 @@ public interface CacheDriver extends Driver {
      * @param ownerId   ID
      * @return 详细结果
      */
-    Homo<Pair<Boolean,Map<String,byte[]>>> getAll(String appId, String regionId, Integer logicType, String ownerId);
+    void getAll(String appId, String regionId, Integer logicType, String ownerId, CallBack<Pair<Boolean,Map<String,byte[]>>> callBack);
 
     /**
      * 更新多key,value数据，通过响应式返回详细结果
@@ -42,7 +39,7 @@ public interface CacheDriver extends Driver {
      * @param data 待保存数据
      * @return 详细结果
      */
-    Homo<Pair<Boolean,Map<String,byte[]>>> update(String appId, String regionId, Integer logicType, String ownerId, Map<String, byte[]> data);
+     void update(String appId, String regionId, Integer logicType, String ownerId, Map<String, byte[]> data,CallBack<Pair<Boolean,Map<String,byte[]>>> callBack);
 
     /**
      * 更新多key,value数据（带过期时间，并通过响应式返回详细结果
@@ -54,7 +51,7 @@ public interface CacheDriver extends Driver {
      * @param expireSeconds 超时时间,0为不超时
      * @return
      */
-    Homo<Pair<Boolean,Map<String,byte[]>>> update(String appId, String regionId, Integer logicType, String ownerId, Map<String, byte[]> data,long expireSeconds);
+     void update(String appId, String regionId, Integer logicType, String ownerId, Map<String, byte[]> data,long expireSeconds,CallBack<Pair<Boolean,Map<String,byte[]>>> callBack);
 
     /**
      * 增加key列表的值
@@ -65,7 +62,7 @@ public interface CacheDriver extends Driver {
      * @param incrData 指定key的值列表
      * @return
      */
-    Homo<Pair<Boolean,Map<String,Long>>> incr(String appId, String regionId, Integer logicType, String ownerId,Map<String,Long> incrData);
+     void incr(String appId, String regionId, Integer logicType, String ownerId,Map<String,Long> incrData,CallBack<Pair<Boolean,Map<String,Long>>> callBack);
 
     /**
      * 删除key列表的值
@@ -76,5 +73,5 @@ public interface CacheDriver extends Driver {
      * @param remKeys 指定key的值列表
      * @return
      */
-    Homo<Boolean> remove(String appId, String regionId, Integer logicType, String ownerId, List<String> remKeys);
+    void remove(String appId, String regionId, Integer logicType, String ownerId, List<String> remKeys,CallBack<Boolean> callBack);
 }
