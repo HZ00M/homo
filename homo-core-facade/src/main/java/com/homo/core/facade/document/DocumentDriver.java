@@ -75,7 +75,7 @@ public interface DocumentDriver<F, S, U, P> extends Driver {
      * @param clazz     文档对象类型
      * @param callBack       回调详细结果
      */
-    <T> void updatePartial(String appId, String regionId, Integer logicType, String ownerId, String key, Map<String, ?> data, Class<T> clazz, CallBack<Boolean> callBack);
+    <T> void asyncUpdatePartial(String appId, String regionId, Integer logicType, String ownerId, String key, Map<String, ?> data, Class<T> clazz, CallBack<Boolean> callBack);
 
     /**
      * 通过key列表获取value

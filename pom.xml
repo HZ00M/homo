@@ -25,24 +25,75 @@
     <properties>
         <revision>1.0</revision>
 
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+        <maven.assembly.version>2.6</maven.assembly.version>
 
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
+
         <lombok.version>1.16.10</lombok.version>
         <os-maven-plugin.version>1.6.2</os-maven-plugin.version>
         <protobuf-parent.version>3.11.0</protobuf-parent.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
-        <protoc.version>3.6.1</protoc.version>
+        <protoc.version>3.7.0</protoc.version>
         <log4j.version>2.7</log4j.version>
-        <guava.version>17.0</guava.version>
+        <guava.version>21.0</guava.version>
+        <apollo.version>1.2.0</apollo.version>
+
+        <!--        frame       -->
+        <jboss.resteasy.version>3.11.4.Final</jboss.resteasy.version>
+        <mapstruct.version>1.1.0.Final</mapstruct.version>
+        <grpc.version>1.29.0</grpc.version>
+        <okhttp.version>4.9.1</okhttp.version>
+        <reflections.version>0.9.10</reflections.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <dubbo.version>2.6.1</dubbo.version>
+        <jedis.version>2.9.0</jedis.version>
+        <druid.version>1.0.31</druid.version>
+        <netty.all.version>4.1.68.Final</netty.all.version>
+        <apache.commons.version>3.5</apache.commons.version>
+        <commons-pool2.version>2.10.0</commons-pool2.version>
+        <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
+        <skywalking.version>8.3.0</skywalking.version>
+        <lettuce.version>6.1.3.RELEASE</lettuce.version>
+        <protostuff.version>1.5.9</protostuff.version>
+        <brave.version>5.13.3</brave.version>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <jackson.version>2.12.5</jackson.version>
+        <quartz.version>2.2.3</quartz.version>
+        <dropwizard.metrics.version>3.2.2</dropwizard.metrics.version>
+        <jetlang.version>0.2.9</jetlang.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!--            工程依赖             -->
+            <dependency>
+                <artifactId>homo-root</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-utils</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-facade</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-module</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+
+
             <!--            第三方依赖             -->
             <dependency>
                 <groupId>com.google.protobuf</groupId>
@@ -70,27 +121,10 @@
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
-
-            <!--            工程依赖             -->
             <dependency>
-                <artifactId>homo-root</artifactId>
-                <groupId>com.homo</groupId>
-                <version>${revision}</version>
-            </dependency>
-            <dependency>
-                <artifactId>homo-core-utils</artifactId>
-                <groupId>com.homo</groupId>
-                <version>${revision}</version>
-            </dependency>
-            <dependency>
-                <artifactId>homo-core-facade</artifactId>
-                <groupId>com.homo</groupId>
-                <version>${revision}</version>
-            </dependency>
-            <dependency>
-                <artifactId>homo-core-module</artifactId>
-                <groupId>com.homo</groupId>
-                <version>${revision}</version>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-client</artifactId>
+                <version>${apollo.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
