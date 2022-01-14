@@ -21,5 +21,9 @@
             <artifactId>homo-core-utils</artifactId>
             <groupId>com.homo</groupId>
         </dependency>
+        <dependency>
+            <artifactId>homo-core-common</artifactId>
+            <groupId>com.homo</groupId>
+        </dependency>
     </dependencies>
 </project>

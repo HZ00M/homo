@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>homo-core</artifactId>
+    <artifactId>homo-core-entity-storage-facade</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -18,16 +18,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.homo</groupId>
             <artifactId>homo-core-utils</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-facade</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-entity-storage-facade</artifactId>
         </dependency>
     </dependencies>
 </project>

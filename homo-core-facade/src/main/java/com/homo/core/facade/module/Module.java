@@ -6,6 +6,14 @@ package com.homo.core.facade.module;
 public interface Module {
 
     /**
+     * 返回模块的初始化顺序，值越小，越早初始化
+     * @return 初始化顺序值
+     */
+    default Integer getOrder(){
+        return Integer.MAX_VALUE;
+    }
+
+    /**
      * 保存服务信息，由ModuleMgr调用
      * @param serverInfo
      */

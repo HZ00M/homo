@@ -1,13 +1,13 @@
-package com.homo.core.facade.document;
+package com.homo.core.entity.storage.facade.driver;
 
-import com.homo.core.facade.Driver;
+import com.homo.core.common.faccade.Driver;
 import com.homo.core.utils.callback.CallBack;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.Map;
 
-public interface DocumentDriver<F, S, U, P> extends Driver {
+public interface EntityStorageDriver<F, S, U, P> extends Driver {
 
     /**
      * 查询文档数据

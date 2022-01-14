@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>homo-core</artifactId>
+    <artifactId>homo-core-auto-configurable</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -17,17 +17,13 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-facade</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-entity-storage-facade</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <artifactId>homo-core-utils</artifactId>-->
+<!--            <groupId>com.homo</groupId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter</artifactId>-->
+<!--        </dependency>-->
     </dependencies>
 </project>
