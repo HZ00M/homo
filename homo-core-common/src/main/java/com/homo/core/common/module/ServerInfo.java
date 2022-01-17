@@ -1,4 +1,4 @@
-package com.homo.core.facade.module;
+package com.homo.core.common.module;
 
 /**
  * 进程内共享游戏信息
@@ -10,4 +10,6 @@ public interface ServerInfo {
     String getRegionId();
 
     String getChannel();
+
+    String getServiceName();
 }

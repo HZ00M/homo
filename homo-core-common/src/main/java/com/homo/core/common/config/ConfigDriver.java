@@ -1,6 +1,6 @@
-package com.homo.core.facade.config;
+package com.homo.core.common.config;
 
-import com.homo.core.common.faccade.Driver;;
+import com.homo.core.common.facade.Driver;;
 
 import java.util.function.Consumer;
 
@@ -8,6 +8,13 @@ import java.util.function.Consumer;
  * 配置中心驱动
  */
 public interface ConfigDriver extends Driver {
+
+    /**
+     *
+     * @param namespace
+     * @param onUpdate
+     */
+    void init(String namespace, Runnable onUpdate);
 
     /**
      * 监听key 当key改变时执行 Consumer逻辑

@@ -2,7 +2,7 @@
  * Created by 尼恩 at 疯狂创客圈
  */
 
-package com.homo.core.utils.queue;
+package com.homo.concurrent.callback;
 
 
 public interface CallbackTask<T> {
@@ -11,5 +11,5 @@ public interface CallbackTask<T> {
 
     void onBack(T t);
 
-    void onException(Throwable t);
+    void onError(Throwable t);
 }

@@ -149,8 +149,8 @@ public class Homo<T> extends Mono<T> {
     });
 
     /**
-     * Set a Scheduler on which to execute the delays computed by the exponential backoff strategy.
-     * for fixed delays (min backoff equals max backoff, no jitter), given a maximum number of retry attempts and the fixed Duration for the backoff.
+     * Set module Scheduler on which to execute the delays computed by the exponential backoff strategy.
+     * for fixed delays (min backoff equals max backoff, no jitter), given module maximum number of retry attempts and the fixed Duration for the backoff.
      * Note that calling RetryBackoffSpec.minBackoff(Duration) or RetryBackoffSpec.maxBackoff(Duration) would switch back to an exponential backoff strategy.
      *
      * @param retryCount – the maximum number of retry attempts to allow
@@ -178,8 +178,8 @@ public class Homo<T> extends Mono<T> {
     });
 
     /**
-     * Set a Scheduler on which to execute the delays computed by the exponential backoff strategy.
-     * for fixed delays (min backoff equals max backoff, no jitter), given a maximum number of retry attempts and the fixed Duration for the backoff.
+     * Set module Scheduler on which to execute the delays computed by the exponential backoff strategy.
+     * for fixed delays (min backoff equals max backoff, no jitter), given module maximum number of retry attempts and the fixed Duration for the backoff.
      * Note that calling RetryBackoffSpec.minBackoff(Duration) or RetryBackoffSpec.maxBackoff(Duration) would switch back to an exponential backoff strategy.
      * @param retryCount – the maximum number of retry attempts to allow
      * @param duration – the Duration of the fixed delays

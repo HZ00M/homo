@@ -1,4 +1,4 @@
-package com.homo.core.facade.module;
+package com.homo.core.common.module;
 
 
 import java.util.Set;

@@ -1,4 +1,4 @@
-package com.homo.core.utils.queue;
+package com.homo.concurrent.callback;
 
 import com.google.common.util.concurrent.*;
 import lombok.extern.log4j.Log4j2;
@@ -74,7 +74,7 @@ public class CallbackTaskScheduler extends Thread {
                 executeTask.onBack(r);
             }
             public void onFailure(Throwable t) {
-                executeTask.onException(t);
+                executeTask.onError(t);
             }
         });
 
