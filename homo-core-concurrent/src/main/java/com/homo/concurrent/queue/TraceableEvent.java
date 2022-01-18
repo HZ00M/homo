@@ -1,17 +1,36 @@
 package com.homo.concurrent.queue;
 
 import brave.Span;
+import brave.Tracer;
+import com.homo.core.utils.trace.ZipkinUtil;
 
 /**
  * 支持链路追踪的异步事件处理
  */
 public interface TraceableEvent extends Event {
-    default void doProcess() {
+    default void doProcessTraceable() {
         long processTime = System.currentTimeMillis();
         Span span = getSpan();
-        if (span!=null){
+        if (span != null) {
             span.annotate("process-event");
-
+            try (Tracer.SpanInScope ss = ZipkinUtil.getTracing().tracer().withSpanInScope(span)) {
+                span.tag("thread",Thread.currentThread().getName());
+                preProcess();
+                process();
+                span.tag("data",getTagForSpan());
+            }catch (Throwable throwable){
+                span.error(throwable);
+            }finally {
+                long spentTime = System.currentTimeMillis() - processTime;
+                if (spentTime > 1000){
+                    log.warn("{} process too long! spentTime_{}", spentTime,getName());
+                }
+                span.annotate("process-event-end");
+                span.tag("process-spend-time", String.valueOf(spentTime));
+                afterProcess();
+            }
+        }else {
+            doProcess();
         }
     }
 
@@ -36,7 +55,19 @@ public interface TraceableEvent extends Event {
         return getSpan().tag(key, value);
     }
 
-    public Span getSpan();
+    default Span getSpan(){
+        throw new RuntimeException("event not override method: cancel");
+    }
 
-    public void setSpan(Span span);
+    default void setSpan(Span span) {
+        throw new RuntimeException("event not override method: cancel");
+    }
+
+    default String getTagForSpan(){
+        return toString();
+    }
+
+    default String getName(){
+        return toString();
+    }
 }

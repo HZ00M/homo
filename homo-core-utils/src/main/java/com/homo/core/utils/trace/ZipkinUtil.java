@@ -4,10 +4,10 @@ import brave.Span;
 import brave.Tracer;
 import brave.Tracing;
 import brave.grpc.GrpcTracing;
+import brave.http.HttpTracing;
 import brave.internal.Nullable;
 import brave.propagation.TraceContext;
 import brave.rpc.RpcTracing;
-import brave.http.HttpTracing;
 import brave.sampler.RateLimitingSampler;
 import brave.sampler.Sampler;
 import brave.sampler.SamplerFunction;
@@ -60,19 +60,19 @@ public class ZipkinUtil implements Module {
         String localServiceName = getServerInfo().getServiceName();
         log.info(
                 "zipkin 开关 [{}] 上报地址:[{}] ，本地服务名:{} 每秒采样次数:{}",
-                zipKinProperties.isOpen(),
-                zipKinProperties.getReportAddr(),
+                zipKinProperties.isOpen,
+                zipKinProperties.reportAddr,
                 localServiceName,
-                zipKinProperties.getTracesPerSecond());
+                zipKinProperties.tracesPerSecond);
         Tracing.Builder tracingBuilder = Tracing.newBuilder();
         if (zipKinProperties.isOpen()) {
-            log.info("asyncReporter to {}", zipKinProperties.getReportAddr());
-            Sender sender = OkHttpSender.create(zipKinProperties.getReportAddr());
+            log.info("asyncReporter to {}", zipKinProperties.reportAddr);
+            Sender sender = OkHttpSender.create(zipKinProperties.reportAddr);
             AsyncReporter<zipkin2.Span> reporter = AsyncReporter.create(sender);
             tracingBuilder.addSpanHandler(ZipkinSpanHandler.create(reporter))
                     .localServiceName(localServiceName)
-                    .sampler(RateLimitingSampler.create(zipKinProperties.getTracesPerSecond()))
-                    .supportsJoin(zipKinProperties.isSupportsJoin());
+                    .sampler(RateLimitingSampler.create(zipKinProperties.tracesPerSecond))
+                    .supportsJoin(zipKinProperties.supportsJoin);
         } else {
             log.info("stop zipkin report !!");
             tracingBuilder.sampler(Sampler.NEVER_SAMPLE);

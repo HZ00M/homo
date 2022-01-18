@@ -1,8 +1,10 @@
 package com.homo.core.common.config;
 
-import com.homo.core.common.facade.Driver;;
+import com.homo.core.common.facade.Driver;
 
 import java.util.function.Consumer;
+
+;
 
 /**
  * 配置中心驱动

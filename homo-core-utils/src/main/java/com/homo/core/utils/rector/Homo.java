@@ -1,10 +1,12 @@
 package com.homo.core.utils.rector;
 
+import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.fun.FuncEx;
 import lombok.extern.log4j.Log4j2;
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoSink;
 import reactor.core.publisher.SignalType;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.*;
@@ -35,6 +37,19 @@ public class Homo<T> extends Mono<T> {
     public static <T> Homo<T> warp(Supplier<Mono<T>> supplier){
         return Homo.warp(supplier.get());
     }
+    public static <T> Homo<T> warp(ConsumerEx<MonoSink<T>> callback){
+        Consumer<MonoSink<T>> consumer =
+                sink->{
+                    try {
+                        callback.accept(sink);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        sink.error(e);
+                    }
+                };
+        return Homo.warp(Mono.create(consumer));
+    }
+
     public final <R> Homo<R> nextDo(FuncEx<? super T, ? extends Mono<? extends R>> transformer){
         Function<? super T, ? extends Mono<? extends R>> warp = (Function<T, Mono<? extends R>>) origin -> {
             if (origin == Optional.empty()){

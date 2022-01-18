@@ -8,11 +8,11 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class ZipKinProperties {
     @Value(value = "homo.service.monitor.traces.report.addr")
-    private String reportAddr ;
+    public String reportAddr ;
     @Value(value = "homo.service.monitor.traces.supportsJoin")
-    private boolean supportsJoin ;
+    public boolean supportsJoin ;
     @Value(value = "homo.service.monitor.traces.one.second.count")
-    private int tracesPerSecond;
+    public int tracesPerSecond;
     @Value(value = "homo.service.monitor.traces.open")
-    private boolean isOpen  = false;
+    public boolean isOpen  = false;
 }

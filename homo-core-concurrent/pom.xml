@@ -18,6 +18,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-utils</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.zipkin.brave</groupId>
             <artifactId>brave-instrumentation-grpc</artifactId>
         </dependency>

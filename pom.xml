@@ -21,7 +21,6 @@
         <module>homo-core-entity-storage-facade</module>
         <module>homo-core-common</module>
         <module>homo-core-entity-storage</module>
-        <module>homo-core-concurrent-facade</module>
         <module>homo-core-concurrent</module>
     </modules>
 

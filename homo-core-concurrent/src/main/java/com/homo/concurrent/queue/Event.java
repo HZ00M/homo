@@ -11,7 +11,7 @@ public interface Event {
 
     default void preProcess(){}
 
-    default void process(){}
+    void process();
 
     default void afterProcess(){}
 

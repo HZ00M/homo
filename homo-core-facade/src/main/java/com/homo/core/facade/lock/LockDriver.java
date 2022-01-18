@@ -1,7 +1,9 @@
 package com.homo.core.facade.lock;
 
-import com.homo.core.common.facade.Driver;;
+import com.homo.core.common.facade.Driver;
 import com.homo.core.utils.callback.CallBack;
+
+;
 
 public interface LockDriver<T> extends Driver {
 
