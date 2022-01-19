@@ -29,6 +29,20 @@ public class CallQueueMgr {
 
         @Override
         public Integer apply(Event event, Object param) {
+            if (param instanceof CallQueueProducer){
+                Integer queueId = ((CallQueueProducer) param).getQueueId();
+                if (queueId == null) {
+                    log.error("getQueueId error in param [{}] :", param);
+                }
+                return queueId;
+            }
+            if (event instanceof CallQueueProducer){
+                Integer queueId = ((CallQueueProducer) param).getQueueId();
+                if (queueId == null) {
+                    log.error("getQueueId error in event [{}] :", param);
+                }
+                return queueId;
+            }
             if (index >= queueCount) {
                 //绕开主线程
                 index = 1;

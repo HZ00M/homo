@@ -280,7 +280,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
                     })
                     .collectMap(doc ->
                             doc.getString(Key.KEY_KEY), doc -> 1L)
-                    .subscribe(relMap -> callBack.onBack(new ImmutablePair<Boolean, Map<String, Long>>(true, relMap)), callBack::onError);
+                    .subscribe(relMap -> callBack.onBack(new ImmutablePair<>(true, relMap)), callBack::onError);
         } catch (Exception e) {
             log.error("asyncIncr catch Exception ", e);
             callBack.onError(e);

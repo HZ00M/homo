@@ -4,8 +4,6 @@ import com.homo.core.common.facade.Driver;
 
 import java.util.function.Consumer;
 
-;
-
 /**
  * 配置中心驱动
  */
