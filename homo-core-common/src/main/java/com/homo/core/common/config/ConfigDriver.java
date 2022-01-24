@@ -31,4 +31,13 @@ public interface ConfigDriver extends Driver {
      * @param <T>
      */
     <T> void afterKeyRefresh(String key,Consumer<T> newValueConsumer);
+
+    /**
+     * 获取配置信息
+     * @param key
+     * @param defaultValue
+     * @param <T>
+     * @return
+     */
+    <T> T getProperty(String namespace,String key,T defaultValue);
 }

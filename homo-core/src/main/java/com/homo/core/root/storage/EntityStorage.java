@@ -1,7 +1,8 @@
 package com.homo.core.root.storage;
 
 import com.homo.core.common.module.Module;
-import com.homo.core.entity.storage.facade.driver.EntityStorageDriver;
+import com.homo.core.facade.document.EntityStorageDriver;
+import com.homo.core.facade.lock.LockDriver;
 import com.homo.core.utils.callback.CallBack;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 实体存储模块
+ * 回调式 实体存储模块
  */
 @Slf4j
 @Component
@@ -26,6 +27,12 @@ public class EntityStorage<F, S, U, P> implements Module {
      */
     @Autowired(required = false)
     public EntityStorageDriver<F, S, U, P> storageDriver;
+
+    /**
+     * 锁驱动
+     */
+    @Autowired(required = false)
+    public LockDriver lockDriver;
 
     /**
      * 查询文档
@@ -807,5 +814,75 @@ public class EntityStorage<F, S, U, P> implements Module {
         log.info("removeKeys start, logicType_{} ownerId_{}", logicType, ownerId);
         storageDriver.asyncRemoveKeys(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, remKeys, clazz, callBack);
     }
-    
+
+
+    /**
+     * 异步加锁
+     *
+     * @param appId      appId
+     * @param regionId   regionId
+     * @param logicType  逻辑类型
+     * @param ownerId    ID
+     * @param lockField  指定key
+     * @param lockVal    期望值  没有值传""
+     * @param uniqueId   令牌
+     * @param expireTime 锁过期时间
+     * @param callBack        回调返回是否解锁成功
+     */
+    public <T> void asyncLock(String appId, String regionId, String logicType, String ownerId,
+                              String lockField, String lockVal, String uniqueId, Integer expireTime,CallBack<Boolean> callBack) {
+        lockDriver.asyncLock(appId, regionId, logicType, ownerId, lockField, lockVal, uniqueId, expireTime,
+                callBack);
+    }
+
+
+    /**
+     * 异步解锁
+     *
+     * @param appId     appId
+     * @param regionId  regionId
+     * @param logicType 逻辑类型
+     * @param ownerId   ID
+     * @param lockField 指定key
+     * @param uniqueId  令牌
+     * @param callBack       回调返回是否解锁成功
+     */
+    public <T> void asyncUnlock(String appId, String regionId, String logicType, String ownerId,
+                                String lockField, String uniqueId, CallBack<Boolean> callBack) {
+        lockDriver.asyncUnlock(appId, regionId, logicType, ownerId, lockField, uniqueId, callBack);
+    }
+
+    /**
+     * 同步加锁
+     *
+     * @param appId      appId
+     * @param regionId   regionId
+     * @param logicType  逻辑类型
+     * @param ownerId    ID
+     * @param lockField  指定key
+     * @param lockVal    期望值
+     * @param uniqueId   令牌
+     * @param expireTime 锁过期时间
+     * @return
+     */
+    public boolean lock(String appId, String regionId, String logicType, String ownerId,
+                        String lockField, String lockVal, String uniqueId, Integer expireTime) {
+        return lockDriver.lock(appId, regionId, logicType, ownerId, lockField, lockVal, uniqueId, expireTime);
+    }
+
+    /**
+     * 同步解锁
+     *
+     * @param appId     appId
+     * @param regionId  regionId
+     * @param logicType 逻辑类型
+     * @param ownerId   ID
+     * @param lockField 指定key
+     * @param uniqueId  令牌
+     * @return
+     */
+    public boolean unlock(String appId, String regionId, String logicType, String ownerId,
+                          String lockField, String uniqueId) {
+        return lockDriver.unlock(appId, regionId, logicType, ownerId, lockField, uniqueId);
+    }
 }
