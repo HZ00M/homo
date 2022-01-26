@@ -18,7 +18,8 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ServerInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.Sender;
 import zipkin2.reporter.brave.ZipkinSpanHandler;
@@ -30,7 +31,13 @@ import java.util.function.Consumer;
  * ZipKin全链路跟踪工具类
  */
 @Slf4j
-@Component
+@ConditionalOnProperty(
+        prefix = "homo.zipkin",
+        name = {"enable"},
+        havingValue = "true",
+        matchIfMissing = false
+)
+@EnableConfigurationProperties({ZipKinProperties.class})
 public class ZipkinUtil implements Module {
     public static final String CLIENT_SEND_TAG = "cs";
     public static final String SERVER_RECEIVE_TAG = "sr";

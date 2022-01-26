@@ -1,7 +1,6 @@
 package com.homo.core.redis.factory;
 
 import com.homo.core.configurable.redis.JedisProperties;
-import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.impl.HomoJedisPool;
 import com.homo.core.utils.spring.GetBeanUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +10,7 @@ import redis.clients.jedis.JedisPoolConfig;
 
 @Slf4j
 public class HomoJedisPoolCreater {
-    public static HomoRedisPool createPool(){
+    public static HomoJedisPool createPool(){
         try {
             RedisInfoHolder redisInfoHolder = GetBeanUtil.getBean(RedisInfoHolder.class);
             JedisProperties jedisProperties = GetBeanUtil.getBean(JedisProperties.class);

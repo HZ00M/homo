@@ -183,6 +183,11 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <artifactId>homo-service-lock-redis</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
 
             <!--            第三方依赖             -->
             <dependency>

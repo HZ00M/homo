@@ -10,7 +10,6 @@ import org.springframework.util.StreamUtils;
 import java.nio.charset.StandardCharsets;
 
 @Getter
-@Component
 @Slf4j
 public class LuaScriptHelper implements Module {
 

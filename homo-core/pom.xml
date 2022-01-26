@@ -19,11 +19,15 @@
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
+            <artifactId>homo-core-facade</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
             <artifactId>homo-core-utils</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-facade</artifactId>
+            <artifactId>homo-core-concurrent</artifactId>
         </dependency>
     </dependencies>
 </project>

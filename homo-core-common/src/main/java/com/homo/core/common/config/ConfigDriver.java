@@ -11,10 +11,10 @@ public interface ConfigDriver extends Driver {
 
     /**
      *
-     * @param namespace
+     * @param namespaces
      * @param onUpdate
      */
-    void init(String namespace, Runnable onUpdate);
+    void init(String[] namespaces, Runnable onUpdate);
 
     /**
      * 监听key 当key改变时执行 Consumer逻辑
@@ -34,10 +34,28 @@ public interface ConfigDriver extends Driver {
 
     /**
      * 获取配置信息
+     * @param namespace
      * @param key
      * @param defaultValue
-     * @param <T>
      * @return
      */
-    <T> T getProperty(String namespace,String key,T defaultValue);
+    String getProperty(String namespace,String key,String defaultValue);
+
+    /**
+     * 获取配置信息
+     * @param namespace
+     * @param key
+     * @param defaultValue
+     * @return
+     */
+    Integer getIntProperty(String namespace,String key,Integer defaultValue);
+
+    /**
+     * 获取配置信息
+     * @param namespace
+     * @param key
+     * @param defaultValue
+     * @return
+     */
+    Boolean getBoolProperty(String namespace,String key,Boolean defaultValue);
 }

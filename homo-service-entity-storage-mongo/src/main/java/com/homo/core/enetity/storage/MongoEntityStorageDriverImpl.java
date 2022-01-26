@@ -16,7 +16,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -27,7 +26,6 @@ import java.util.stream.Collectors;
  * 文档存储驱动层 由mongoDB实现
  */
 @Slf4j
-@Component
 public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bson,Bson,List<Bson>> {
     @Autowired
     private MongoHelper mongoHelper;

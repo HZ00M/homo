@@ -7,19 +7,20 @@ import com.homo.service.lock.lua.LuaScriptHelper;
 import io.lettuce.core.RedisFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Slf4j
-@Component
 public class RedisLockDriver implements LockDriver {
     @Autowired
     private LuaScriptHelper luaScriptHelper;
-    @Autowired
     private HomoAsyncRedisPool redisPool;
 
     private static final String REDIS_LOCK_TMPL = "lock:{%s:%s:%s:%s}:%s";
+
+    public void init(HomoAsyncRedisPool redisPool){
+        this.redisPool = redisPool;
+    }
 
     @Override
     public void asyncLock(String appId, String regionId, String logicType, String ownerId, String lockField, String lockVal, String uniqueId, Integer expireTime, CallBack<Boolean> callBack) {

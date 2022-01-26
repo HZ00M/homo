@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
@@ -24,7 +23,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 @Slf4j
-@Component
 public class MongoHelper {
     @Autowired
     private MongoDriverProperties properties;
