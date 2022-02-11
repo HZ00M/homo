@@ -23,6 +23,7 @@
         <module>homo-service-entity-storage-mongo</module>
         <module>homo-service-lock-redis</module>
         <module>homo-core-redis-base</module>
+        <module>homo-service-cache-storage-redis</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -185,6 +186,11 @@
             </dependency>
             <dependency>
                 <artifactId>homo-service-lock-redis</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-service-cache-storage-redis</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
