@@ -6,6 +6,7 @@ import com.homo.core.facade.cache.CacheDriver;
 import com.homo.core.facade.lock.LockDriver;
 import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.rector.Homo;
+import com.homo.core.utils.rector.HomoSink;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +57,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         });
     }
 
-    public <T> Homo<Boolean> findAndModify(Integer logicType,
+    public <T> Homo<Boolean> findAndModify(String logicType,
                                                  String ownerId,
                                                  String key,
                                                  F filter,
@@ -78,7 +79,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     public <T, V> Homo<List<V>> aggregate(P pipeline,
                                                 Class<V> viewClazz,
                                                 Class<T> clazz) {
-        return Homo.warp((MonoSink<List<V>> monoSink) -> storage.asyncAggregate(pipeline, viewClazz, clazz, new CallBack<List<V>>() {
+        return Homo.warp((HomoSink<List<V>> monoSink) -> storage.asyncAggregate(pipeline, viewClazz, clazz, new CallBack<List<V>>() {
             @Override
             public void onBack(List<V> result) {
                 monoSink.success(result);
@@ -92,7 +93,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
 
-    public <T> Homo<Pair<Boolean, Map<String, T>>> update(Integer logicType, String ownerId, Class<T> clazz, Map<String, T> keyList) {
+    public <T> Homo<Pair<Boolean, Map<String, T>>> update(String logicType, String ownerId, Class<T> clazz, Map<String, T> keyList) {
         return Homo.warp(monoSink -> storage.updateWithCallBack(getServerInfo().getAppId(),getServerInfo().getRegionId(),logicType, ownerId, keyList, clazz, new CallBack<Pair<Boolean, Map<String, T>>>() {
             @Override
             public void onBack(Pair<Boolean, Map<String, T>> booleanMapMap) {
@@ -106,7 +107,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<Pair<Boolean, Map<String, T>>> update(String appId, String regionId, Integer logicType, String ownerId, Class<T> clazz, Map<String, T> keyList) {
+    public <T> Homo<Pair<Boolean, Map<String, T>>> update(String appId, String regionId, String logicType, String ownerId, Class<T> clazz, Map<String, T> keyList) {
         return Homo.warp(monoSink -> storage.updateWithCallBack(appId, regionId, logicType, ownerId, keyList, clazz, new CallBack<Pair<Boolean, Map<String, T>>>() {
             @Override
             public void onBack(Pair<Boolean, Map<String, T>> booleanMapMap) {
@@ -120,7 +121,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<Boolean> updatePartial(Integer logicType, String ownerId, String key, Class<T> clazz, Map<String, ?> keyList) {
+    public <T> Homo<Boolean> updatePartial(String logicType, String ownerId, String key, Class<T> clazz, Map<String, ?> keyList) {
         return Homo.warp(monoSink -> storage.updatePartialWithCallBack(getServerInfo().getAppId(),getServerInfo().getRegionId(),logicType, ownerId, key, keyList, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean booleanMapMap) {
@@ -134,7 +135,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<Boolean> updatePartial(String appId, String regionId, Integer logicType, String ownerId, String key, Class<T> clazz, Map<String, ?> keyList) {
+    public <T> Homo<Boolean> updatePartial(String appId, String regionId, String logicType, String ownerId, String key, Class<T> clazz, Map<String, ?> keyList) {
         return Homo.warp(monoSink -> storage.updatePartialWithCallBack(appId, regionId, logicType, ownerId, key, keyList, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean booleanMapMap) {
@@ -148,7 +149,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<T> save(Integer logicType, String ownerId, String key, T data, Class<T> clazz) {
+    public <T> Homo<T> save(String logicType, String ownerId, String key, T data, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.save(getServerInfo().getAppId(),getServerInfo().getRegionId(),logicType, ownerId, key, data, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
@@ -166,7 +167,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<T> save(String appId, String regionId, Integer logicType, String ownerId, String key, T data, Class<T> clazz) {
+    public <T> Homo<T> save(String appId, String regionId, String logicType, String ownerId, String key, T data, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.save(appId, regionId, logicType, ownerId, key, data, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
@@ -184,7 +185,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<T> get(Integer logicType, String ownerId, String key, Class<T> clazz) {
+    public <T> Homo<T> get(String logicType, String ownerId, String key, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.get(logicType, ownerId, key, clazz, new CallBack<T>() {
             @Override
             public void onBack(T bytes) {
@@ -198,7 +199,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<T> get(String appId, String regionId, Integer logicType, String ownerId, String key, Class<T> clazz) {
+    public <T> Homo<T> get(String appId, String regionId, String logicType, String ownerId, String key, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.get(appId, regionId, logicType, ownerId, key, clazz, new CallBack<T>() {
             @Override
             public void onBack(T bytes) {
@@ -212,7 +213,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<Map<String, T>> get(Integer logicType, String ownerId, List<String> keyList, Class<T> clazz) {
+    public <T> Homo<Map<String, T>> get(String logicType, String ownerId, List<String> keyList, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.get(logicType, ownerId, keyList, clazz, new CallBack<Map<String, T>>() {
             @Override
             public void onBack(Map<String, T> stringMap) {
@@ -226,7 +227,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<Map<String, T>> get(String appId, String regionId, Integer logicType, String ownerId, List<String> keyList, Class<T> clazz) {
+    public <T> Homo<Map<String, T>> get(String appId, String regionId, String logicType, String ownerId, List<String> keyList, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.get(appId, regionId, logicType, ownerId, keyList, clazz, new CallBack<Map<String, T>>() {
             @Override
             public void onBack(Map<String, T> stringMap) {
@@ -240,7 +241,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<Map<String, T>> getAllKeysAndVal(Integer logicType, String ownerId, Class<T> clazz) {
+    public <T> Homo<Map<String, T>> getAllKeysAndVal(String logicType, String ownerId, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.getAllKeysAndVal(logicType, ownerId, clazz, new CallBack<Map<String, T>>() {
             @Override
             public void onBack(Map<String, T> stringMap) {
@@ -254,7 +255,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<Map<String, T>> getAllKeysAndVal(String appId, String regionId, Integer logicType, String ownerId, Class<T> clazz) {
+    public <T> Homo<Map<String, T>> getAllKeysAndVal(String appId, String regionId, String logicType, String ownerId, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.getAllKeysAndVal(appId, regionId, logicType, ownerId, clazz, new CallBack<Map<String, T>>() {
             @Override
             public void onBack(Map<String, T> stringMap) {
@@ -268,7 +269,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<List<String>> removeKeys(Integer logicType, String ownerId, List<String> keys, Class<T> clazz) {
+    public <T> Homo<List<String>> removeKeys(String logicType, String ownerId, List<String> keys, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.removeKeys(logicType, ownerId, keys, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
@@ -286,7 +287,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<List<String>> removeKeys(String appId, String regionId, Integer logicType, String ownerId, List<String> keys, Class<T> clazz) {
+    public <T> Homo<List<String>> removeKeys(String appId, String regionId, String logicType, String ownerId, List<String> keys, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.removeKeys(appId, regionId, logicType, ownerId, keys, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
@@ -304,7 +305,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<Map<String, Long>> incr(String appId, String regionId, Integer logicType, String ownerId, String key, Map<String, Long> incrData, Class<T> clazz) {
+    public <T> Homo<Map<String, Long>> incr(String appId, String regionId, String logicType, String ownerId, String key, Map<String, Long> incrData, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.incr(appId, regionId, logicType, ownerId, key, incrData, clazz, new CallBack<Pair<Boolean, Map<String, Long>>>() {
             @Override
             public void onBack(Pair<Boolean, Map<String, Long>> booleanMapPair) {
@@ -322,7 +323,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         }));
     }
 
-    public <T> Homo<Long> incr(Integer logicType, String ownerId, String incrKey, Class<T> clazz) {
+    public <T> Homo<Long> incr(String logicType, String ownerId, String incrKey, Class<T> clazz) {
         return Homo.warp(monoSink -> storage.incr(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, incrKey, clazz, new CallBack<Pair<Boolean, Long>>() {
             @Override
             public void onBack(Pair<Boolean, Long> booleanLongPair) {
@@ -358,7 +359,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
 
     public Homo<Boolean> asyncLock(String logicType, String ownerId,
                                          String lockField, String lockVal, String uniqueId, Integer expireTime, Integer retryCount, Integer retryDelaySecond) {
-        return Homo.warp((MonoSink<Boolean> monoSink) -> storage.asyncLock(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, lockField, lockVal, uniqueId, expireTime, new CallBack<Boolean>() {
+        return Homo.warp((HomoSink<Boolean> monoSink) -> storage.asyncLock(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, lockField, lockVal, uniqueId, expireTime, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
                 if (aBoolean) {

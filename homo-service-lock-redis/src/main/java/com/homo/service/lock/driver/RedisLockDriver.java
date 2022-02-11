@@ -34,7 +34,9 @@ public class RedisLockDriver implements LockDriver {
         argList[0] = String.valueOf(expireTime);
         argList[1] = uniqueId;
         RedisFuture<Object> future = redisPool.evalAsync(lockScript, keyList, argList);
-        future.whenComplete((result,throwable)-> log.info("asyncLock redis completed"))
+        future.whenComplete((result,throwable)-> {
+            log.info("asyncLock redis completed result_{}",result,throwable);
+        })
                 .thenRunAsync(()->{
                     try {
                         Object result = future.get();

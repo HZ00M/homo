@@ -39,11 +39,12 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(supplier.get());
     }
 
-    public static <T> Homo<T> warp(ConsumerEx<MonoSink<T>> callback) {
+    public static <T> Homo<T> warp(ConsumerEx<HomoSink<T>> callback) {
         Consumer<MonoSink<T>> consumer =
                 sink -> {
                     try {
-                        callback.accept(sink);
+                        HomoSink<T> homoSink = new HomoSink<>(sink);
+                        callback.accept(homoSink);
                     } catch (Exception e) {
                         e.printStackTrace();
                         sink.error(e);

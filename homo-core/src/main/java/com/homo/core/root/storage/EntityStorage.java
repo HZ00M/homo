@@ -70,7 +70,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param callBack      回调返回结果
      */
     public <T> void asyncFindAndModify(
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             F filter,
@@ -144,7 +144,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void getAllKeysAndVal(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             Class<T> clazz,
             CallBack<Map<String, T>> callBack) {
@@ -164,7 +164,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param clazz     文档对象类型
      * @param callBack       回调返回结果
      */
-    public <T> void getAllKeysAndVal(Integer logicType,
+    public <T> void getAllKeysAndVal(String logicType,
                                      String ownerId,
                                      Class<T> clazz,
                                      CallBack<Map<String, T>> callBack) {
@@ -186,7 +186,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param callBack       回调详细结果
      */
     public <T> void updateWithCallBack(
-            Integer logicType,
+            String logicType,
             String ownerId,
             Map<String, T> data,
             Class<T> clazz,
@@ -215,7 +215,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void updateWithCallBack(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             Map<String, T> data,
             Class<T> clazz,
@@ -242,7 +242,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void update(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             Class<T> clazz,
             Map<String, T> data) {
@@ -274,7 +274,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param clazz     文档对象类型
      * @param data      待保存数据
      */
-    public <T> void update(Integer logicType,
+    public <T> void update(String logicType,
                            String ownerId,
                            Class<T> clazz,
                            Map<String, T> data) {
@@ -307,7 +307,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param callBack       回调详细结果
      */
     public <T> void updatePartialWithCallBack(
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             Map<String, ?> data,
@@ -338,7 +338,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void updatePartialWithCallBack(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             Map<String, ?> data,
@@ -367,7 +367,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void updatePartial(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             Map<String, ?> data,
@@ -402,7 +402,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param data      待保存数据
      * @param clazz     文档对象类型
      */
-    public <T> void updatePartial(Integer logicType,
+    public <T> void updatePartial(String logicType,
                                   String ownerId,
                                   String key,
                                   Map<String, ?> data, Class<T> clazz) {
@@ -440,7 +440,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void saveWithDetailcallBack(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             T value,
@@ -478,7 +478,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param callBack       回调详细结果
      */
     public <T> void saveWithDetailcallBack(
-            Integer logicType, String ownerId, String key, T value, Class<T> clazz, CallBack<Pair<Boolean, T>> callBack) {
+            String logicType, String ownerId, String key, T value, Class<T> clazz, CallBack<Pair<Boolean, T>> callBack) {
         saveWithDetailcallBack(
                 getServerInfo().getAppId(),
                 getServerInfo().getRegionId(),
@@ -505,7 +505,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void save(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             T value,
@@ -538,7 +538,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param clazz     文档对象类型
      * @param callBack       回调成功失败结果
      */
-    public <T> void save(Integer logicType, String ownerId, String key, T value, Class<T> clazz, CallBack<Boolean> callBack) {
+    public <T> void save(String logicType, String ownerId, String key, T value, Class<T> clazz, CallBack<Boolean> callBack) {
         save(
                 getServerInfo().getAppId(),
                 getServerInfo().getRegionId(),
@@ -564,7 +564,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void get(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             List<String> keyList,
             Class<T> clazz,
@@ -583,7 +583,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param callBack       回调返回值列表
      */
     public <T> void get(
-            Integer logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack) {
+            String logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack) {
         storageDriver.asyncGet(
                 getServerInfo().getAppId(),
                 getServerInfo().getRegionId(),
@@ -608,7 +608,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void get(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             Class<T> clazz,
@@ -643,7 +643,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param clazz     文档对象类型
      * @param callBack       回调返回值
      */
-    public <T> void get(Integer logicType,
+    public <T> void get(String logicType,
                         String ownerId,
                         String key,
                         Class<T> clazz,
@@ -672,7 +672,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void incr(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             Map<String, Long> incrData,
@@ -698,7 +698,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param callBack       回调返回新值列表
      */
     public <T> void incr(
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             Map<String, Long> incrData,
@@ -721,7 +721,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void incr(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             Class<T> clazz,
@@ -752,7 +752,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     }
 
     public <T> void incr(
-            Integer logicType,
+            String logicType,
             String ownerId,
             String key,
             Class<T> clazz,
@@ -788,7 +788,7 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void removeKeys(
             String appId,
             String regionId,
-            Integer logicType,
+            String logicType,
             String ownerId,
             List<String> remKeys,
             Class<T> clazz,
@@ -806,7 +806,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param callBack       回调返回是否删除成功
      */
     public <T> void removeKeys(
-            Integer logicType,
+            String logicType,
             String ownerId,
             List<String> remKeys,
             Class<T> clazz,

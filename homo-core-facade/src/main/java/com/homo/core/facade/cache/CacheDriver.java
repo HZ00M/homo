@@ -20,7 +20,7 @@ public interface CacheDriver extends Driver {
      * @param keyList key列表
      * @return 返回值列表
      */
-    void asyncGet(String appId, String regionId, Integer logicType , String ownerId, List<String> keyList, CallBack<Map<String,byte[]>> callBack);
+    void asyncGet(String appId, String regionId, String logicType , String ownerId, List<String> keyList, CallBack<Map<String,byte[]>> callBack);
 
     /**
      * 获得所有key 和 value
@@ -30,7 +30,7 @@ public interface CacheDriver extends Driver {
      * @param ownerId   ID
      * @return 详细结果
      */
-    void asyncGetAll(String appId, String regionId, Integer logicType, String ownerId, CallBack<Pair<Boolean,Map<String,byte[]>>> callBack);
+    void asyncGetAll(String appId, String regionId, String logicType, String ownerId, CallBack<Pair<Boolean,Map<String,byte[]>>> callBack);
 
     /**
      * 更新多key,value数据，通过响应式返回详细结果
@@ -41,7 +41,7 @@ public interface CacheDriver extends Driver {
      * @param data 待保存数据
      * @return 详细结果
      */
-     void asyncUpdate(String appId, String regionId, Integer logicType, String ownerId, Map<String, byte[]> data,CallBack<Pair<Boolean,Map<String,byte[]>>> callBack);
+     void asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data,CallBack<Pair<Boolean,Map<String,byte[]>>> callBack);
 
     /**
      * 更新多key,value数据（带过期时间，并通过响应式返回详细结果
@@ -53,7 +53,7 @@ public interface CacheDriver extends Driver {
      * @param expireSeconds 超时时间,0为不超时
      * @return
      */
-     void asyncUpdate(String appId, String regionId, Integer logicType, String ownerId, Map<String, byte[]> data,long expireSeconds,CallBack<Pair<Boolean,Map<String,byte[]>>> callBack);
+     void asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data,long expireSeconds,CallBack<Pair<Boolean,Map<String,byte[]>>> callBack);
 
     /**
      * 增加key列表的值
@@ -64,7 +64,7 @@ public interface CacheDriver extends Driver {
      * @param incrData 指定key的值列表
      * @return
      */
-     void asyncIncr(String appId, String regionId, Integer logicType, String ownerId,Map<String,Long> incrData,CallBack<Pair<Boolean,Map<String,Long>>> callBack);
+     void asyncIncr(String appId, String regionId, String logicType, String ownerId,Map<String,Long> incrData,CallBack<Pair<Boolean,Map<String,Long>>> callBack);
 
     /**
      * 删除key列表的值
@@ -75,5 +75,5 @@ public interface CacheDriver extends Driver {
      * @param remKeys 指定key的值列表
      * @return
      */
-    void asyncRemove(String appId, String regionId, Integer logicType, String ownerId, List<String> remKeys,CallBack<Boolean> callBack);
+    void asyncRemove(String appId, String regionId, String logicType, String ownerId, List<String> remKeys,CallBack<Boolean> callBack);
 }

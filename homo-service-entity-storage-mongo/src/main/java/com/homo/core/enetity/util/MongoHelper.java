@@ -24,20 +24,24 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 @Slf4j
 public class MongoHelper {
-    @Autowired
+
     private MongoDriverProperties properties;
-    @Autowired
+
     private MongoClient mongoClient;
     @Getter
     protected MongoDatabase mongoDatabase;
+
+    public MongoHelper(MongoDriverProperties properties,MongoClient mongoClient){
+        this.properties = properties;
+        this.mongoClient = mongoClient;
+    }
 
     /**
      * ConcurrentSkipListSet是线程安全的有序的集合，适用于高并发的场景。
      */
     private volatile Set<String> collectSet = new ConcurrentSkipListSet<>();
 
-    @PostConstruct
-    void init() {
+    public void init() {
         mongoDatabase = mongoClient.getDatabase(properties.getDatabase());
     }
 
@@ -51,7 +55,7 @@ public class MongoHelper {
      * @param ownerId      所属id
      * @return Bson 格式的更新内容
      */
-    public <T> Bson getDefaultUpdateBson(String primaryValue, String key, T values, Integer logicType, String ownerId) {
+    public <T> Bson getDefaultUpdateBson(String primaryValue, String key, T values, String logicType, String ownerId) {
         return Updates.combine(Updates.set(Key.PRIMARY_KEY, primaryValue),
                 Updates.set(Key.KEY_KEY, key),
                 Updates.set(Key.VALUE_KEY, values),
@@ -69,7 +73,7 @@ public class MongoHelper {
      * @param ownerId      所属id
      * @return Bson格式的自增内容
      */
-    public Bson getDefaultIncrBson(String primaryValue, String key, Long incrValue, Integer logicType, String ownerId) {
+    public Bson getDefaultIncrBson(String primaryValue, String key, Long incrValue, String logicType, String ownerId) {
         return Updates.combine(Updates.set(Key.PRIMARY_KEY, primaryValue),
                 Updates.set(Key.KEY_KEY, key),
                 Updates.inc(Key.VALUE_KEY, incrValue),

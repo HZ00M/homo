@@ -5,9 +5,9 @@ package com.homo.core.enetity.util;
  * @author aisen
  */
 public final class Key {
-    private final static String COLLECTION_FORMAT = "_col_%s_%s";
-    private final static String PRIMARY_FORMAT = "_primary_%d_%s_%s";
-    private final static String QUERY_ALL_FORMAT = "_query_%d_%s";
+    private final static String COLLECTION_FORMAT = "col_%s_%s";        //col_appId_regionId
+    private final static String PRIMARY_FORMAT = "primary_%s_%s_%s";    //primary_logic_ownerId_key
+    private final static String QUERY_ALL_FORMAT = "query_%s_%s";       //query_logic_ownerId
 
     public static final String PRIMARY_KEY = "primaryKey";
     public static final String DELETE_KEY = "isDel";
@@ -22,11 +22,11 @@ public final class Key {
         return String.format(COLLECTION_FORMAT,appId,regionId);
     }
 
-    public static String getQueryAllValue(Integer logicType, String ownerId){
+    public static String getQueryAllValue(String logicType, String ownerId){
         return String.format(QUERY_ALL_FORMAT,logicType,ownerId );
     }
 
-    public static String getPrimaryValue(Integer logicType, String ownerId, String key){
+    public static String getPrimaryValue(String logicType, String ownerId, String key){
         return String.format(PRIMARY_FORMAT,logicType,ownerId,key);
     }
 }

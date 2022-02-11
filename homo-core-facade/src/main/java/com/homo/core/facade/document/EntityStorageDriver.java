@@ -28,7 +28,7 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param clazz 文档对象类型
      * @param callBack 回调返回结果
      */
-    <T> void asyncFindAndModify(Integer logicType, String ownerId,String key,F filter, U update, Class<T> clazz, CallBack<Boolean> callBack);
+    <T> void asyncFindAndModify(String logicType, String ownerId,String key,F filter, U update, Class<T> clazz, CallBack<Boolean> callBack);
 
     /**
      * 异步聚合
@@ -49,7 +49,7 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param clazz     文档对象类型
      * @param callBack       回调返回结果
      */
-    <T> void asyncGetAllKeysAndVal(String appId, String regionId, Integer logicType, String ownerId, Class<T> clazz, CallBack<Map<String, T>> callBack);
+    <T> void asyncGetAllKeysAndVal(String appId, String regionId, String logicType, String ownerId, Class<T> clazz, CallBack<Map<String, T>> callBack);
 
     /**
      * 更新多key多value数据（全量更新数据），通过回调返回详细结果
@@ -62,7 +62,7 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param clazz     文档对象类型
      * @param callBack       回调详细结果
      */
-    <T> void asyncUpdate(String appId, String regionId, Integer logicType, String ownerId, Map<String, T> data, Class<T> clazz, CallBack<Pair<Boolean, Map<String, T>>> callBack);
+    <T> void asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, T> data, Class<T> clazz, CallBack<Pair<Boolean, Map<String, T>>> callBack);
 
     /**
      * 更新单key的value数据（增量更新数据），通过回调返回详细结果
@@ -75,7 +75,7 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param clazz     文档对象类型
      * @param callBack       回调详细结果
      */
-    <T> void asyncUpdatePartial(String appId, String regionId, Integer logicType, String ownerId, String key, Map<String, ?> data, Class<T> clazz, CallBack<Boolean> callBack);
+    <T> void asyncUpdatePartial(String appId, String regionId, String logicType, String ownerId, String key, Map<String, ?> data, Class<T> clazz, CallBack<Boolean> callBack);
 
     /**
      * 通过key列表获取value
@@ -88,7 +88,7 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param clazz     文档对象类型
      * @param callBack       回调返回值列表
      */
-    <T> void asyncGet(String appId, String regionId, Integer logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack);
+    <T> void asyncGet(String appId, String regionId, String logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack);
 
     /**
      * 增加key列表的值
@@ -101,7 +101,7 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param clazz     文档对象类型
      * @param callBack       回调返回新值列表
      */
-    <T> void asyncIncr(String appId, String regionId, Integer logicType, String ownerId, String key, Map<String, Long> incrData, Class<T> clazz, CallBack<Pair<Boolean, Map<String, Long>>> callBack);
+    <T> void asyncIncr(String appId, String regionId, String logicType, String ownerId, String key, Map<String, Long> incrData, Class<T> clazz, CallBack<Pair<Boolean, Map<String, Long>>> callBack);
 
     /**
      * 逻辑删除key列表的值
@@ -114,5 +114,5 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param clazz     文档对象类型
      * @param callBack       回调返回是否删除成功
      */
-    <T> void asyncRemoveKeys(String appId, String regionId, Integer logicType, String ownerId, List<String> remKeys, Class<T> clazz, CallBack<Boolean> callBack);
+    <T> void asyncRemoveKeys(String appId, String regionId, String logicType, String ownerId, List<String> remKeys, Class<T> clazz, CallBack<Boolean> callBack);
 }
