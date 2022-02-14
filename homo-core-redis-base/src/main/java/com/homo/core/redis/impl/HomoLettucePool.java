@@ -36,7 +36,7 @@ public class HomoLettucePool implements HomoAsyncRedisPool {
     public HomoLettucePool(RedisClient redisClient){
         this.redisClient =redisClient;
         this.connection = redisClient.connect();
-        this.redisClient.connect(ByteArrayCodec.INSTANCE);
+        this.byteConnection = this.redisClient.connect(ByteArrayCodec.INSTANCE);
         this.stringByteConnection = redisClient.connect(new RedisCodec<String, byte[]>() {
             @Override
             public String decodeKey(ByteBuffer bytes) {

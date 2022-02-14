@@ -87,7 +87,7 @@ public class RedisCacheDriver implements CacheDriver {
 
     @Override
     public void asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data, CallBack<Boolean> callBack) {
-        log.info("asyncUpdate start, appId_{} regionId_{} logicType_{} ownerId_{}, keys_{}", appId, regionId, logicType, ownerId, data.keySet());
+        log.trace("asyncUpdate start, appId_{} regionId_{} logicType_{} ownerId_{}, keys_{}", appId, regionId, logicType, ownerId, data.keySet());
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         Map<byte[], byte[]> dataMap = new HashMap<>(data.size());
         for (String key : data.keySet()) {
@@ -132,8 +132,8 @@ public class RedisCacheDriver implements CacheDriver {
             resultFlux.subscribe(
                     result -> {
                         try {
+                            callBack.onBack(Boolean.TRUE);
                             log.trace("asyncUpdate end, appId_{} regionId_{} logicType_{} ownerId_{} expireSeconds_{}", appId, regionId, logicType, ownerId, expireSeconds);
-
                         } catch (Exception e) {
                             callBack.onError(e);
                         }
@@ -180,7 +180,7 @@ public class RedisCacheDriver implements CacheDriver {
 
     @Override
     public void asyncRemoveKeys(String appId, String regionId, String logicType, String ownerId, List<String> remKeys, CallBack<Boolean> callBack) {
-        log.info("asyncRemoveKeys start, appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
+        log.trace("asyncRemoveKeys start, appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         byte[][] keys = new byte[remKeys.size()][];
         int index = 0;
@@ -196,7 +196,7 @@ public class RedisCacheDriver implements CacheDriver {
                 }
                 //返回值:被成功移除的域的数量，不包括被忽略的域。
                 callBack.onBack(true);
-                log.info("asyncRemoveKeys end, appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
+                log.trace("asyncRemoveKeys end, appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
             }catch (Exception e){
                 callBack.onError(e);
             }

@@ -27,7 +27,7 @@ public class LuaScriptHelper implements Module {
             lockScript = StreamUtils.copyToString(new ClassPathResource("lua/lock.lua").getInputStream(), StandardCharsets.UTF_8);
             unLockScript = StreamUtils.copyToString(new ClassPathResource("lua/unlock.lua").getInputStream(), StandardCharsets.UTF_8);
             updateKeysExpireScript = StreamUtils.copyToString(new ClassPathResource("lua/updateKeysExpire.lua").getInputStream(), StandardCharsets.UTF_8);
-            incrScript = StreamUtils.copyToString(new ClassPathResource("lua/incrScript.lua").getInputStream(), StandardCharsets.UTF_8);
+            incrScript = StreamUtils.copyToString(new ClassPathResource("lua/incr.lua").getInputStream(), StandardCharsets.UTF_8);
 
         } catch (Exception e) {
             log.error("LuaScriptHelper init load lua exception: ", e);
