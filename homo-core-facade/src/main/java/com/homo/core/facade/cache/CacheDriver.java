@@ -10,7 +10,7 @@ import java.util.Map;
 
 public interface CacheDriver extends Driver {
     /**
-     * 获得所有key 和 value
+     * 获得指定key
      * @param appId     游戏id
      * @param regionId  区服id
      * @param logicType 逻辑类型
@@ -18,7 +18,7 @@ public interface CacheDriver extends Driver {
      * @param keyList   key列表
      * @return 详细结果
      */
-    void asyncGetKeys(String appId, String regionId, String logicType, String ownerId,List<String> keyList, CallBack<Map<String,byte[]>> callBack);
+    void asyncGetByKeys(String appId, String regionId, String logicType, String ownerId, List<String> keyList, CallBack<Map<String,byte[]>> callBack);
 
     /**
      * 获得所有key 和 value

@@ -103,6 +103,9 @@ public class MongoHelper {
         Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
         String collectionName = document == null ? clazz.getSimpleName() : document.collectionName();
         List<IndexModel> indexes;
+        if (collectSet.contains(collectionName)){
+            return;
+        }
         if (document != null) {
             indexes = getIndexes(document);
         } else {

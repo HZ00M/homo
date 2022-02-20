@@ -30,7 +30,7 @@ public class RedisCacheDriver implements CacheDriver {
     LuaScriptHelper luaScriptHelper;
 
     @Override
-    public void asyncGetKeys(String appId, String regionId, String logicType, String ownerId, List<String> keyList, CallBack<Map<String, byte[]>> callBack) {
+    public void asyncGetByKeys(String appId, String regionId, String logicType, String ownerId, List<String> keyList, CallBack<Map<String, byte[]>> callBack) {
         log.trace("asyncGet start, appId_{} regionId_{} logicType_{} ownerId_{}, keyList_{}", appId, regionId, logicType, ownerId, keyList);
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         byte[][] fields = new byte[keyList.size()][];

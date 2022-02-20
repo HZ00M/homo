@@ -7,9 +7,20 @@ import com.homo.core.utils.lang.Pair;
 import java.util.List;
 import java.util.Map;
 
-;
 
 public interface StorageDriver extends Driver {
+
+    /**
+     * 通过key列表获取value
+     * @param appId     appid
+     * @param regionId  regionId
+     * @param logicType 逻辑类型
+     * @param ownerId   ID
+     * @param keyList key列表
+     * @param callBack 回调返回值列表
+     */
+    void asyncGetByKeys(String appId, String regionId, String logicType, String ownerId, List<String> keyList, CallBack<Map<String, byte[]>> callBack);
+
     /**
      * 获得所有key 和 value
      *
@@ -19,7 +30,7 @@ public interface StorageDriver extends Driver {
      * @param ownerId   ID
      * @param callBack       回调返回结果
      */
-    void getAllKeysAndVal(String appId, String regionId, String logicType, String ownerId, CallBack<Map<String, byte[]>> callBack);
+    void asyncGetAll(String appId, String regionId, String logicType, String ownerId, CallBack<Map<String, byte[]>> callBack);
     /**
      * 更新多key,value数据，通过回调返回详细结果
      *
@@ -30,17 +41,8 @@ public interface StorageDriver extends Driver {
      * @param data 待保存数据
      * @param callBack       回调详细结果
      */
-    void update(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data, CallBack<Pair<Boolean, Map<String, byte[]>>> callBack);
-    /**
-     * 通过key列表获取value
-     * @param appId     appid
-     * @param regionId  regionId
-     * @param logicType 逻辑类型
-     * @param ownerId   ID
-     * @param keyList key列表
-     * @param callBack 回调返回值列表
-     */
-    void asyncGet(String appId, String regionId, String logicType, String ownerId, List<String> keyList, CallBack<Map<String, byte[]>> callBack);
+    void asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data, CallBack<Pair<Boolean, Map<String, byte[]>>> callBack);
+
     /**
      * 增加key列表的值
      * @param appId     appid
