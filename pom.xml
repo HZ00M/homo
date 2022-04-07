@@ -24,6 +24,7 @@
         <module>homo-service-lock-redis</module>
         <module>homo-core-redis-base</module>
         <module>homo-service-cache-storage-redis</module>
+        <module>homo-service-persistence-storage-redis-mysql</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -77,6 +78,7 @@
         <quartz.version>2.2.3</quartz.version>
         <dropwizard.metrics.version>3.2.2</dropwizard.metrics.version>
         <jetlang.version>0.2.9</jetlang.version>
+        <jodis.version>0.4.1</jodis.version>
     </properties>
 
 
@@ -194,6 +196,15 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <artifactId>homo-service-persistence-storage-redis-mysql</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+
+
+
+
 
             <!--            第三方依赖             -->
             <dependency>
@@ -297,7 +308,7 @@
             <dependency>
                 <groupId>io.codis.jodis</groupId>
                 <artifactId>jodis</artifactId>
-                <version>0.4.1</version>
+                <version>${jodis.version}</version>
                 <scope>compile</scope>
             </dependency>
 

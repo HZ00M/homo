@@ -40,6 +40,19 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
     <T, V> void asyncAggregate(P pipeLine, Class<V> viewClazz, Class<T> clazz, CallBack<List<V>> callBack);
 
     /**
+     * 通过key列表获取value
+     *
+     * @param appId     appid
+     * @param regionId  regionId
+     * @param logicType 逻辑类型
+     * @param ownerId   ID
+     * @param keyList   key列表
+     * @param clazz     文档对象类型
+     * @param callBack       回调返回值列表
+     */
+    <T> void asyncGetByKeys(String appId, String regionId, String logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack);
+
+    /**
      * 获得同一路径下所有key 和 value
      *
      * @param appId     appid
@@ -49,7 +62,7 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param clazz     文档对象类型
      * @param callBack       回调返回结果
      */
-    <T> void asyncGetAllKeysAndVal(String appId, String regionId, String logicType, String ownerId, Class<T> clazz, CallBack<Map<String, T>> callBack);
+    <T> void asyncGetAll(String appId, String regionId, String logicType, String ownerId, Class<T> clazz, CallBack<Map<String, T>> callBack);
 
     /**
      * 更新多key多value数据（全量更新数据），通过回调返回详细结果
@@ -77,18 +90,6 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      */
     <T> void asyncUpdatePartial(String appId, String regionId, String logicType, String ownerId, String key, Map<String, ?> data, Class<T> clazz, CallBack<Boolean> callBack);
 
-    /**
-     * 通过key列表获取value
-     *
-     * @param appId     appid
-     * @param regionId  regionId
-     * @param logicType 逻辑类型
-     * @param ownerId   ID
-     * @param keyList   key列表
-     * @param clazz     文档对象类型
-     * @param callBack       回调返回值列表
-     */
-    <T> void asyncGet(String appId, String regionId, String logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack);
 
     /**
      * 增加key列表的值

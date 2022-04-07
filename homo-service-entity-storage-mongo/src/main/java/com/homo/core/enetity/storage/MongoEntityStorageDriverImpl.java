@@ -38,7 +38,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
             mongoHelper.checkIndex(clazz);
             Bson filterExpr;
             if (filter != null) {
-                filterExpr = Filters.and(Filters.eq(Key.DELETE_KEY, Key.DELETED_FALSE), filter);
+                filterExpr = Filters.and(filter,Filters.eq(Key.DELETE_KEY, Key.DELETED_FALSE));
             } else {
                 filterExpr = Filters.and(Filters.eq(Key.DELETE_KEY, Key.DELETED_FALSE));
             }
@@ -155,7 +155,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
 
 
     @Override
-    public <T> void asyncGetAllKeysAndVal(String appId, String regionId, String logicType, String ownerId, Class<T> clazz, CallBack<Map<String, T>> callBack) {
+    public <T> void asyncGetAll(String appId, String regionId, String logicType, String ownerId, Class<T> clazz, CallBack<Map<String, T>> callBack) {
         log.info("getAllKeysAndVal, appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
         try {
             MongoDatabase mongoDatabase = mongoHelper.getMongoDatabase();
@@ -230,7 +230,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
     }
 
     @Override
-    public <T> void asyncGet(String appId, String regionId, String logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack) {
+    public <T> void asyncGetByKeys(String appId, String regionId, String logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack) {
         log.info("asyncGet, appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
         try {
             Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
@@ -274,15 +274,27 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
                                 Updates.set(Key.DELETE_KEY, Key.DELETED_FALSE),
                                 Updates.set(Key.QUERY_ALL_KEY, Key.getQueryAllValue(logicType, ownerId)));
                         return Mono.from(mongoHelper.getMongoDatabase().getCollection(collectionName)
-                                .findOneAndUpdate(Filters.eq(Key.PRIMARY_KEY, primaryValue), incr, options));
+                                .findOneAndUpdate(Filters.eq(Key.PRIMARY_KEY, primaryValue), incr, options)
+                        ).map(doc-> new ImmutablePair<>(dataEntry.getKey(),getEmbeddedValue(doc,dataEntry.getKey())));
                     })
-                    .collectMap(doc ->
-                            doc.getString(Key.KEY_KEY), doc -> 1L)
+                    .collectMap(ImmutablePair::getLeft, ImmutablePair::getRight)
                     .subscribe(relMap -> callBack.onBack(new ImmutablePair<>(true, relMap)), callBack::onError);
         } catch (Exception e) {
             log.error("asyncIncr catch Exception ", e);
             callBack.onError(e);
         }
+    }
+
+    private Long getEmbeddedValue(org.bson.Document doc, String key){
+        String[] keys = key.split("\\.");
+        for (int i  =0 ; i < keys.length; i ++){
+            if(i == (keys.length - 1)){
+                return doc.getLong(keys[i]);
+            }else{
+                doc = doc.get(keys[i], org.bson.Document.class);
+            }
+        }
+        throw new RuntimeException("should not reach here!");
     }
 
     @Override

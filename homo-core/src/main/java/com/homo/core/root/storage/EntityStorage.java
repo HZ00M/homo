@@ -148,7 +148,7 @@ public class EntityStorage<F, S, U, P> implements Module {
             String ownerId,
             Class<T> clazz,
             CallBack<Map<String, T>> callBack) {
-        storageDriver.asyncGetAllKeysAndVal(appId,
+        storageDriver.asyncGetAll(appId,
                 regionId,
                 logicType,
                 ownerId,
@@ -168,7 +168,7 @@ public class EntityStorage<F, S, U, P> implements Module {
                                      String ownerId,
                                      Class<T> clazz,
                                      CallBack<Map<String, T>> callBack) {
-        storageDriver.asyncGetAllKeysAndVal(
+        storageDriver.asyncGetAll(
                 getServerInfo().getAppId(),
                 getServerInfo().getRegionId(),
                 logicType,
@@ -569,7 +569,7 @@ public class EntityStorage<F, S, U, P> implements Module {
             List<String> keyList,
             Class<T> clazz,
             CallBack<Map<String, T>> callBack) {
-        storageDriver.asyncGet(appId, regionId, logicType, ownerId, keyList, clazz,
+        storageDriver.asyncGetByKeys(appId, regionId, logicType, ownerId, keyList, clazz,
                 callBack);
     }
 
@@ -584,7 +584,7 @@ public class EntityStorage<F, S, U, P> implements Module {
      */
     public <T> void get(
             String logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack) {
-        storageDriver.asyncGet(
+        storageDriver.asyncGetByKeys(
                 getServerInfo().getAppId(),
                 getServerInfo().getRegionId(),
                 logicType,

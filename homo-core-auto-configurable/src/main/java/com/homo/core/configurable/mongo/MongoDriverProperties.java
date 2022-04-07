@@ -13,14 +13,14 @@ public class MongoDriverProperties {
     private String connString;
     @Value("${database:homo_storage}")
     private String database;
-    @Value("${connPool.minSize:1}")
+    @Value("${minSize:1}")
     private Integer minSize;
-    @Value("${connPool.maxSize:100}")
+    @Value("${maxSize:100}")
     private Integer maxSize;
-    @Value("${connPool.maxWaitTime:100}")
+    @Value("${maxWaitTime:100}")
     private Long maxWaitTime;
-    @Value("${connPool.maxConnectionIdleTime:10000}")
+    @Value("${maxConnectionIdleTime:10000}")
     private Long maxConnectionIdleTime;
-    @Value("${connPool.maxConnectionLifeTime:60000}")
+    @Value("${maxConnectionLifeTime:60000}")
     private Long maxConnectionLifeTime;
 }

@@ -16,8 +16,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -26,6 +28,10 @@ import java.util.concurrent.TimeUnit;
 public class MongoDriverAutoConfigure {
     @Autowired
     MongoDriverProperties mongoDriverProperties;
+    @Autowired
+    @Lazy
+    private MongoClient mongoClient;
+
     @Bean("mongoClient")
     public MongoClient mongoClient() {
         log.info("MongoClient post construct");
@@ -34,28 +40,36 @@ public class MongoDriverAutoConfigure {
         MongoClientSettings settings = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(mongoDriverProperties.getConnString()))
                 .applyToConnectionPoolSettings(builder -> {
-                    builder.minSize(30)
-                            .maxSize(30)
+                    builder.minSize(mongoDriverProperties.getMinSize())
+                            .maxSize(mongoDriverProperties.getMaxSize())
                             .maxWaitTime(mongoDriverProperties.getMaxWaitTime(), TimeUnit.MILLISECONDS)
-                            .maxConnectionIdleTime(mongoDriverProperties.getMaxConnectionIdleTime(),TimeUnit.MILLISECONDS)
-                            .maxConnectionLifeTime(mongoDriverProperties.getMaxConnectionLifeTime(),TimeUnit.MILLISECONDS);
+                            .maxConnectionIdleTime(mongoDriverProperties.getMaxConnectionIdleTime(), TimeUnit.MILLISECONDS)
+                            .maxConnectionLifeTime(mongoDriverProperties.getMaxConnectionLifeTime(), TimeUnit.MILLISECONDS);
                 })
                 .build();
         MongoClient mongoClient = MongoClients.create(settings);
         return mongoClient;
     }
 
+
     @Bean("mongoHelper")
     @DependsOn("mongoClient")
-    public MongoHelper mongoHelper(MongoClient mongoClient){
-        MongoHelper mongoHelper = new MongoHelper(mongoDriverProperties,mongoClient);
+    public MongoHelper mongoHelper(MongoClient mongoClient) {
+        MongoHelper mongoHelper = new MongoHelper(mongoDriverProperties, mongoClient);
         mongoHelper.init();
         return mongoHelper;
     }
 
     @Bean
     @DependsOn("mongoHelper")
-    public EntityStorageDriver entityStorageDriver(){
+    public EntityStorageDriver entityStorageDriver() {
         return new MongoEntityStorageDriverImpl();
+    }
+
+
+    @PreDestroy
+    public void destroy() throws Exception {
+        log.info("mongoClient destroy !!!");
+        mongoClient.close();
     }
 }
