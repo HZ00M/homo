@@ -1,12 +1,11 @@
 package com.homo.core.configurable.mongo;
 
+import com.homo.core.configurable.NameSpaceConstant;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.concurrent.TimeUnit;
-
-@ConfigurationProperties(prefix = "homo.mongo")
+@ConfigurationProperties(prefix = NameSpaceConstant.MONGO)
 @Data
 public class MongoDriverProperties {
     @Value("${connString:mongodb://127.0.0.1:27017}")

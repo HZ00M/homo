@@ -29,8 +29,7 @@ public class RedisPoolAutoConfigure  {
     @DependsOn("configDriver")
     @Bean("redisInfoHolder")
     public RedisInfoHolder redisInfoHolder(ConfigDriver configDriver){
-        RedisInfoHolder holder = new RedisInfoHolder(configDriver);
-        holder.load(redisNs);
+        RedisInfoHolder holder = new RedisInfoHolder(configDriver,redisNs);
         return holder;
     }
 

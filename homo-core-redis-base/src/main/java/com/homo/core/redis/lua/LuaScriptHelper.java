@@ -20,6 +20,15 @@ public class LuaScriptHelper implements Module {
 
     private String incrScript;
 
+    private String queryAllFieldsScript;
+
+    private String queryFieldsScript;
+
+    private String updateFieldsScript;
+
+    private String asyncIncrScript;
+
+    private String removeFieldsScript;
 
     @Override
     public void init() {
@@ -28,9 +37,14 @@ public class LuaScriptHelper implements Module {
             unLockScript = StreamUtils.copyToString(new ClassPathResource("lua/unlock.lua").getInputStream(), StandardCharsets.UTF_8);
             updateKeysExpireScript = StreamUtils.copyToString(new ClassPathResource("lua/updateKeysExpire.lua").getInputStream(), StandardCharsets.UTF_8);
             incrScript = StreamUtils.copyToString(new ClassPathResource("lua/incr.lua").getInputStream(), StandardCharsets.UTF_8);
-
+            queryAllFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/queryAllField.lua").getInputStream(), StandardCharsets.UTF_8);
+            queryFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/queryFields.lua").getInputStream(), StandardCharsets.UTF_8);
+            updateFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/updateFields.lua").getInputStream(), StandardCharsets.UTF_8);
+            asyncIncrScript = StreamUtils.copyToString(new ClassPathResource("lua/asyncIncr.lua").getInputStream(), StandardCharsets.UTF_8);
+            removeFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/removeFieldsScript.lua").getInputStream(), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            log.error("LuaScriptHelper init load lua exception: ", e);
+            log.error("LuaScriptHelper init load lua exception_", e);
         }
     }
+
 }

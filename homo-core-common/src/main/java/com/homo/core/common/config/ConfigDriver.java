@@ -1,5 +1,6 @@
 package com.homo.core.common.config;
 
+import com.ctrip.framework.apollo.model.ConfigChangeEvent;
 import com.homo.core.common.facade.Driver;
 
 import java.util.function.Consumer;
@@ -10,7 +11,6 @@ import java.util.function.Consumer;
 public interface ConfigDriver extends Driver {
 
     /**
-     *
      * @param namespaces
      * @param onUpdate
      */
@@ -18,44 +18,46 @@ public interface ConfigDriver extends Driver {
 
     /**
      * 监听key 当key改变时执行 Consumer逻辑
-     * @param key
+     * @param namespace
      * @param newValueConsumer
-     * @param <T>
      */
-    <T> void registerKey(String key, Consumer<T> newValueConsumer);
+    void listenerNamespace(String namespace,  Consumer<ConfigChangeEvent> newValueConsumer);
 
     /**
      * 监听key 当key改变后执行 Consumer逻辑
+     * @param namespace
      * @param key
      * @param newValueConsumer
-     * @param <T>
      */
-    <T> void afterKeyRefresh(String key,Consumer<T> newValueConsumer);
+    void afterKeyRefresh(String namespace, String key, Consumer<ConfigChangeEvent> newValueConsumer);
 
     /**
      * 获取配置信息
+     *
      * @param namespace
      * @param key
      * @param defaultValue
      * @return
      */
-    String getProperty(String namespace,String key,String defaultValue);
+    String getProperty(String namespace, String key, String defaultValue);
 
     /**
      * 获取配置信息
+     *
      * @param namespace
      * @param key
      * @param defaultValue
      * @return
      */
-    Integer getIntProperty(String namespace,String key,Integer defaultValue);
+    Integer getIntProperty(String namespace, String key, Integer defaultValue);
 
     /**
      * 获取配置信息
+     *
      * @param namespace
      * @param key
      * @param defaultValue
      * @return
      */
-    Boolean getBoolProperty(String namespace,String key,Boolean defaultValue);
+    Boolean getBoolProperty(String namespace, String key, Boolean defaultValue);
 }

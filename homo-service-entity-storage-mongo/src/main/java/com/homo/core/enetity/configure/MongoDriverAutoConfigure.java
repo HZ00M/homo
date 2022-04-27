@@ -4,10 +4,8 @@ import com.homo.core.configurable.mongo.MongoDriverProperties;
 import com.homo.core.enetity.storage.MongoEntityStorageDriverImpl;
 import com.homo.core.enetity.util.MongoHelper;
 import com.homo.core.facade.document.EntityStorageDriver;
-import com.mongodb.Block;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.connection.ConnectionPoolSettings;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +15,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
 import java.util.concurrent.TimeUnit;

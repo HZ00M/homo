@@ -11,11 +11,9 @@ import com.mongodb.reactivestreams.client.MongoDatabase;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.conversions.Bson;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

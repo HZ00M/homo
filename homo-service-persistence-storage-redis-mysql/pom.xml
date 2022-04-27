@@ -21,6 +21,9 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-facade</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-redis-base</artifactId>
+        </dependency>
     </dependencies>
 </project>

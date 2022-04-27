@@ -2,11 +2,17 @@ package com.homo.core.redis.factory;
 
 import com.homo.core.common.config.ConfigDriver;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
+@Slf4j
 public class RedisInfoHolder {
 
+    private String publicRedisNs;
+
     ConfigDriver configDriver;
+
+    private Integer dataBase;
 
     private Integer timeOutMs;
 
@@ -24,12 +30,16 @@ public class RedisInfoHolder {
 
     private Integer maxAttemps;
 
-    private Integer dataBase;
+    private Integer expireTime;
 
 
-
-    public RedisInfoHolder(ConfigDriver configDriver) {
+    public RedisInfoHolder(ConfigDriver configDriver,String publicRedisNs) {
         this.configDriver =configDriver;
+        this.publicRedisNs = publicRedisNs;
+        load(publicRedisNs);
+        configDriver.listenerNamespace(publicRedisNs,configChangeEvent -> {
+            load(publicRedisNs);
+        });
     }
 
     public void load(String publicRedisNs) {
@@ -42,5 +52,7 @@ public class RedisInfoHolder {
         testOnBorrow = configDriver.getBoolProperty(publicRedisNs,"testOnBorrow", false);
         soTimeOut = configDriver.getIntProperty(publicRedisNs,"soTimeOut", 30000);
         maxAttemps = configDriver.getIntProperty(publicRedisNs,"maxAttemps", 5);
+        expireTime = configDriver.getIntProperty(publicRedisNs,"expire",86400);
+
     }
 }

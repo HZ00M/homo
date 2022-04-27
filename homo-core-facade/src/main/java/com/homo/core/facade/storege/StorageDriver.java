@@ -16,10 +16,10 @@ public interface StorageDriver extends Driver {
      * @param regionId  regionId
      * @param logicType 逻辑类型
      * @param ownerId   ID
-     * @param keyList key列表
+     * @param fieldList key列表
      * @param callBack 回调返回值列表
      */
-    void asyncGetByKeys(String appId, String regionId, String logicType, String ownerId, List<String> keyList, CallBack<Map<String, byte[]>> callBack);
+    void asyncGetByFields(String appId, String regionId, String logicType, String ownerId, List<String> fieldList, CallBack<Map<String, byte[]>> callBack);
 
     /**
      * 获得所有key 和 value

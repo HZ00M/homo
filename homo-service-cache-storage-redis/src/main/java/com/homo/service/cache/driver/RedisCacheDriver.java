@@ -30,12 +30,12 @@ public class RedisCacheDriver implements CacheDriver {
     LuaScriptHelper luaScriptHelper;
 
     @Override
-    public void asyncGetByKeys(String appId, String regionId, String logicType, String ownerId, List<String> keyList, CallBack<Map<String, byte[]>> callBack) {
-        log.trace("asyncGet start, appId_{} regionId_{} logicType_{} ownerId_{}, keyList_{}", appId, regionId, logicType, ownerId, keyList);
+    public void asyncGetByFields(String appId, String regionId, String logicType, String ownerId, List<String> fieldList, CallBack<Map<String, byte[]>> callBack) {
+        log.trace("asyncGet start, appId_{} regionId_{} logicType_{} ownerId_{}, keyList_{}", appId, regionId, logicType, ownerId, fieldList);
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
-        byte[][] fields = new byte[keyList.size()][];
+        byte[][] fields = new byte[fieldList.size()][];
         int index = 0;
-        for (String key : keyList) {
+        for (String key : fieldList) {
             fields[index++] = key.getBytes(StandardCharsets.UTF_8);
         }
         RedisFuture<List<KeyValue<byte[], byte[]>>> listRedisFuture = asyncRedisPool.hmgetAsync(redisKey.getBytes(StandardCharsets.UTF_8), fields);
@@ -53,7 +53,7 @@ public class RedisCacheDriver implements CacheDriver {
                     resultMap.put(new String(keyValue.getKey(), StandardCharsets.UTF_8), keyValue.getValue());
                 }
                 callBack.onBack(resultMap);
-                log.info("asyncGet end, appId_{} regionId_{} logicType_{} ownerId_{}, keyList_{}", appId, regionId, logicType, ownerId, keyList);
+                log.info("asyncGet end, appId_{} regionId_{} logicType_{} ownerId_{}, keyList_{}", appId, regionId, logicType, ownerId, fieldList);
             } catch (Exception e) {
                 callBack.onError(e);
             }
