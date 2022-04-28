@@ -11,7 +11,9 @@ import com.mongodb.reactivestreams.client.MongoDatabase;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
+import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +58,57 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
                     .collectList()
                     .subscribe(ret -> {
                         List<T> result = ret.stream().map(obj-> BsonUtil.toBean(obj.get("value", org.bson.Document.class),clazz)).collect(Collectors.toList());
+                        callBack.onBack(result);
+                    }, callBack::onError);
+        } catch (Exception e) {
+            log.error("asyncQuery catch Exception ", e);
+            callBack.onError(e);
+        }
+    }
+
+    @Override
+    public <T, V> void asyncQuery(Bson filter, Bson viewFilter, Bson sort, @NotNull Integer limit, Integer skip, Class<V> viewClazz, Class<T> clazz, CallBack<List<V>> callBack) {
+        try {
+            Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
+            String collectionName = document == null ? clazz.getSimpleName() : document.collectionName();
+            Bson filterExpr;
+            if (filter != null) {
+                filterExpr = Filters.and(filter, Filters.eq(Key.DELETE_KEY, Key.DELETED_FALSE));
+            } else {
+                filterExpr = Filters.and(Filters.eq(Key.DELETE_KEY, Key.DELETED_FALSE));
+            }
+            Bson viewFilterExpr;
+            if (filter != null) {
+                viewFilterExpr = viewFilter;
+            } else {
+                viewFilterExpr = new BsonDocument();
+            }
+            Bson sortExpr;
+            if (sort != null) {
+                sortExpr = sort;
+            } else {
+                sortExpr = Sorts.ascending("_id");
+            }
+            Flux.from(mongoHelper.getMongoDatabase().getCollection(collectionName)
+                    .find(filterExpr)
+                    .projection(viewFilterExpr)
+                    .limit(Optional.ofNullable(limit).orElse(100))
+                    .skip(Optional.ofNullable(skip).orElse(0))
+                    .sort(sortExpr))
+                    .collectList()
+                    .subscribe(ret -> {
+                        List<V> result = ret.stream().map(obj -> {
+                            org.bson.Document valueDocument = obj.get("value", org.bson.Document.class);
+                            obj.remove("_id");
+                            obj.remove(Key.PRIMARY_KEY);
+                            obj.remove(Key.QUERY_ALL_KEY);
+                            obj.remove(Key.DELETE_KEY);
+                            obj.remove("value");
+                            for (String key : obj.keySet()) {
+                                valueDocument.append(key, obj.get(key));
+                            }
+                            return BsonUtil.toBean(valueDocument, viewClazz);
+                        }).collect(Collectors.toList());
                         callBack.onBack(result);
                     }, callBack::onError);
         } catch (Exception e) {

@@ -3,6 +3,7 @@ package com.homo.core.facade.document;
 import com.homo.core.common.facade.Driver;
 import com.homo.core.utils.callback.CallBack;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,20 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param clazz  文档对象类型
      * @param callBack    回调返回结果
      */
-    <T> void asyncQuery(F filter, S sort, Integer limit, Integer skip, Class<T> clazz, CallBack<List<T>> callBack);
+    <T> void asyncQuery(F filter, S sort,@NotNull Integer limit, Integer skip, Class<T> clazz, CallBack<List<T>> callBack);
+
+    /**
+     * 查询文档数据，返回视图
+     *
+     * @param filter     过滤条件
+     * @param viewFilter 视图过滤条件
+     * @param sort       排序条件
+     * @param limit      limit
+     * @param skip       skip
+     * @param clazz      文档对象类型
+     * @param callBack        回调返回结果
+     */
+    <T, V> void asyncQuery(F filter, F viewFilter, S sort, @NotNull Integer limit, Integer skip, Class<V> viewClazz, Class<T> clazz, CallBack<List<V>> callBack);
 
     /**
      * 查找并修改

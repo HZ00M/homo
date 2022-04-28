@@ -60,6 +60,36 @@ public class EntityStorage<F, S, U, P> implements Module {
                 callBack);
     }
 
+    /**
+     * 查询文档
+     *
+     * @param filter 过滤条件
+     * @param sort   排序条件
+     * @param limit  limit
+     * @param skip   skip
+     * @param clazz  存储对象类型
+     * @param callBack    回调返回结果
+     */
+    public <T,V> void asyncQuery(
+            F filter,
+            F viewFilter,
+            S sort,
+            Integer limit,
+            Integer skip,
+            Class<V> viewClazz,
+            Class<T> clazz,
+            CallBack<List<V>> callBack) {
+        storageDriver.asyncQuery(
+                filter,
+                viewFilter,
+                sort,
+                limit,
+                skip,
+                viewClazz,
+                clazz,
+                callBack);
+    }
+
 
     /**
      * 查询文档

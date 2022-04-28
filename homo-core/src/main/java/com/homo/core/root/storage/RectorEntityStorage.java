@@ -56,6 +56,26 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
         });
     }
 
+    public <T,V> Homo<List<V>> query(F filter,
+                                           F viewFilter,
+                                           S sort,
+                                           Integer limit,
+                                           Integer skip,
+                                           Class<V> viewClazz,
+                                           Class<T> clazz) {
+        return Homo.warp((HomoSink<List<V>> monoSink) -> storage.asyncQuery(filter,viewFilter, sort, limit, skip, viewClazz,clazz, new CallBack<List<V>>() {
+            @Override
+            public void onBack(List<V> list) {
+                monoSink.success(list);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                monoSink.error(throwable);
+            }
+        }));
+    }
+
     public <T> Homo<Boolean> findAndModify(String logicType,
                                                  String ownerId,
                                                  String key,
