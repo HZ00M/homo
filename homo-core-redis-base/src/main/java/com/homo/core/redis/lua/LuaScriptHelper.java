@@ -20,6 +20,7 @@ public class LuaScriptHelper implements Module {
 
     private String incrScript;
 
+
     private String queryAllFieldsScript;
 
     private String queryFieldsScript;
@@ -29,6 +30,11 @@ public class LuaScriptHelper implements Module {
     private String asyncIncrScript;
 
     private String removeFieldsScript;
+
+    private String hotFieldsScript;
+
+    private String hotAllFieldScript;
+
 
     @Override
     public void init() {
@@ -42,9 +48,12 @@ public class LuaScriptHelper implements Module {
             updateFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/updateFields.lua").getInputStream(), StandardCharsets.UTF_8);
             asyncIncrScript = StreamUtils.copyToString(new ClassPathResource("lua/asyncIncr.lua").getInputStream(), StandardCharsets.UTF_8);
             removeFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/removeFieldsScript.lua").getInputStream(), StandardCharsets.UTF_8);
+            hotFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/hotFields.lua").getInputStream(), StandardCharsets.UTF_8);
+            hotAllFieldScript = StreamUtils.copyToString(new ClassPathResource("lua/hotAllField.lua").getInputStream(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("LuaScriptHelper init load lua exception_", e);
         }
     }
+
 
 }

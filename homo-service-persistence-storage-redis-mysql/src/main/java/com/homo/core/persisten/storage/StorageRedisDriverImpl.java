@@ -3,7 +3,7 @@ package com.homo.core.persisten.storage;
 import com.homo.core.common.pojo.DataObject;
 import com.homo.core.facade.storege.DirtyDriver;
 import com.homo.core.facade.storege.StorageDriver;
-import com.homo.core.persisten.handler.LoadDataHandler;
+import com.homo.core.persisten.handler.LoadDataHolder;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.factory.RedisInfoHolder;
 import com.homo.core.redis.lua.LuaScriptHelper;
@@ -50,7 +50,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
     private RedisInfoHolder redisInfoHolder;
 
     @Autowired
-    private LoadDataHandler loadDataHandler;
+    private LoadDataHolder loadDataHolder;
 
     @Override
     public void asyncGetByFields(String appId, String regionId, String logicType, String ownerId, List<String> fieldList, CallBack<Map<String, byte[]>> callBack) {
@@ -99,7 +99,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
                         queryFields.add(new String((byte[]) needLoadField));
                     }
                     //查询数据库
-                    loadDataHandler.hotFields(appId, regionId, logicType, ownerId, key, queryFields, new CallBack<List<DataObject>>() {
+                    loadDataHolder.hotFields(appId, regionId, logicType, ownerId, key, queryFields, new CallBack<List<DataObject>>() {
                         @Override
                         public void onBack(List<DataObject> list) {
                             for (DataObject dataObject : list) {
@@ -139,7 +139,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
                 Map<String, byte[]> map = new HashMap<>();
 
                 if (list.size() == 1 && list.get(0).equals(0L)) {//数据库里有数据但内存里的数据不是最新的
-                    loadDataHandler.hotAllField(appId, regionId, logicType, ownerId, key, new CallBack<Boolean>() {
+                    loadDataHolder.hotAllField(appId, regionId, logicType, ownerId, key, new CallBack<Boolean>() {
                         @Override
                         public void onBack(Boolean value) {
                             log.trace("asyncGetAll load from mysql success appId_{} regionId_{} logicType_{} ownerId_{} result_{}", appId, regionId, logicType, ownerId, value);
@@ -223,7 +223,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
                 Pair<Boolean, Map<String, Long>> pair = new Pair<>(true, retMap);
                 if (!CollectionUtils.isEmpty(list)) {
                     if (list.size() == 1 && list.get(0).equals("unCachedAllKey")) {
-                        loadDataHandler.hotAllField(appId, regionId, logicType, ownerId, key, new CallBack<Boolean>() {
+                        loadDataHolder.hotAllField(appId, regionId, logicType, ownerId, key, new CallBack<Boolean>() {
                             @Override
                             public void onBack(Boolean value) {
                                 asyncIncr(appId, regionId, logicType, ownerId, incrData, callBack);
@@ -266,7 +266,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
             log.trace("asyncRemoveKeys subscribe appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
             ArrayList list = (ArrayList) ret;
             if (list.size() == 1 && list.get(0).equals("unCachedAllKey")) {
-                loadDataHandler.hotAllField(appId, regionId, logicType, ownerId, key, new CallBack<Boolean>() {
+                loadDataHolder.hotAllField(appId, regionId, logicType, ownerId, key, new CallBack<Boolean>() {
                     @Override
                     public void onBack(Boolean value) {
                         asyncRemoveKeys(appId, regionId, logicType, ownerId, remKeys, callBack);
