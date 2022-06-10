@@ -5,11 +5,11 @@
     <parent>
         <artifactId>homo-root</artifactId>
         <groupId>com.homo</groupId>
-        <version>${revision}</version>
+        <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>homo-service-persistence-storage-redis-mysql</artifactId>
+    <artifactId>homo-service-dirty</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -20,18 +20,6 @@
         <dependency>
             <groupId>com.homo</groupId>
             <artifactId>homo-core-facade</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-redis-base</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-mysql-base</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-service-dirty</artifactId>
         </dependency>
     </dependencies>
 </project>

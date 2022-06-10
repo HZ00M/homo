@@ -9,6 +9,7 @@ import com.homo.core.redis.factory.RedisInfoHolder;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.lang.Pair;
+import com.homo.service.dirty.DirtyBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -35,7 +36,6 @@ public class StorageRedisDriverImpl implements StorageDriver {
 
     private static final String REDIS_KEY_TMPL = "slug:{%s:%s:%s:%s}";
     private static final String REDIS_PERSISTENCE_KEY_TMPL = "persistence:{%s:%s:%s:%s}";
-    private static final String REDIS_LOCK_TMPL = "lock:{%s:%s:%s:%s}:%s";
 
     @Autowired
     private HomoAsyncRedisPool redisPool;
@@ -55,10 +55,10 @@ public class StorageRedisDriverImpl implements StorageDriver {
     @Override
     public void asyncGetByFields(String appId, String regionId, String logicType, String ownerId, List<String> fieldList, CallBack<Map<String, byte[]>> callBack) {
         log.trace("asyncGetByKeys start appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
-        String key = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
+        String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         String persistenceKey = String.format(REDIS_PERSISTENCE_KEY_TMPL, appId, regionId, logicType, ownerId);
         String queryKeysScript = luaScriptHelper.getQueryFieldsScript();
-        String[] keys = {key, persistenceKey};
+        String[] keys = {redisKey, persistenceKey};
         byte[][] args = new byte[fieldList.size() + 1][];//expireTime + fieldList
         args[0] = redisInfoHolder.getExpireTime().toString().getBytes(StandardCharsets.UTF_8);
         for (int i = 0; i < fieldList.size(); i++) {
@@ -87,7 +87,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
                                 continue;
                             }
                             byte[] bytes = (byte[]) arrayList.get(i + 1);
-                            map.put(key, bytes);
+                            map.put(redisKey, bytes);
                         }
                     }
                 }
@@ -99,7 +99,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
                         queryFields.add(new String((byte[]) needLoadField));
                     }
                     //查询数据库
-                    loadDataHolder.hotFields(appId, regionId, logicType, ownerId, key, queryFields, new CallBack<List<DataObject>>() {
+                    loadDataHolder.hotFields(appId, regionId, logicType, ownerId, redisKey, queryFields, new CallBack<List<DataObject>>() {
                         @Override
                         public void onBack(List<DataObject> list) {
                             for (DataObject dataObject : list) {
@@ -128,10 +128,10 @@ public class StorageRedisDriverImpl implements StorageDriver {
     @Override
     public void asyncGetAll(String appId, String regionId, String logicType, String ownerId, CallBack<Map<String, byte[]>> callBack) {
         log.trace("asyncGetAll start appId_{}, regionId_{}, logicType_{}, ownerId_{}", appId, regionId, logicType, ownerId);
-        String key = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
+        String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         String persistenceKey = String.format(REDIS_PERSISTENCE_KEY_TMPL, appId, regionId, logicType, ownerId);
         String queryAllKeyScript = luaScriptHelper.getQueryAllFieldsScript();
-        String[] keys = {key, persistenceKey};
+        String[] keys = {redisKey, persistenceKey};
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(queryAllKeyScript, keys, redisInfoHolder.getExpireTime().toString().getBytes(StandardCharsets.UTF_8));
         resultFlux.subscribe(ret -> {
             try {
@@ -139,7 +139,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
                 Map<String, byte[]> map = new HashMap<>();
 
                 if (list.size() == 1 && list.get(0).equals(0L)) {//数据库里有数据但内存里的数据不是最新的
-                    loadDataHolder.hotAllField(appId, regionId, logicType, ownerId, key, new CallBack<Boolean>() {
+                    loadDataHolder.hotAllField(appId, regionId, logicType, ownerId, redisKey, new CallBack<Boolean>() {
                         @Override
                         public void onBack(Boolean value) {
                             log.trace("asyncGetAll load from mysql success appId_{} regionId_{} logicType_{} ownerId_{} result_{}", appId, regionId, logicType, ownerId, value);
@@ -175,23 +175,26 @@ public class StorageRedisDriverImpl implements StorageDriver {
     @Override
     public void asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data, CallBack<Pair<Boolean, Map<String, byte[]>>> callBack) {
         log.trace("asyncUpdate start appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
-        String key = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
+        String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         String persistenceKey = String.format(REDIS_PERSISTENCE_KEY_TMPL, appId, regionId, logicType, ownerId);
         String updateFieldsScript = luaScriptHelper.getUpdateFieldsScript();
-        String[] keys = {key, persistenceKey};
+        String[] keys = {redisKey, persistenceKey};
         byte[][] args = new byte[data.size() * 2 + 1][];//expireTime:field1,value1:field2,value2:field3...
         args[0] = redisInfoHolder.getExpireTime().toString().getBytes(StandardCharsets.UTF_8);
         int index = 1;
+        DirtyBuilder<Pair<Boolean, Map<String, byte[]>>> dirtyBuilder = DirtyBuilder.create(redisKey, callBack);
         for (Map.Entry<String, byte[]> dataEntry : data.entrySet()) {
             String field = dataEntry.getKey();
             args[index] = field.getBytes(StandardCharsets.UTF_8);
             args[index + 1] = dataEntry.getValue();
             index += 2;
+            dirtyBuilder.update(appId,regionId,logicType,ownerId,field);
         }
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(updateFieldsScript, keys, args);
         resultFlux.subscribe(ret -> {
             try {
                 log.trace("asyncUpdate finish appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
+                dirtyDriver.dirtyUpdate(dirtyBuilder.build());
             } catch (Exception e) {
                 callBack.onError(e);
             }
@@ -201,10 +204,10 @@ public class StorageRedisDriverImpl implements StorageDriver {
     @Override
     public void asyncIncr(String appId, String regionId, String logicType, String ownerId, Map<String, Long> incrData, CallBack<Pair<Boolean, Map<String, Long>>> callBack) {
         log.trace("asyncIncr start appId_{} regionId_{} logicType_{} ownerId_{} incrData_{}", appId, regionId, logicType, ownerId, incrData);
-        String key = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
+        String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         String persistenceKey = String.format(REDIS_PERSISTENCE_KEY_TMPL, appId, regionId, logicType, ownerId);
         String asyncIncrScript = luaScriptHelper.getAsyncIncrScript();
-        String[] keys = {key, persistenceKey};
+        String[] keys = {redisKey, persistenceKey};
         String[] args = new String[incrData.size() * 2 + 1];//expireTime:incrKey1,value1:incrKey2,value2:incrKey3...
         args[0] = redisInfoHolder.getExpireTime().toString();
         int index = 1;
@@ -223,7 +226,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
                 Pair<Boolean, Map<String, Long>> pair = new Pair<>(true, retMap);
                 if (!CollectionUtils.isEmpty(list)) {
                     if (list.size() == 1 && list.get(0).equals("unCachedAllKey")) {
-                        loadDataHolder.hotAllField(appId, regionId, logicType, ownerId, key, new CallBack<Boolean>() {
+                        loadDataHolder.hotAllField(appId, regionId, logicType, ownerId, redisKey, new CallBack<Boolean>() {
                             @Override
                             public void onBack(Boolean value) {
                                 asyncIncr(appId, regionId, logicType, ownerId, incrData, callBack);
@@ -236,10 +239,13 @@ public class StorageRedisDriverImpl implements StorageDriver {
                         });
                         return;
                     }
+                    DirtyBuilder<Pair<Boolean, Map<String, Long>>> dirtyBuilder = DirtyBuilder.create(redisKey, callBack);
                     for (int i = 0; i < list.size(); i += 2) {
                         retMap.put((String) list.get(i), (Long) list.get(i + 1));
+                        dirtyBuilder.incr(appId, regionId, logicType, ownerId,(String) list.get(i));
                         callBack.onBack(pair);
                     }
+                    dirtyDriver.dirtyUpdate(dirtyBuilder.build());
                     log.trace("asyncIncr complete appId_{} regionId_{} logicType_{} ownerId_{} incrData_{}", appId, regionId, logicType, ownerId, ret);
                 }
             } catch (Exception e) {
@@ -251,22 +257,25 @@ public class StorageRedisDriverImpl implements StorageDriver {
     @Override
     public void asyncRemoveKeys(String appId, String regionId, String logicType, String ownerId, List<String> remKeys, CallBack<Boolean> callBack) {
         log.trace("asyncRemoveKeys start, appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
-        String key = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
+        String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         String removeFieldsScript = luaScriptHelper.getRemoveFieldsScript();
-        String[] keys = {key};
+        String[] keys = {redisKey};
         String[] args = new String[remKeys.size() + 1];//expireTime:field1:field2:field3...
         args[0] = redisInfoHolder.getExpireTime().toString();
         int index = 1;
+        DirtyBuilder<Boolean> dirtyBuilder = DirtyBuilder.create(redisKey, callBack);
+
         for (String remField : remKeys) {
             args[index] = remField;
             index += 1;
+            dirtyBuilder.remove(appId, regionId, logicType, ownerId,remField);
         }
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(removeFieldsScript, keys, args);
         resultFlux.subscribe(ret -> {
             log.trace("asyncRemoveKeys subscribe appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
             ArrayList list = (ArrayList) ret;
             if (list.size() == 1 && list.get(0).equals("unCachedAllKey")) {
-                loadDataHolder.hotAllField(appId, regionId, logicType, ownerId, key, new CallBack<Boolean>() {
+                loadDataHolder.hotAllField(appId, regionId, logicType, ownerId, redisKey, new CallBack<Boolean>() {
                     @Override
                     public void onBack(Boolean value) {
                         asyncRemoveKeys(appId, regionId, logicType, ownerId, remKeys, callBack);
@@ -277,9 +286,8 @@ public class StorageRedisDriverImpl implements StorageDriver {
                         callBack.onError(throwable);
                     }
                 });
-                return;
             }
-            callBack.onBack(true);
+            dirtyDriver.dirtyUpdate(dirtyBuilder.build());
         }, callBack::onError);
     }
 }

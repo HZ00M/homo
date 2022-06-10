@@ -1,17 +1,14 @@
 package com.homo.core.persisten.handler;
 
 import com.homo.core.common.pojo.DataObject;
-import com.homo.core.mysql.annotation.GeneralMapper;
 import com.homo.core.mysql.annotation.SQLGen;
 import com.homo.core.persisten.mapper.ISchemeMapper;
-import com.homo.core.persisten.util.SchemeUtils;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.factory.RedisInfoHolder;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.callback.CallBack;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;

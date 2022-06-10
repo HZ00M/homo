@@ -28,13 +28,9 @@ import java.util.Map;
 public interface DirtyDriver {
     /**
      * hset操作,存脏表数据
-     * @param key  数据在redis中的key
-     * @param dirtyMap  需要存的数据
-     * @param option    业务成功回调
-     * @param rel       回调方法
      * @param <T>       泛型
      */
-    <T> void dirtyUpdate(String key, Map<String, String> dirtyMap, T option, CallBack<T> rel);
+    <T> void dirtyUpdate(Dirty<T> dirty);
 
     /**
      * 修改脏表的名字
