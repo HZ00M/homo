@@ -8,33 +8,36 @@ import org.springframework.util.StreamUtils;
 
 import java.nio.charset.StandardCharsets;
 
-@Getter
 @Slf4j
 public class LuaScriptHelper implements Module {
 
-    private String lockScript;
+    public static String lockScript;
 
-    private String unLockScript;
+    public static String unLockScript;
 
-    private String updateKeysExpireScript;
+    public static String updateKeysExpireScript;
 
-    private String incrScript;
+    public static String incrScript; 
 
+    public static String queryAllFieldsScript;
 
-    private String queryAllFieldsScript;
+    public static String queryFieldsScript;
 
-    private String queryFieldsScript;
+    public static String updateFieldsScript;
 
-    private String updateFieldsScript;
+    public static String asyncIncrScript;
 
-    private String asyncIncrScript;
+    public static String removeFieldsScript;
 
-    private String removeFieldsScript;
+    public static String hotFieldsScript;
 
-    private String hotFieldsScript;
+    public static String hotAllFieldScript;
 
-    private String hotAllFieldScript;
+    public static String dirtyDataScript;
 
+    public static String queryExistFieldsScript;
+
+    public static String getDirtyKeyScript;
 
     @Override
     public void init() {
@@ -43,17 +46,19 @@ public class LuaScriptHelper implements Module {
             unLockScript = StreamUtils.copyToString(new ClassPathResource("lua/unlock.lua").getInputStream(), StandardCharsets.UTF_8);
             updateKeysExpireScript = StreamUtils.copyToString(new ClassPathResource("lua/updateKeysExpire.lua").getInputStream(), StandardCharsets.UTF_8);
             incrScript = StreamUtils.copyToString(new ClassPathResource("lua/incr.lua").getInputStream(), StandardCharsets.UTF_8);
-            queryAllFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/queryAllField.lua").getInputStream(), StandardCharsets.UTF_8);
+            queryAllFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/queryAllFields.lua").getInputStream(), StandardCharsets.UTF_8);
             queryFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/queryFields.lua").getInputStream(), StandardCharsets.UTF_8);
             updateFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/updateFields.lua").getInputStream(), StandardCharsets.UTF_8);
             asyncIncrScript = StreamUtils.copyToString(new ClassPathResource("lua/asyncIncr.lua").getInputStream(), StandardCharsets.UTF_8);
             removeFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/removeFieldsScript.lua").getInputStream(), StandardCharsets.UTF_8);
             hotFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/hotFields.lua").getInputStream(), StandardCharsets.UTF_8);
             hotAllFieldScript = StreamUtils.copyToString(new ClassPathResource("lua/hotAllField.lua").getInputStream(), StandardCharsets.UTF_8);
+            dirtyDataScript = StreamUtils.copyToString(new ClassPathResource("lua/dirtyData.lua").getInputStream(), StandardCharsets.UTF_8);
+            queryExistFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/queryExistFields.lua").getInputStream(), StandardCharsets.UTF_8);
+            getDirtyKeyScript = StreamUtils.copyToString(new ClassPathResource("lua/getDirtyKey.lua").getInputStream(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("LuaScriptHelper init load lua exception_", e);
         }
     }
-
 
 }

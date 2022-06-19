@@ -8,7 +8,7 @@ else
         local value = redis.call("HGET", KEYS[1], ARGV[i])
         if (value and value ~= delFlag) then
             local delField = table.concat({ ARGV[i], delFlag })
-            redis.call("EXPIRE", KEYS[1], delField, value) --将数据迁移至另一个field
+            redis.call("HSET", KEYS[1], delField, value) --将数据迁移至另一个field
             redis.call("HSET", KEYS[1], ARGV[i], delFlag)  --将field置为删除标识
         end
     end

@@ -15,12 +15,12 @@ import java.util.stream.Collectors;
  * insert,update则不受此限制, '%'百分号将作为内容被保存进数据库
  */
 public class SQLGen<T> {
-    public static <T> String create(T obj, String tableName) {
-        String finalTableName = obj.getClass().getSimpleName();
+    public static <T> String create(Class<T> entity, String tableName) {
+        String finalTableName = entity.getSimpleName();
         if (!StringUtils.isEmpty(tableName)) {
             finalTableName = tableName;
         }
-        Annotation[] annotations = obj.getClass().getAnnotations();
+        Annotation[] annotations = entity.getAnnotations();
         for (Annotation annotation : annotations) {
             if (annotation instanceof TableName) {
                 finalTableName = ((TableName) annotation).value();
@@ -28,7 +28,7 @@ public class SQLGen<T> {
         }
         List<SQLField> fieldList = new ArrayList<>();
         try {
-            Field[] fields = obj.getClass().getDeclaredFields();
+            Field[] fields = entity.getDeclaredFields();
             for (Field field : fields) {
                 field.setAccessible(true);
                 Annotation[] fieldAnnotions = field.getAnnotations();
@@ -189,13 +189,13 @@ public class SQLGen<T> {
         }}.toString();
     }
 
-    public static <T> String delete(T obj, String tableName) {
+    public static <T> String delete(Class<T> entity, String tableName) {
         return new SQL() {{
-            String finalTableName = obj.getClass().getSimpleName();
+            String finalTableName = entity.getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
                 finalTableName = tableName;
             }
-            Annotation[] annotations = obj.getClass().getAnnotations();
+            Annotation[] annotations = entity.getAnnotations();
             for (Annotation annotation : annotations) {
                 if (annotation instanceof TableName) {
                     finalTableName = ((TableName) annotation).value();
@@ -203,10 +203,10 @@ public class SQLGen<T> {
             }
             DELETE_FROM(finalTableName);
             try {
-                Field[] fields = obj.getClass().getDeclaredFields();
+                Field[] fields = entity.getDeclaredFields();
                 for (Field field : fields) {
                     field.setAccessible(true);
-                    Object v = field.get(obj);
+                    Object v = field.get(entity);
                     if (v != null) {
                         //进行字段映射处理
                         String fieldName = SQLUtil.humpToLine(field.getName());

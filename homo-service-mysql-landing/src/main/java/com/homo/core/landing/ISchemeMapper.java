@@ -1,21 +1,24 @@
-package com.homo.core.persisten.mapper;
+package com.homo.core.landing;
 
 import com.homo.core.common.pojo.DataObject;
+import com.homo.core.mysql.GeneralMapper;
 import com.homo.core.mysql.annotation.SQLGen;
 import com.homo.core.mysql.annotation.SQLUtil;
 import com.homo.core.mysql.annotation.TableField;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.InsertProvider;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.jdbc.SQL;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.List;
 
-
-public interface ISchemeMapper {
+@Mapper
+public interface ISchemeMapper extends GeneralMapper {
 
     /**
      * 批量更新数据
@@ -24,6 +27,7 @@ public interface ISchemeMapper {
      * @param list<DataObject> 指定结构
      * @return
      */
+    @Transactional
     @InsertProvider(type = DataObjectProvider.class, method = "batchUpdate")
     Integer batchUpdate(@Param("tableName") String tableName, @Param("list") List<DataObject> list);
 
@@ -36,6 +40,7 @@ public interface ISchemeMapper {
      * @param ownerId
      * @return
      */
+    @Transactional
     @SelectProvider(type = DataObjectProvider.class, method = "loadTableData")
     List<DataObject> loadAllDataObject(String appId, String regionId, String logicType, String ownerId);
 
@@ -49,6 +54,7 @@ public interface ISchemeMapper {
      * @param keys
      * @return
      */
+    @Transactional
     @SelectProvider(type = DataObjectProvider.class, method = "loadDataObjectsByField")
     List<DataObject> loadDataObjectsByField(String appId, String regionId, String logicType, String ownerId, List<String> keys);
 

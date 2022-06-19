@@ -1,9 +1,9 @@
-package com.homo.core.facade.storege;
+package com.homo.core.facade.storege.dirty;
 
 
 import com.homo.core.common.pojo.DataObject;
-import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.lang.Pair;
+import com.homo.core.utils.rector.Homo;
 
 import java.util.List;
 import java.util.Map;
@@ -28,9 +28,12 @@ import java.util.Map;
 public interface DirtyDriver {
     /**
      * hset操作,存脏表数据
-     * @param <T>       泛型
      */
-    <T> void dirtyUpdate(Dirty<T> dirty);
+    Homo<Long> dirtyUpdate(Dirty dirty);
+
+    String chooseDirtyMap() throws InterruptedException;
+
+    Boolean lockDirtyMap(String dirtyName);
 
     /**
      * 修改脏表的名字
@@ -47,30 +50,29 @@ public interface DirtyDriver {
      * @return
      */
     List getDirtyList(String key, String index, String count);
-
-    /**
-     * 构造批量落地的map
-     * @param list
-     * @return
-     */
-    Map<String, List<DataObject>> buildingDataMap(List<String> list);
-
-    /**
-     * 构造单key的落地数据
-     * @param dirtyKey     脏表的key
-     * @param option  操作类型
-     * @return
-     */
-    Pair<String, DataObject> buildingData(String dirtyKey, String option);
+//
+//    /**
+//     * 构造批量落地的map
+//     * @param list
+//     * @return
+//     */
+//    Map<String, List<DataObject>> buildingDataMap(List<String> list);
+//
+//    /**
+//     * 构造单key的落地数据
+//     * @param dirtyKey     脏表的key
+//     * @param option  操作类型
+//     * @return
+//     */
+//    Pair<String, DataObject> buildingData(String dirtyKey, String option);
 
     /**
      * 修改脏表的名字
-     * @param landNum
      * @param dirtyName
      * @return
      */
-    String snapShot(int landNum, String dirtyName);
+    String snapShot(String dirtyName);
 
 
-    boolean landing(String dirtyName, String dirtySaving, String uuid);
+    boolean landing(String dirtyName, String dirtySaving);
 }

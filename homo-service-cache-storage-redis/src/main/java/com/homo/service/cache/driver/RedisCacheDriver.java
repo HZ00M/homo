@@ -127,7 +127,7 @@ public class RedisCacheDriver implements CacheDriver {
                 args[index + 1] = entry.getValue();
                 index += 2;
             }
-            String updateKeysExpireScript = luaScriptHelper.getUpdateKeysExpireScript();
+            String updateKeysExpireScript = LuaScriptHelper.updateKeysExpireScript;
             Flux<Object> resultFlux = asyncRedisPool.evalAsyncReactive(updateKeysExpireScript, keys, args);
             resultFlux.subscribe(
                     result -> {
@@ -147,7 +147,7 @@ public class RedisCacheDriver implements CacheDriver {
     public void asyncIncr(String appId, String regionId, String logicType, String ownerId, Map<String, Long> incrData, CallBack<Pair<Boolean, Map<String, Long>>> callBack) {
         log.trace("asyncIncr start, appId_{} regionId_{} logicType_{} ownerId_{} incrKeys_{}", appId, regionId, logicType, ownerId, incrData.keySet());
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
-        String incrScript = luaScriptHelper.getIncrScript();
+        String incrScript = LuaScriptHelper.incrScript;
         String[] keys = new String[1];
         String[] args = new String[incrData.size() * 2];
         keys[0] = redisKey;

@@ -6,14 +6,11 @@ import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.callback.CallBack;
 import io.lettuce.core.RedisFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 @Slf4j
 public class RedisLockDriver implements LockDriver {
-    @Autowired
-    private LuaScriptHelper luaScriptHelper;
     private HomoAsyncRedisPool redisPool;
 
     private static final String REDIS_LOCK_TMPL = "lock:{%s:%s:%s:%s}:%s";
@@ -26,7 +23,7 @@ public class RedisLockDriver implements LockDriver {
     public void asyncLock(String appId, String regionId, String logicType, String ownerId, String lockField, String lockVal, String uniqueId, Integer expireTime, CallBack<Boolean> callBack) {
         log.info("asyncLock start : {} {} {} {} {} {}", appId, regionId, logicType, ownerId, lockField, uniqueId);
         String redisLockKey = String.format(REDIS_LOCK_TMPL, appId, regionId, logicType, ownerId, lockField);
-        String lockScript = luaScriptHelper.getLockScript();
+        String lockScript = LuaScriptHelper.lockScript;
 
         String[] keyList = new String[1];
         String[] argList = new String[2];
@@ -56,7 +53,7 @@ public class RedisLockDriver implements LockDriver {
         log.info("asyncUnlock start : {} {} {} {} {} {}", appId, regionId, logicType, ownerId, lockField, uniqueId);
         String redisLockKey = String.format(REDIS_LOCK_TMPL, appId, regionId, logicType, ownerId, lockField);
 
-        String unlockScript = luaScriptHelper.getUnLockScript();
+        String unlockScript = LuaScriptHelper.unLockScript;
         String[] keyList = new String[1];
         keyList[0] = redisLockKey;
         String[] args = new String[1];
@@ -81,7 +78,7 @@ public class RedisLockDriver implements LockDriver {
     public boolean lock(String appId, String regionId, String logicType, String ownerId, String lockField, String lockVal, String uniqueId, Integer expireTime) {
         log.info("lock start : {} {} {} {} {} {}", appId, regionId, logicType, ownerId, lockField, uniqueId);
         String redisLockKey = String.format(REDIS_LOCK_TMPL, appId, regionId, logicType, ownerId, lockField);
-        String lockScript = luaScriptHelper.getLockScript();
+        String lockScript = LuaScriptHelper.lockScript;
 
         String[] keyList = new String[1];
         String[] argList = new String[2];
@@ -98,7 +95,7 @@ public class RedisLockDriver implements LockDriver {
         log.info("unlock start : {} {} {} {} {} {}", appId, regionId, logicType, ownerId, lockField, uniqueId);
         String redisLockKey = String.format(REDIS_LOCK_TMPL, appId, regionId, logicType, ownerId, lockField);
 
-        String unlockScript = luaScriptHelper.getUnLockScript();
+        String unlockScript = LuaScriptHelper.unLockScript;
         String[] keyList = new String[1];
         keyList[0] = redisLockKey;
         String[] args = new String[1];

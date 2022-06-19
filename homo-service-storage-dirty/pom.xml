@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>homo-service-dirty</artifactId>
+    <artifactId>homo-service-storage-dirty</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -20,6 +20,10 @@
         <dependency>
             <groupId>com.homo</groupId>
             <artifactId>homo-core-facade</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-redis-base</artifactId>
         </dependency>
     </dependencies>
 </project>

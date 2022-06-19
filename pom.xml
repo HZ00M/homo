@@ -26,7 +26,8 @@
         <module>homo-service-cache-storage-redis</module>
         <module>homo-service-persistence-storage-redis-mysql</module>
         <module>homo-core-mysql-base</module>
-        <module>homo-service-dirty</module>
+        <module>homo-service-storage-dirty</module>
+        <module>homo-service-mysql-landing</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -209,7 +210,12 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-service-dirty</artifactId>
+                <artifactId>homo-service-storage-dirty</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-service-mysql-landing</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

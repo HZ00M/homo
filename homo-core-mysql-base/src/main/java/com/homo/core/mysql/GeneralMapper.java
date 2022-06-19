@@ -1,6 +1,7 @@
-package com.homo.core.mysql.annotation;
+package com.homo.core.mysql;
 
 
+import com.homo.core.mysql.annotation.SQLGen;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.SelectProvider;
@@ -15,7 +16,7 @@ import java.util.List;
  */
 public interface GeneralMapper<T> {
     @SelectProvider(type = SQLGen.class, method = "create")
-    void create(T t, String tableName);
+    void create(Class<T> t, String tableName);
 
     @SelectProvider(type = SQLGen.class, method = "drop")
     void drop(T t, String tableName);
