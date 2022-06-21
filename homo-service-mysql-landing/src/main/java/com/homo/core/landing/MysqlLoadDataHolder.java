@@ -151,8 +151,6 @@ public class MysqlLoadDataHolder implements DBDataHolder {
     public boolean singleLanding(List<String> dirtyList, String dirtyName) {
         // 获取需要落地的数据，这里是否有必要加锁待定
         for(int i = 0; i < dirtyList.size(); i+=2){
-
-            Pair<String, DataObject> tableDataPair;
             String dirtyKey = dirtyList.get(i);
             String option = dirtyList.get(i + 1);
             try {

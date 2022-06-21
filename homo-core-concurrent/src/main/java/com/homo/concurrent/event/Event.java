@@ -1,4 +1,4 @@
-package com.homo.concurrent.queue;
+package com.homo.concurrent.event;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

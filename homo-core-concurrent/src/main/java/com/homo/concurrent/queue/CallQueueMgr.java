@@ -1,7 +1,9 @@
 package com.homo.concurrent.queue;
 
 import brave.internal.Nullable;
+import com.homo.concurrent.event.Event;
 import com.homo.concurrent.thread.ThreadPoolFactory;
+import com.homo.core.common.module.Module;
 import com.homo.core.utils.rector.Homo;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +20,16 @@ import java.util.function.BiFunction;
  * 事件处理管理器
  */
 @Slf4j
-public class CallQueueMgr {
+public class CallQueueMgr implements Module {
     public static final String DEFAULT_TYPE = "defaultPloyType";
     private volatile static CallQueueMgr instance = null;
     private static final int queueCount = Integer.parseInt(System.getProperty("call.queue.count", "4"));
     private static final int waitNum = Integer.parseInt(System.getProperty("call.queue.maxWaitNum", "10000"));
     private static final int keepLive = Integer.parseInt(System.getProperty("call.queue.maxWaitNum", "10"));
+    Map<String, BiFunction<Event, Object, Integer>> ployFunMap = new ConcurrentHashMap<>();
+    CallQueue[] callQueues;
+    ExecutorService executorService;
+    ThreadLocal<CallQueue> localQueue = new ThreadLocal<>();
     public static final BiFunction<Event, Object, Integer> robinPloyFun = new BiFunction<Event, Object, Integer>() {
         int index = 0;
 
@@ -51,15 +57,12 @@ public class CallQueueMgr {
         }
     };
 
-    Map<String, BiFunction<Event, Object, Integer>> ployFunMap = new ConcurrentHashMap<>();
-    CallQueue[] callQueues;
-    ExecutorService executorService;
-    ThreadLocal<CallQueue> localQueue = new ThreadLocal<>();
+
 
     private CallQueueMgr() {
     }
 
-    public static void init() {
+    public  void init() {
         log.debug("CallQueueMgr init");
         getInstance();
     }

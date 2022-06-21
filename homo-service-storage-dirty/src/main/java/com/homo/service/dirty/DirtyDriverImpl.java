@@ -128,10 +128,6 @@ public class DirtyDriverImpl implements DirtyDriver {
     }
 
 
-    public Pair<String, DataObject> buildingData(String dirtyKey, String option) {
-        return null;
-    }
-
     @Override
     public String snapShot(String dirtyName) {
         // 判断是不是第一次落地

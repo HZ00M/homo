@@ -1,14 +1,15 @@
-package com.homo.concurrent.queue;
+package com.homo.concurrent.event;
 
 import brave.Span;
 import brave.Tracer;
+import com.homo.concurrent.event.Event;
 import com.homo.core.utils.trace.ZipkinUtil;
 
 /**
  * 支持链路追踪的异步事件处理
  */
-public interface TraceableEvent extends Event {
-    default void doProcessTraceable() {
+public interface BaseEvent extends Event {
+    default void doProcess() {
         long processTime = System.currentTimeMillis();
         Span span = getSpan();
         if (span != null) {
@@ -17,13 +18,12 @@ public interface TraceableEvent extends Event {
                 span.tag("thread",Thread.currentThread().getName());
                 preProcess();
                 process();
-                span.tag("data",getTagForSpan());
             }catch (Throwable throwable){
                 span.error(throwable);
             }finally {
                 long spentTime = System.currentTimeMillis() - processTime;
                 if (spentTime > 1000){
-                    log.warn("{} process too long! spentTime_{}", spentTime,getName());
+                    log.warn("{} process too long! spentTime_{}", getName(),spentTime);
                 }
                 span.annotate("process-event-end");
                 span.tag("process-spend-time", String.valueOf(spentTime));

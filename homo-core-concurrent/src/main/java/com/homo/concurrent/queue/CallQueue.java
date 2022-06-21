@@ -1,11 +1,14 @@
 package com.homo.concurrent.queue;
 
 import brave.Span;
+import com.homo.concurrent.event.BaseEvent;
+import com.homo.concurrent.event.Event;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class CallQueue {
@@ -37,8 +40,8 @@ public class CallQueue {
         if (getWaitingTasksNum() >= queueMaxSize) {
             log.error("CallQueue id_{} addEvent error , to much waiting event waitingEventNum_{} event_{}", id, waitingEventNum, e, new Exception("to much waiting Event"));
         }
-        if (ZipkinUtil.getTracing() != null && e instanceof TraceableEvent) {
-            TraceableEvent event = (TraceableEvent) e;
+        if (ZipkinUtil.getTracing() != null && e instanceof BaseEvent) {
+            BaseEvent event = (BaseEvent) e;
             Span span = event.getSpan() != null ? event.getSpan() : ZipkinUtil.getTracing().tracer().currentSpan();
             event.setSpan(span);
             event.annotate("add-event");
@@ -51,7 +54,26 @@ public class CallQueue {
     }
 
     public void start(CallQueueMgr callQueueMgr){
-
+        log.info("CallQueue[{}] start!",id);
+        callQueueMgr.executorService.submit(()->{
+            callQueueMgr.setLocalQueue(this);
+            running=true;
+            while (!isShutDown){
+                try {
+                    Event event = eventQueue.poll(1L, TimeUnit.SECONDS);
+                    if (event==null){
+                        continue;
+                    }
+                    event.doProcess();
+                }catch (Exception e){
+                    log.error("CallQueue[{}] run error cause:",id,e);
+                }finally {
+                    log.debug("CallQueue[{}] run finish",id);
+                }
+            }
+            log.info("CallQueue[{}] shutdown",id);
+            running = false;
+        });
     }
 
     public void shutdown(){
