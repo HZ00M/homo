@@ -1,36 +1,36 @@
 package com.homo.concurrent.schedule;
 
 
-import com.homo.concurrent.event.TimerEvent;
+import com.homo.concurrent.event.TimerTaskEvent;
 import com.homo.concurrent.queue.CallQueue;
 import lombok.Setter;
 
 import java.util.function.Consumer;
 
-public class HomoTimerTask extends AbstractHomoTimerTask{
-    public TaskFun taskFun;
+public class HomoTimerTask<T extends Task> extends AbstractHomoTimerTask{
+    public T task;
     public Object[] objects;
     public int runTimes;
     public int currentTimes;
     @Setter
     public volatile boolean interrupt;
 
-    public HomoTimerTask(TaskFun taskFun, Object[] objects, int runTimes) {
-        this.taskFun = taskFun;
+    public HomoTimerTask(T task, int runTimes,Object... objects) {
+        this.task = task;
         this.objects = objects;
         this.runTimes = runTimes;
     }
 
-    public HomoTimerTask(CallQueue callQueue, TaskFun taskFun, Object[] objects, int runTimes) {
+    public HomoTimerTask(CallQueue callQueue, T task, int runTimes,Object... objects) {
         super(callQueue);
-        this.taskFun = taskFun;
+        this.task = task;
         this.objects = objects;
         this.runTimes = runTimes;
     }
 
-    public HomoTimerTask(CallQueue callQueue, Consumer<AbstractHomoTimerTask> onCancelConsumer, Consumer<AbstractHomoTimerTask> onErrorConsumer, TaskFun taskFun, Object[] objects, int runTimes) {
+    public HomoTimerTask(CallQueue callQueue, Consumer<AbstractHomoTimerTask> onCancelConsumer, Consumer<AbstractHomoTimerTask> onErrorConsumer, T task, int runTimes,Object... objects) {
         super(callQueue, onCancelConsumer, onErrorConsumer);
-        this.taskFun = taskFun;
+        this.task = task;
         this.objects = objects;
         this.runTimes = runTimes;
     }
@@ -41,6 +41,6 @@ public class HomoTimerTask extends AbstractHomoTimerTask{
         if (runTimes!=ENDLESS&&currentTimes>=runTimes){
             cancel();
         }
-        addEvent(new TimerEvent(this,taskFun,objects,interrupt));
+        addEvent(new TimerTaskEvent(this, task,interrupt,objects));
     }
 }

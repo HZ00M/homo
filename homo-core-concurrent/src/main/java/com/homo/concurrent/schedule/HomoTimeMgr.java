@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.Timer;
 
 @Slf4j
-public class HomoTimeMgr {
+public class HomoTimeMgr<T extends Task> {
 
     public static String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static SimpleDateFormat dateFormat = new SimpleDateFormat(TIME_FORMAT);
@@ -39,7 +39,7 @@ public class HomoTimeMgr {
     }
 
 
-    private void schedule(HomoTimerTask timerTask, Date date, long period){
+    private void schedule(HomoTimerTask<T> timerTask, Date date, long period){
         try {
             getTimer().schedule(timerTask,date,period);
         }catch (IllegalStateException cancelled){
@@ -50,37 +50,37 @@ public class HomoTimeMgr {
         }
     }
 
-    public HomoTimerTask once(TaskFun taskFun,String time,Object ...objects) throws ParseException {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, objects, 1);
+    public HomoTimerTask<T> once(T taskFun,String time,Object ...objects) throws ParseException {
+        HomoTimerTask<T> homoTimerTask = new HomoTimerTask<T>(taskFun, 1,objects);
         schedule(homoTimerTask,dateFormat.parse(time),1);
         return homoTimerTask;
     }
-    public HomoTimerTask once(TaskFun taskFun,Date time,Object ...objects) {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, objects, 1);
+    public HomoTimerTask<T> once(T taskFun,Date time,Object ...objects) {
+        HomoTimerTask<T> homoTimerTask = new HomoTimerTask<T>(taskFun,1,objects);
         schedule(homoTimerTask,time,1);
         return homoTimerTask;
     }
 
-    public HomoTimerTask once(TaskFun taskFun,long delay,Object ...objects){
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, objects, 1);
+    public HomoTimerTask<T> once(T taskFun,long delay,Object ...objects){
+        HomoTimerTask<T> homoTimerTask = new HomoTimerTask<T>(taskFun,1,objects);
         schedule(homoTimerTask,new Date(System.currentTimeMillis()+delay),1);
         return homoTimerTask;
     }
 
-    public HomoTimerTask schedule(TaskFun taskFun,String time,long period,int runTimes,Object ...objects) throws ParseException {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, objects, runTimes);
+    public HomoTimerTask<T> schedule(T taskFun,String time,long period,int runTimes,Object ...objects) throws ParseException {
+        HomoTimerTask<T> homoTimerTask = new HomoTimerTask<T>(taskFun,  runTimes,objects);
         schedule(homoTimerTask,dateFormat.parse(time),period);
         return homoTimerTask;
     }
 
-    public HomoTimerTask schedule(TaskFun taskFun,Date time,long period,int runTimes,Object ...objects)  {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, objects, runTimes);
+    public HomoTimerTask<T> schedule(T taskFun,Date time,long period,int runTimes,Object ...objects)  {
+        HomoTimerTask<T> homoTimerTask = new HomoTimerTask<T>(taskFun,  runTimes,objects);
         schedule(homoTimerTask,time,period);
         return homoTimerTask;
     }
 
-    public HomoTimerTask schedule(TaskFun taskFun,long delay,long period,int runTimes,Object ...objects)  {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, objects, runTimes);
+    public HomoTimerTask<T> schedule(T taskFun,long delay,long period,int runTimes,Object ...objects)  {
+        HomoTimerTask<T> homoTimerTask = new HomoTimerTask<T>(taskFun, runTimes,objects);
         schedule(homoTimerTask,new Date(System.currentTimeMillis()+delay),period);
         return homoTimerTask;
     }
