@@ -1,15 +1,27 @@
 package com.homo.core.common.module;
 
-/**
- * 进程内共享游戏信息
- */
-public interface ServerInfo {
+import lombok.ToString;
 
-    String getAppId();
-
-    String getRegionId();
-
-    String getChannel();
-
-    String getServiceName();
+@ToString
+public class ServerInfo {
+    /**
+     * 应用id
+     */
+    public String appId = "1";
+    /**
+     * 区服id
+     */
+    public String regionId = "1";
+    /**
+     * 命名空间
+     */
+    public String namespace = "1";
+    /**
+     * 渠道id
+     */
+    public String channel = "*";
+    /**
+     * 服务名
+     */
+    public String serverName = "null";
 }

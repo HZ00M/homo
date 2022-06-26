@@ -1,6 +1,6 @@
 local result = {}
 local persistentKey = redis.call("GET", KEYS[2])
-local cachedAllKey = redis.call("HGET", KEYS[1], "cachedAllKey")
+local cachedAllKey = redis.call("HGET", KEYS[1], ":cachedAllKey:")
 if persistentKey and not cachedAllKey then
     table.insert(result, "unCachedAllKey")
 else

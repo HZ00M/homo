@@ -1,19 +1,22 @@
 package com.homo.core.configurable.zipkin;
 
-import com.homo.core.configurable.NameSpaceConstant;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = NameSpaceConstant.ZIPKIN)
+@Configurable
 @Data
 public class ZipKinProperties {
-    @Value(value = "service.monitor.traces.report.addr")
+    @Value(value = "${homo.zipkin.namespace:homo_zipkin_config}")
+    public String zipikinNamespace ;
+    @Value(value = "${homo.zipkin.server.addr:127.0.0.1}")
     public String reportAddr ;
-    @Value(value = "service.monitor.traces.supportsJoin")
+    @Value(value = "${homo.zipkin.server.port:9411}")
+    public String reportPort ;
+    @Value(value = "${homo.zipkin.server.supportsJoin:true}")
     public boolean supportsJoin ;
-    @Value(value = "service.monitor.traces.one.second.count")
+    @Value(value = "${homo.zipkin.client.trace.perSecond:10}")
     public int tracesPerSecond;
-    @Value(value = "service.monitor.traces.open")
+    @Value(value = "${homo.zipkin.client.trace.open:false}")
     public boolean isOpen  = false;
 }

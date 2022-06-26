@@ -7,7 +7,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component("getBeanUtil")
 public class GetBeanUtil implements ApplicationContextAware {
     protected static ApplicationContext context;
 

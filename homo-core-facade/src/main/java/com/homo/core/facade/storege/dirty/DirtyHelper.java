@@ -1,7 +1,7 @@
 package com.homo.core.facade.storege.dirty;
 
-import com.homo.core.facade.enums.DataOpType;
 import com.homo.core.configurable.dirty.DirtyProperties;
+import com.homo.core.facade.enums.DataOpType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
@@ -24,7 +24,7 @@ public class DirtyHelper {
     public String key;
     public Map<String, String> dirtyMap = new HashMap<>();
 
-    public void init(DirtyProperties dirtyProperties){
+    public static void init(DirtyProperties dirtyProperties){
         DirtyHelper.dirtyProperties = dirtyProperties;
     }
 

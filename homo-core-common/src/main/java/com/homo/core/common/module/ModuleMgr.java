@@ -29,4 +29,10 @@ public interface ModuleMgr {
      * 所有组件初始化完后调用
      */
     void afterInitModules();
+
+    /**
+     * 获取k8s上pod的名字
+     * @return
+     */
+    public String getPodName();
 }

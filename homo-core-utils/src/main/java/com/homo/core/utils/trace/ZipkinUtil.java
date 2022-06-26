@@ -18,7 +18,6 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ServerInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.Sender;
@@ -29,15 +28,9 @@ import java.util.function.Consumer;
 
 /**
  * ZipKin全链路跟踪工具类
+ * zipkin追踪流程  clientSend->serverReceiver->serverSend->clientReceive
  */
 @Slf4j
-@ConditionalOnProperty(
-        prefix = "homo.zipkin",
-        name = {"enable"},
-        havingValue = "true",
-        matchIfMissing = false
-)
-@EnableConfigurationProperties({ZipKinProperties.class})
 public class ZipkinUtil implements Module {
     public static final String CLIENT_SEND_TAG = "cs";
     public static final String SERVER_RECEIVE_TAG = "sr";
@@ -45,16 +38,15 @@ public class ZipkinUtil implements Module {
     public static final String CLIENT_RECEIVE_TAG = "cr";
     public static final String FINISH_TAG = "finish";
     private static Tracing tracing = null;
-    private static HttpTracing httpTracing;
     private static RpcTracing rpcTracing;
 
-    @Autowired
+    @Autowired(required = false)
     private ZipKinProperties zipKinProperties;
 
     //要与brave.Span区别开，Brave是Java版的Zipkin客户端
     private AsyncReporter<zipkin2.Span> asyncReporter;
 
-    @Autowired
+    @Override
     public void init() {
         if (tracing != null) {
             log.info("tracing close");
@@ -76,6 +68,7 @@ public class ZipkinUtil implements Module {
             log.info("asyncReporter to {}", zipKinProperties.reportAddr);
             Sender sender = OkHttpSender.create(zipKinProperties.reportAddr);
             AsyncReporter<zipkin2.Span> reporter = AsyncReporter.create(sender);
+            asyncReporter = reporter;
             tracingBuilder.addSpanHandler(ZipkinSpanHandler.create(reporter))
                     .localServiceName(localServiceName)
                     .sampler(RateLimitingSampler.create(zipKinProperties.tracesPerSecond))
@@ -86,7 +79,6 @@ public class ZipkinUtil implements Module {
         }
         tracing = tracingBuilder.build();
         rpcTracing = RpcTracing.create(tracing);
-        httpTracing = HttpTracing.create(tracing);
     }
 
     public ClientInterceptor clientInterceptor() {
@@ -111,66 +103,42 @@ public class ZipkinUtil implements Module {
     }
 
     /**
-     * 创建一个新的客户端span
+     * 创建一个新的客户端发起请求span
      *
      * @return 返回新创建的span
      */
-    public static Span newClientSendSpan() {
+    public static Span newCSSpan() {
         return getTracing().tracer().newTrace().kind(Span.Kind.CLIENT).annotate(CLIENT_SEND_TAG).start();
     }
 
     /**
-     * 创建一个客户端 span
-     *
-     * @return 新创建的span, 如果currentSpan不为空，那么就会创建一个currentSpan的子span
-     */
-    public static Span nextClientReceiveSpan() {
-        return getTracing().tracer().nextSpan().kind(Span.Kind.CLIENT).annotate(CLIENT_RECEIVE_TAG).start();
-    }
-
-    /**
-     * 创建一个新的服务端span
+     * 创建一个新的服务端接收请求span
      *
      * @return 返回新创建的span
      */
-    public static Span newServiceReceiveSpan() {
+    public static Span newSRSpan() {
+        return getTracing().tracer().newTrace().kind(Span.Kind.SERVER).annotate(SERVER_RECEIVE_TAG).start();
+    }
+
+    /**
+     * 创建一个新的服务端处理完成span
+     *
+     * @return 返回新创建的span
+     */
+    public static Span newSSSpan() {
         return getTracing().tracer().newTrace().kind(Span.Kind.SERVER).annotate(SERVER_SEND_TAG).start();
     }
 
     /**
-     * 创建一个服务端span, 通常是为了异步过程创建一个span。
-     *
-     * @param samplerFunction 采样函数，返回true表示会被采样，如果被采样，在开启zipkin的情况下回上报到收集程序
-     * @param arg             采样函数的参数
-     * @param parent          父级上下文
-     * @param <T>             采样函数参数类型
-     * @return 新span
-     */
-    public static <T> Span nextServerReceiveSpanWithParent(SamplerFunction<T> samplerFunction, T arg, @Nullable TraceContext parent) {
-        return nextSpanWithParent(Span.Kind.SERVER, SERVER_RECEIVE_TAG, samplerFunction, arg, parent);
-    }
-
-    /**
-     * 创建一个客户端span, 通常是为了异步过程创建一个span。
-     *
-     * @param samplerFunction 采样函数，返回true表示会被采样，如果被采样，在开启zipkin的情况下回上报到收集程序
-     * @param arg             采样函数的参数
-     * @param parent          父级上下文
-     * @param <T>             采样函数参数类型
-     * @return 新span
-     */
-    public static <T> Span nextClientSendSpanWithParent(SamplerFunction<T> samplerFunction, T arg, @Nullable TraceContext parent) {
-        return nextSpanWithParent(Span.Kind.CLIENT, CLIENT_SEND_TAG, samplerFunction, arg, parent);
-    }
-
-    /**
-     * 创建一个服务端 span
+     * 创建一个客户端接收处理结果span
      *
      * @return 新创建的span, 如果currentSpan不为空，那么就会创建一个currentSpan的子span
      */
-    public static Span nextServerReceiveSpan() {
-        return getTracing().tracer().nextSpan().kind(Span.Kind.SERVER).annotate(SERVER_RECEIVE_TAG).start();
+    public static Span nextCRSpan() {
+        return getTracing().tracer().nextSpan().kind(Span.Kind.CLIENT).annotate(CLIENT_RECEIVE_TAG).start();
     }
+
+
 
     static <T> Span nextSpanWithParent(Span.Kind kind, String startAnnotate, SamplerFunction<T> samplerFunction, T arg, @Nullable TraceContext parent) {
         return getTracing()
@@ -182,6 +150,54 @@ public class ZipkinUtil implements Module {
     }
 
     /**
+     * 创建一个客户端发起请求span, 通常是为了异步过程创建一个span。
+     *
+     * @param samplerFunction 采样函数，返回true表示会被采样，如果被采样，在开启zipkin的情况下回上报到收集程序
+     * @param arg             采样函数的参数
+     * @param parent          父级上下文
+     * @param <T>             采样函数参数类型
+     * @return 新span
+     */
+    public static <T> Span nextCSSpanWithParent(SamplerFunction<T> samplerFunction, T arg, @Nullable TraceContext parent) {
+        return nextSpanWithParent(Span.Kind.CLIENT, CLIENT_SEND_TAG, samplerFunction, arg, parent);
+    }
+
+
+    /**
+     * 创建一个服务端接收请求 span
+     *
+     * @return 新创建的span, 如果currentSpan不为空，那么就会创建一个currentSpan的子span
+     */
+    public static Span nextOrCreateSRSpan() {
+        return getTracing().tracer().nextSpan().kind(Span.Kind.SERVER).annotate(SERVER_RECEIVE_TAG).start();
+    }
+
+    /**
+     * 创建一个客户端发送请求span, 通常是为了异步过程创建一个span。
+     *
+     * @param function 采样函数，返回true表示会被采样，如果被采样，在开启zipkin的情况下回上报到收集程序
+     * @param arg      采样函数的参数
+     * @param <T>      采样函数参数类型
+     * @return 新span
+     */
+    public static <T> Span nextOrCreateCSSpan(SamplerFunction<T> function, T arg) {
+        return nextSpan(Span.Kind.CLIENT, CLIENT_SEND_TAG, function, arg);
+    }
+
+    /**
+     * 创建一个服务端接收请求span, 通常是为了异步过程创建一个span。
+     *
+     * @param samplerFunction 采样函数，返回true表示会被采样，如果被采样，在开启zipkin的情况下回上报到收集程序
+     * @param arg             采样函数的参数
+     * @param parent          父级上下文
+     * @param <T>             采样函数参数类型
+     * @return 新span
+     */
+    public static <T> Span nextSRSpanWithParent(SamplerFunction<T> samplerFunction, T arg, @Nullable TraceContext parent) {
+        return nextSpanWithParent(Span.Kind.SERVER, SERVER_RECEIVE_TAG, samplerFunction, arg, parent);
+    }
+
+    /**
      * 创建一个服务端span, 通常是为了异步过程创建一个span。
      *
      * @param function 采样函数，返回true表示会被采样，如果被采样，在开启zipkin的情况下回上报到收集程序
@@ -189,26 +205,16 @@ public class ZipkinUtil implements Module {
      * @param <T>      采样函数参数类型
      * @return 新span
      */
-    public static <T> Span nextServerReceiveSpan(SamplerFunction<T> function, T arg) {
+    public static <T> Span nextOrCreateSRSpan(SamplerFunction<T> function, T arg) {
         return nextSpan(Span.Kind.SERVER, SERVER_RECEIVE_TAG, function, arg);
     }
 
-    /**
-     * 创建一个客户端span, 通常是为了异步过程创建一个span。
-     *
-     * @param function 采样函数，返回true表示会被采样，如果被采样，在开启zipkin的情况下回上报到收集程序
-     * @param arg      采样函数的参数
-     * @param <T>      采样函数参数类型
-     * @return 新span
-     */
-    public static <T> Span nextClientSendSpan(SamplerFunction<T> function, T arg) {
-        return nextSpan(Span.Kind.CLIENT, CLIENT_SEND_TAG, function, arg);
-    }
 
     static <T> Span nextSpan(Span.Kind kind, String startAnnotate, SamplerFunction<T> samplerFunction, T arg) {
         return getTracing()
                 .tracer()
                 .nextSpan(samplerFunction, arg)
+                .kind(kind)
                 .annotate(startAnnotate)
                 .start();
     }
@@ -226,7 +232,7 @@ public class ZipkinUtil implements Module {
         if (span.context().sampled()){
             return span;
         }
-        return nextServerReceiveSpan(function,arg);
+        return nextOrCreateSRSpan(function,arg);
     }
 
     /**
@@ -308,7 +314,7 @@ public class ZipkinUtil implements Module {
      */
     public static Span startScopeThrowable(String name, ConsumerEx<Span> consumer, Consumer<Span> onScopeClose)
             throws Exception {
-        return startScopeThrowable(nextServerReceiveSpan().name(name), consumer, onScopeClose);
+        return startScopeThrowable(nextOrCreateSRSpan().name(name), consumer, onScopeClose);
     }
 
     /**

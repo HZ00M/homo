@@ -7,7 +7,7 @@ end
 --如果存在cachedKey,说明在内存中这个key对应的hash表是最新的,否则内存中的数据不是最新的，需要从数据库中加载冷数据
 --如果内存中有些数据的value值是del，说明这个数据被删除了
 
-local cachedKey = redis.call("HGET", KEYS[1], "cachedKey")
+local cachedKey = redis.call("HGET", KEYS[1], ":cachedKey:")
 if not cachedKey then
     return 0    --内存中的数据不是最新的
 else

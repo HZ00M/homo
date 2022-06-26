@@ -1,7 +1,6 @@
 package com.homo.core.redis.factory;
 
 import com.homo.concurrent.thread.ThreadPoolFactory;
-import com.homo.core.configurable.redis.JedisProperties;
 import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.impl.HomoLettucePool;
 import com.homo.core.utils.spring.GetBeanUtil;
@@ -22,8 +21,7 @@ public class HomoLettucePoolCreater {
     public static HomoRedisPool createPool()throws InterruptedException{
         try {
             RedisInfoHolder redisInfoHolder = GetBeanUtil.getBean(RedisInfoHolder.class);
-            JedisProperties jedisProperties = GetBeanUtil.getBean(JedisProperties.class);
-            if(StringUtils.isEmpty(jedisProperties.getUrl()) || StringUtils.isEmpty(jedisProperties.getPort())){
+            if(StringUtils.isEmpty(redisInfoHolder.getUrl()) || StringUtils.isEmpty(redisInfoHolder.getPort())){
                 log.warn("jedisUrl or jedisPort is null , could not init the tpfJedisPool");
                 return null;
             }
@@ -42,13 +40,13 @@ public class HomoLettucePoolCreater {
             log.info("HomoLettucePool create config_{}",config);
 
             RedisURI.Builder redisUriBuilder = RedisURI.builder()
-                    .withHost(jedisProperties.getUrl())
-                    .withPort(jedisProperties.getPort())
+                    .withHost(redisInfoHolder.getUrl())
+                    .withPort(redisInfoHolder.getPort())
                     .withDatabase(redisInfoHolder.getDataBase());
 
 
-            if(!StringUtils.isEmpty(jedisProperties.getAuth())){
-                redisUriBuilder.withPassword(jedisProperties.getAuth());
+            if(!StringUtils.isEmpty(redisInfoHolder.getAuth())){
+                redisUriBuilder.withPassword(redisInfoHolder.getAuth());
             }
             DefaultClientResources resources = DefaultClientResources.builder()
                     .eventExecutorGroup(new NioEventLoopGroup(2, ThreadPoolFactory.newThreadPool("HOMO-REDIS", 2, 0)))

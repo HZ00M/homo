@@ -1,17 +1,16 @@
 package com.homo.core.landing;
 
-import com.homo.core.common.pojo.DataObject;
+import com.homo.core.landing.mapper.ISchemeMapper;
+import com.homo.core.landing.pojo.DataObject;
 import com.homo.core.facade.storege.landing.DBDataHolder;
-import com.homo.core.facade.storege.landing.DataLandingProcess;
-import com.homo.core.facade.storege.landing.DataObjHelper;
-import com.homo.core.redis.facade.HomoAsyncRedisPool;
+ import com.homo.core.facade.storege.landing.DataObjHelper;
+import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.factory.RedisInfoHolder;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Qualifier;
 import reactor.core.publisher.Sinks;
 import reactor.util.function.Tuple2;
 
@@ -26,18 +25,19 @@ import java.util.concurrent.Executors;
 /**
  * 缓存mysql数据到redis处理器
  */
-@Component
 @Slf4j
-public class MysqlLoadDataHolder implements DBDataHolder {
+public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
     Map<String, Boolean> tableTags = new ConcurrentHashMap<>();
-    @Autowired
-    private HomoAsyncRedisPool redisPool;
-    @Autowired
+    @Autowired(required = false)
+    @Qualifier("homoRedisPool")
+    private HomoRedisPool redisPool;
+    @Autowired(required = false)
     private RedisInfoHolder redisInfoHolder;
-    @Autowired
+    @Autowired(required = false)
     private ISchemeMapper schemeMapper;
-    @Autowired
+    @Autowired(required = false)
     private DataLandingProcess dataLandingProcess;
+
 
     //SynchronousQueue的一个使用场景是在线程池里。Executors.newCachedThreadPool()就使用了SynchronousQueue，
     // 这个线程池根据需要（新任务到来时）创建新的线程，如果有空闲线程则会重复使用，线程空闲了60秒后会被回收。

@@ -21,9 +21,5 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-auto-configurable</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-mysql-base</artifactId>
-        </dependency>
     </dependencies>
 </project>

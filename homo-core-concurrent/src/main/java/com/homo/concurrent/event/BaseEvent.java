@@ -2,7 +2,6 @@ package com.homo.concurrent.event;
 
 import brave.Span;
 import brave.Tracer;
-import com.homo.concurrent.event.Event;
 import com.homo.core.utils.trace.ZipkinUtil;
 
 /**

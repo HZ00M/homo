@@ -1,30 +1,13 @@
 package com.homo.core.common.module;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 模块组件  所有组件都继承
  */
-public interface Module {
-    ServerInfo serverInfo = new ServerInfo() {
-        @Override
-        public String getAppId() {
-            return "1";
-        }
-
-        @Override
-        public String getRegionId() {
-            return "1";
-        }
-
-        @Override
-        public String getChannel() {
-            return "*";
-        }
-
-        @Override
-        public String getServiceName() {
-            return "UNKNOWN_SERVICE";
-        }
-    };
+public interface Module{
+    Map<ModuleInfoType,Object> moduleInfo = new HashMap<>();
 
     /**
      * 返回模块的初始化顺序，值越小，越早初始化
@@ -39,7 +22,22 @@ public interface Module {
      * @return
      */
     default ServerInfo getServerInfo(){
-        return serverInfo;
+        return getInfo(ModuleInfoType.SERVER_INFO,ServerInfo.class);
+    }
+
+    /**
+     * 获取服务信息
+     * @return
+     */
+    default <T> T getInfo(ModuleInfoType moduleInfoType,Class<T> type){
+        return (T) moduleInfo.getOrDefault(ModuleInfoType.SERVER_INFO,null);
+    }
+
+    /**
+     * 模块初始化
+     */
+    default void init(RootModule rootModule){
+        moduleInfo.put(ModuleInfoType.SERVER_INFO,rootModule.getServerInfo());
     }
 
     /**

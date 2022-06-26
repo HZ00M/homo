@@ -29,6 +29,10 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-redis-base</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-mysql-base</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

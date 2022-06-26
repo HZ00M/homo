@@ -2,9 +2,9 @@ package com.homo.concurrent.schedule;
 
 import brave.Span;
 import brave.Tracer;
+import com.homo.concurrent.event.Event;
 import com.homo.concurrent.queue.CallQueue;
 import com.homo.concurrent.queue.CallQueueMgr;
-import com.homo.concurrent.event.Event;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
 

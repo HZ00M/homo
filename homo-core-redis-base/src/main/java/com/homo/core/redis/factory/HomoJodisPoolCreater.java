@@ -1,6 +1,5 @@
 package com.homo.core.redis.factory;
 
-import com.homo.core.configurable.redis.JodisProperties;
 import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.impl.HomoJodisPool;
 import com.homo.core.utils.spring.GetBeanUtil;
@@ -13,9 +12,8 @@ import redis.clients.jedis.JedisPoolConfig;
 public class HomoJodisPoolCreater {
     public static HomoRedisPool createPool(){
         try {
-            RedisInfoHolder redisInfoHolder = GetBeanUtil.getBean(RedisInfoHolder.class);
-            JodisProperties jodisProperties = GetBeanUtil.getBean(JodisProperties.class);
-            if(StringUtils.isEmpty(jodisProperties.getJodisProxyDir()) || StringUtils.isEmpty(jodisProperties.getJodisConnectString())){
+            RedisInfoHolder redisInfoHolder = GetBeanUtil.getBean(RedisInfoHolder.class); 
+            if(StringUtils.isEmpty(redisInfoHolder.getProxyDir()) || StringUtils.isEmpty(redisInfoHolder.getUrl())){
                 log.warn("jodisProxyDir or jodisConnectString is null , could not init the tpfJodisPool");
                 return null;
             }
@@ -33,10 +31,10 @@ public class HomoJodisPoolCreater {
             config.setTestOnBorrow(redisInfoHolder.isTestOnBorrow());
             log.info("HomoJodisPool create config_{}",config);
             RoundRobinJedisPool robinJedisPool;
-            if(StringUtils.isEmpty(jodisProperties.getJodisAuth())){
+            if(StringUtils.isEmpty(redisInfoHolder.getAuth())){
                 robinJedisPool = RoundRobinJedisPool.create()
-                        .curatorClient(jodisProperties.getJodisConnectString(), 30000)
-                        .zkProxyDir(jodisProperties.getJodisProxyDir())
+                        .curatorClient(redisInfoHolder.getUrl(), 30000)
+                        .zkProxyDir(redisInfoHolder.getProxyDir())
                         .poolConfig(config)
                         .database(redisInfoHolder.getDataBase())
                         .connectionTimeoutMs(redisInfoHolder.getSoTimeOut())
@@ -44,9 +42,9 @@ public class HomoJodisPoolCreater {
                         .build();
             }else{
                 robinJedisPool = RoundRobinJedisPool.create()
-                        .curatorClient(jodisProperties.getJodisConnectString(), 30000)
-                        .zkProxyDir(jodisProperties.getJodisProxyDir())
-                        .password(jodisProperties.getJodisAuth())
+                        .curatorClient(redisInfoHolder.getUrl(), 30000)
+                        .zkProxyDir(redisInfoHolder.getProxyDir())
+                        .password(redisInfoHolder.getAuth())
                         .poolConfig(config)
                         .database(redisInfoHolder.getDataBase())
                         .connectionTimeoutMs(redisInfoHolder.getSoTimeOut())

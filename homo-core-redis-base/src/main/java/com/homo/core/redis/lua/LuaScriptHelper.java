@@ -1,7 +1,6 @@
 package com.homo.core.redis.lua;
 
 import com.homo.core.common.module.Module;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StreamUtils;
@@ -50,7 +49,7 @@ public class LuaScriptHelper implements Module {
             queryFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/queryFields.lua").getInputStream(), StandardCharsets.UTF_8);
             updateFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/updateFields.lua").getInputStream(), StandardCharsets.UTF_8);
             asyncIncrScript = StreamUtils.copyToString(new ClassPathResource("lua/asyncIncr.lua").getInputStream(), StandardCharsets.UTF_8);
-            removeFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/removeFieldsScript.lua").getInputStream(), StandardCharsets.UTF_8);
+            removeFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/removeFields.lua").getInputStream(), StandardCharsets.UTF_8);
             hotFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/hotFields.lua").getInputStream(), StandardCharsets.UTF_8);
             hotAllFieldScript = StreamUtils.copyToString(new ClassPathResource("lua/hotAllField.lua").getInputStream(), StandardCharsets.UTF_8);
             dirtyDataScript = StreamUtils.copyToString(new ClassPathResource("lua/dirtyData.lua").getInputStream(), StandardCharsets.UTF_8);

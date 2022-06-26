@@ -1,6 +1,5 @@
 package com.homo.core.redis.factory;
 
-import com.homo.core.configurable.redis.JedisClusterProperties;
 import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.impl.HomoJedisCluster;
 import com.homo.core.utils.spring.GetBeanUtil;
@@ -18,8 +17,7 @@ public class HomoJedisClusterPoolCreater {
     public static HomoRedisPool createPool(){
         try {
             RedisInfoHolder redisInfoHolder = GetBeanUtil.getBean(RedisInfoHolder.class);
-            JedisClusterProperties jedisClusterProperties = GetBeanUtil.getBean(JedisClusterProperties.class);
-            if(StringUtils.isEmpty(jedisClusterProperties.getUrl())){
+            if(StringUtils.isEmpty(redisInfoHolder.getUrl())){
                 log.warn("jedisUrl is null , could not init the tpfJedisPool");
                 return null;
             }
@@ -37,11 +35,11 @@ public class HomoJedisClusterPoolCreater {
             config.setTestOnBorrow(redisInfoHolder.isTestOnBorrow());
             log.info("HomoJedisClusterPool create config_{}",config);
             JedisCluster jedisCluster;
-            Set<HostAndPort> hostAndPorts = parseNodesHostAndPort(jedisClusterProperties.getUrl());
-            if(StringUtils.isEmpty(jedisClusterProperties.getAuth())){
+            Set<HostAndPort> hostAndPorts = parseNodesHostAndPort(redisInfoHolder.getUrl());
+            if(StringUtils.isEmpty(redisInfoHolder.getAuth())){
                 jedisCluster = new JedisCluster(hostAndPorts,redisInfoHolder.getTimeOutMs(),redisInfoHolder.getSoTimeOut(),redisInfoHolder.getMaxAttemps(),config);
             }else{
-                jedisCluster = new JedisCluster(hostAndPorts,redisInfoHolder.getTimeOutMs(),redisInfoHolder.getSoTimeOut(),redisInfoHolder.getMaxAttemps(), jedisClusterProperties.getAuth(), config);
+                jedisCluster = new JedisCluster(hostAndPorts,redisInfoHolder.getTimeOutMs(),redisInfoHolder.getSoTimeOut(),redisInfoHolder.getMaxAttemps(), redisInfoHolder.getAuth(), config);
             }
             HomoJedisCluster homoJedisCluster = new HomoJedisCluster(jedisCluster);
             return homoJedisCluster;

@@ -1,6 +1,5 @@
 package com.homo.core.redis.factory;
 
-import com.homo.core.configurable.redis.JedisProperties;
 import com.homo.core.redis.impl.HomoJedisPool;
 import com.homo.core.utils.spring.GetBeanUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +12,7 @@ public class HomoJedisPoolCreater {
     public static HomoJedisPool createPool(){
         try {
             RedisInfoHolder redisInfoHolder = GetBeanUtil.getBean(RedisInfoHolder.class);
-            JedisProperties jedisProperties = GetBeanUtil.getBean(JedisProperties.class);
-            if(StringUtils.isEmpty(jedisProperties.getUrl()) || StringUtils.isEmpty(jedisProperties.getPort())){
+            if(StringUtils.isEmpty(redisInfoHolder.getUrl()) || StringUtils.isEmpty(redisInfoHolder.getPort())){
                 log.warn("jedisUrl or jedisPort is null , could not init the tpfJedisPool");
                 return null;
             }
@@ -32,10 +30,10 @@ public class HomoJedisPoolCreater {
             config.setTestOnBorrow(redisInfoHolder.isTestOnBorrow());
             log.info("HomoJedisPool create config_{}",config);
             JedisPool jedisPool;
-            if(StringUtils.isEmpty(jedisProperties.getAuth())){
-                jedisPool = new JedisPool(config, jedisProperties.getUrl(), jedisProperties.getPort(),redisInfoHolder.getTimeOutMs(),(String) null, redisInfoHolder.getDataBase(),(String) null);
+            if(StringUtils.isEmpty(redisInfoHolder.getAuth())){
+                jedisPool = new JedisPool(config, redisInfoHolder.getUrl(), redisInfoHolder.getPort(),redisInfoHolder.getTimeOutMs(),(String) null, redisInfoHolder.getDataBase(),(String) null);
             }else{
-                jedisPool = new JedisPool(config, jedisProperties.getUrl(), jedisProperties.getPort(),redisInfoHolder.getTimeOutMs(), jedisProperties.getAuth(), redisInfoHolder.getDataBase(),(String) null);
+                jedisPool = new JedisPool(config, redisInfoHolder.getUrl(), redisInfoHolder.getPort(),redisInfoHolder.getTimeOutMs(), redisInfoHolder.getAuth(), redisInfoHolder.getDataBase(),(String) null);
             }
             HomoJedisPool homoJedisPool = new HomoJedisPool(jedisPool);
             return homoJedisPool;

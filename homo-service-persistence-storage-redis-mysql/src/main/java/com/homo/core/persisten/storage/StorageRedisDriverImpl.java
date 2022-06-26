@@ -1,17 +1,18 @@
 package com.homo.core.persisten.storage;
 
-import com.homo.core.common.pojo.DataObject;
-import com.homo.core.facade.storege.dirty.DirtyDriver;
+import com.homo.core.landing.pojo.DataObject;
 import com.homo.core.facade.storege.StorageDriver;
+import com.homo.core.facade.storege.dirty.DirtyDriver;
+import com.homo.core.facade.storege.dirty.DirtyHelper;
 import com.homo.core.facade.storege.landing.DBDataHolder;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.factory.RedisInfoHolder;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.lang.Pair;
 import com.homo.core.utils.rector.Homo;
-import com.homo.core.facade.storege.dirty.DirtyHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
@@ -38,20 +39,17 @@ public class StorageRedisDriverImpl implements StorageDriver {
     private static final String REDIS_KEY_TMPL = "slug:{%s:%s:%s:%s}";
     private static final String REDIS_PERSISTENCE_KEY_TMPL = "persistence:{%s:%s:%s:%s}";
 
-    @Autowired
+    @Qualifier("homoRedisPool")
     private HomoAsyncRedisPool redisPool;
 
-    @Autowired
-    private LuaScriptHelper luaScriptHelper;
-
-    @Autowired
+    @Autowired(required = false)
     private DirtyDriver dirtyDriver;
 
-    @Autowired
+    @Autowired(required = false)
     private RedisInfoHolder redisInfoHolder;
 
-    @Autowired
-    private DBDataHolder DBDataHolder;
+    @Autowired(required = false)
+    private DBDataHolder<DataObject> DBDataHolder;
 
     @Override
     public Homo<Map<String, byte[]>> asyncGetByFields(String appId, String regionId, String logicType, String ownerId, List<String> fieldList) {
