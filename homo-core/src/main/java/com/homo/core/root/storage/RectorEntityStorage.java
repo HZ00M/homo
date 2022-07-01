@@ -113,7 +113,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
 
 
     public <T> Homo<Pair<Boolean, Map<String, T>>> update(String logicType, String ownerId, Class<T> clazz, Map<String, T> keyList) {
-        return Homo.warp(monoSink -> storage.updateWithCallBack(getServerInfo().getAppId(),getServerInfo().getRegionId(),logicType, ownerId, keyList, clazz, new CallBack<Pair<Boolean, Map<String, T>>>() {
+        return Homo.warp(monoSink -> storage.updateWithCallBack(getServerInfo().appId,getServerInfo().regionId,logicType, ownerId, keyList, clazz, new CallBack<Pair<Boolean, Map<String, T>>>() {
             @Override
             public void onBack(Pair<Boolean, Map<String, T>> booleanMapMap) {
                 monoSink.success(booleanMapMap);
@@ -141,7 +141,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
     public <T> Homo<Boolean> updatePartial(String logicType, String ownerId, String key, Class<T> clazz, Map<String, ?> keyList) {
-        return Homo.warp(monoSink -> storage.updatePartialWithCallBack(getServerInfo().getAppId(),getServerInfo().getRegionId(),logicType, ownerId, key, keyList, clazz, new CallBack<Boolean>() {
+        return Homo.warp(monoSink -> storage.updatePartialWithCallBack(getServerInfo().appId,getServerInfo().regionId,logicType, ownerId, key, keyList, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean booleanMapMap) {
                 monoSink.success(booleanMapMap);
@@ -169,7 +169,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
     public <T> Homo<T> save(String logicType, String ownerId, String key, T data, Class<T> clazz) {
-        return Homo.warp(monoSink -> storage.save(getServerInfo().getAppId(),getServerInfo().getRegionId(),logicType, ownerId, key, data, clazz, new CallBack<Boolean>() {
+        return Homo.warp(monoSink -> storage.save(getServerInfo().appId,getServerInfo().regionId,logicType, ownerId, key, data, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
                 if (aBoolean) {
@@ -343,27 +343,27 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
     public <T> Homo<Long> incr(String logicType, String ownerId, String incrKey, Class<T> clazz) {
-        return Homo.warp(monoSink -> storage.incr(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, incrKey, clazz, new CallBack<Pair<Boolean, Long>>() {
+        return Homo.warp(monoSink -> storage.incr(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, incrKey, clazz, new CallBack<Pair<Boolean, Long>>() {
             @Override
             public void onBack(Pair<Boolean, Long> booleanLongPair) {
                 if (booleanLongPair.getLeft()) {
                     monoSink.success(booleanLongPair.getRight());
                 } else {
-                    monoSink.error(new Exception(String.format("incr failed, appId_%s regionId_%s logicType_%d, ownerId_%s, incrKey_%s", getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, incrKey)));
+                    monoSink.error(new Exception(String.format("incr failed, appId_%s regionId_%s logicType_%d, ownerId_%s, incrKey_%s", getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, incrKey)));
                 }
             }
 
 
             @Override
             public void onError(Throwable throwable) {
-                monoSink.error(new Exception(String.format("incr error, appId_%s regionId_%s logicType_%d, ownerId_%s, incrKey_%s", getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, incrKey)));
+                monoSink.error(new Exception(String.format("incr error, appId_%s regionId_%s logicType_%d, ownerId_%s, incrKey_%s", getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, incrKey)));
             }
         }));
     }
 
     public Homo<Boolean> asyncLock(String logicType, String ownerId,
                                          String lockField, String lockVal, String uniqueId, Integer expireTime) {
-        return Homo.warp(monoSink -> storage.asyncLock(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, lockField, lockVal, uniqueId, expireTime, new CallBack<Boolean>() {
+        return Homo.warp(monoSink -> storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, lockVal, uniqueId, expireTime, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
                 monoSink.success(aBoolean);
@@ -378,7 +378,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
 
     public Homo<Boolean> asyncLock(String logicType, String ownerId,
                                          String lockField, String lockVal, String uniqueId, Integer expireTime, Integer retryCount, Integer retryDelaySecond) {
-        return Homo.warp((HomoSink<Boolean> monoSink) -> storage.asyncLock(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, lockField, lockVal, uniqueId, expireTime, new CallBack<Boolean>() {
+        return Homo.warp((HomoSink<Boolean> monoSink) -> storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, lockVal, uniqueId, expireTime, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
                 if (aBoolean) {
@@ -397,7 +397,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
 
     public Homo<Boolean> asyncUnlock(String logicType, String ownerId,
                                            String lockField, String uniqueId) {
-        return Homo.warp(monoSink -> storage.asyncUnlock(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, lockField, uniqueId, new CallBack<Boolean>() {
+        return Homo.warp(monoSink -> storage.asyncUnlock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, uniqueId, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
                 monoSink.success(aBoolean);

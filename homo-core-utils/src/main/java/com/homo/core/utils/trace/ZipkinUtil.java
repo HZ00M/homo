@@ -56,7 +56,7 @@ public class ZipkinUtil implements Module {
             log.info("asyncReporter close");
             asyncReporter.close();
         }
-        String localServiceName = getServerInfo().getServiceName();
+        String localServiceName = getServerInfo().serverName;
         log.info(
                 "zipkin 开关 [{}] 上报地址:[{}] ，本地服务名:{} 每秒采样次数:{}",
                 zipKinProperties.isOpen,

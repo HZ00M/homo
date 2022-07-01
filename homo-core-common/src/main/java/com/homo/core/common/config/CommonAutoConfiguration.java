@@ -35,6 +35,7 @@ public class CommonAutoConfiguration {
     }
 
     @Bean("moduleMgr")
+    @DependsOn("rootModule")
     public ModuleMgr moduleMgr(){
         log.info("register bean moduleMgr");
         ModuleMgr moduleMgr = new ModuleMgrImpl();

@@ -199,8 +199,8 @@ public class EntityStorage<F, S, U, P> implements Module {
                                      Class<T> clazz,
                                      CallBack<Map<String, T>> callBack) {
         storageDriver.asyncGetAll(
-                getServerInfo().getAppId(),
-                getServerInfo().getRegionId(),
+                getServerInfo().appId,
+                getServerInfo().regionId,
                 logicType,
                 ownerId, clazz,
                 callBack);
@@ -222,8 +222,8 @@ public class EntityStorage<F, S, U, P> implements Module {
             Class<T> clazz,
             CallBack<Pair<Boolean, Map<String, T>>> callBack) {
         storageDriver.asyncUpdate(
-                getServerInfo().getAppId(),
-                getServerInfo().getRegionId(),
+                getServerInfo().appId,
+                getServerInfo().regionId,
                 logicType,
                 ownerId,
                 data,
@@ -344,8 +344,8 @@ public class EntityStorage<F, S, U, P> implements Module {
             Class<T> clazz,
             CallBack<Boolean> callBack) {
         storageDriver.asyncUpdatePartial(
-                getServerInfo().getAppId(),
-                getServerInfo().getRegionId(),
+                getServerInfo().appId,
+                getServerInfo().regionId,
                 logicType,
                 ownerId,
                 key,
@@ -510,8 +510,8 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void saveWithDetailcallBack(
             String logicType, String ownerId, String key, T value, Class<T> clazz, CallBack<Pair<Boolean, T>> callBack) {
         saveWithDetailcallBack(
-                getServerInfo().getAppId(),
-                getServerInfo().getRegionId(),
+                getServerInfo().appId,
+                getServerInfo().regionId,
                 logicType,
                 ownerId,
                 key,
@@ -570,8 +570,8 @@ public class EntityStorage<F, S, U, P> implements Module {
      */
     public <T> void save(String logicType, String ownerId, String key, T value, Class<T> clazz, CallBack<Boolean> callBack) {
         save(
-                getServerInfo().getAppId(),
-                getServerInfo().getRegionId(),
+                getServerInfo().appId,
+                getServerInfo().regionId,
                 logicType,
                 ownerId,
                 key,
@@ -615,8 +615,8 @@ public class EntityStorage<F, S, U, P> implements Module {
     public <T> void get(
             String logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack) {
         storageDriver.asyncGetByKeys(
-                getServerInfo().getAppId(),
-                getServerInfo().getRegionId(),
+                getServerInfo().appId,
+                getServerInfo().regionId,
                 logicType,
                 ownerId,
                 keyList,
@@ -679,8 +679,8 @@ public class EntityStorage<F, S, U, P> implements Module {
                         Class<T> clazz,
                         CallBack<T> callBack) {
         get(
-                getServerInfo().getAppId(),
-                getServerInfo().getRegionId(),
+                getServerInfo().appId,
+                getServerInfo().regionId,
                 logicType,
                 ownerId,
                 key,
@@ -734,7 +734,7 @@ public class EntityStorage<F, S, U, P> implements Module {
             Map<String, Long> incrData,
             Class<T> clazz,
             CallBack<Pair<Boolean, Map<String, Long>>> callBack) {
-        incr(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, key, incrData, clazz, callBack);
+        incr(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, key, incrData, clazz, callBack);
     }
 
     /**
@@ -789,7 +789,7 @@ public class EntityStorage<F, S, U, P> implements Module {
             CallBack<Pair<Boolean, Long>> callBack) {
         Map<String, Long> incrData = new HashMap<>();
         incrData.put(key, 1L);
-        incr(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, key, incrData, clazz, new CallBack<Pair<Boolean, Map<String, Long>>>() {
+        incr(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, key, incrData, clazz, new CallBack<Pair<Boolean, Map<String, Long>>>() {
             @Override
             public void onBack(Pair<Boolean, Map<String, Long>> pair) {
                 Map<String, Long> rightMap = pair.getRight();
@@ -842,7 +842,7 @@ public class EntityStorage<F, S, U, P> implements Module {
             Class<T> clazz,
             CallBack<Boolean> callBack) {
         log.info("removeKeys start, logicType_{} ownerId_{}", logicType, ownerId);
-        storageDriver.asyncRemoveKeys(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, remKeys, clazz, callBack);
+        storageDriver.asyncRemoveKeys(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, remKeys, clazz, callBack);
     }
 
 

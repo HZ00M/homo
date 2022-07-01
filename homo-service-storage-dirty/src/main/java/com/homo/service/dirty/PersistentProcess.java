@@ -2,6 +2,7 @@ package com.homo.service.dirty;
 
 import com.homo.concurrent.schedule.HomoTimeMgr;
 import com.homo.concurrent.schedule.TaskFun0;
+import com.homo.core.common.module.Module;
 import com.homo.core.configurable.dirty.DirtyProperties;
 import com.homo.core.facade.storege.dirty.DirtyDriver;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
 
 @Slf4j
-public class PersistentProcess{
+public class PersistentProcess implements Module {
     @Autowired(required = false)
     DirtyDriver dirtyDriver;
     @Autowired(required = false)
@@ -18,8 +19,8 @@ public class PersistentProcess{
 
     HomoTimeMgr<TaskFun0> homoTimeMgr = HomoTimeMgr.getInstance();
 
-    @PostConstruct
-    public void landingTask() {
+    @Override
+    public void init() {
         log.info("landingTask start dirtyProperties {} ",dirtyProperties);
         try {
             String dirtyName = dirtyDriver.chooseDirtyMap();
@@ -37,7 +38,7 @@ public class PersistentProcess{
                 } catch (Exception e) {
                     log.error("landingTask error", e);
                 } finally {
-                    landingTask();
+                    init();
                 }
             }, dirtyProperties.getDelayTime());
         } catch (InterruptedException e) {

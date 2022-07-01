@@ -39,7 +39,7 @@ public class ModuleMgrImpl implements ModuleMgr{
 
     @Override
     public void initModules() {
-        moduleMap.values().forEach(item->{item.init(rootModule);init();});
+        moduleMap.values().forEach(item->{item.init(rootModule);item.init();});
     }
 
     @Override

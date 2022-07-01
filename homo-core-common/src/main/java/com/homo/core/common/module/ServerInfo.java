@@ -1,8 +1,10 @@
 package com.homo.core.common.module;
 
+import lombok.Data;
 import lombok.ToString;
 
 @ToString
+@Data
 public class ServerInfo {
     /**
      * 应用id
