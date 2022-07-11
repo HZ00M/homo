@@ -5,9 +5,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
+
+;
 
 /**
  * 基于jackson序列化和反序列化处理器
@@ -15,7 +17,7 @@ import java.io.IOException;
  * @apiNote https://www.w3cschool.cn/article/28650020.html
  * @apiNote https://wenku.baidu.com/view/1e8c35f54a649b6648d7c1c708a1284ac850057e.html
  */
-@Slf4j
+@Log4j2
 public class JacksonSerializationProcessor implements HomoSerializationProcessor{
     public static ObjectMapper mapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false)//如果启用，如果发现未知属性，Jackson 将抛出异常。如果禁用将忽略这样的字段。（默认true）

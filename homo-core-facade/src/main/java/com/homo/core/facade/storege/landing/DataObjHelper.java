@@ -3,6 +3,7 @@ package com.homo.core.facade.storege.landing;
 import com.homo.core.facade.storege.dirty.DirtyHelper;
 
 public class DataObjHelper extends DirtyHelper {
+    public static final String MYSQL_TABLE_TMPL = "%s_%s";
 
     public static  String DATA_DELIMITER = ":";
 
@@ -11,7 +12,7 @@ public class DataObjHelper extends DirtyHelper {
     }
 
     public static String buildTableName(String queryKey) {
-        String[] segment = splitDirtyKey(queryKey);
+        String[] segment = splitQueryKey(queryKey);
         return buildTableName(segment[0],segment[1],segment[2],segment[3]);
     }
 
@@ -19,16 +20,16 @@ public class DataObjHelper extends DirtyHelper {
         return String.format(REDIS_KEY_TMPL,appId,regionId,logicType,ownerId);
     }
 
-    public static String buildPrimaryKey(Integer logicType, String ownerId, String key) {
+    public static String buildPrimaryKey(String logicType, String ownerId, String key) {
         return logicType+ DATA_DELIMITER +ownerId+ DATA_DELIMITER +key;
     }
 
-    public static String buildQueryAllKey(Integer logicType, String ownerId) {
+    public static String buildQueryAllKey(String logicType, String ownerId) {
         return logicType+ DATA_DELIMITER +ownerId;
     }
 
     public static String buildTableName(String appId, String regionId) {
-        return String.format(MYSQL_TABLE_TMPL,dirtyProperties.getTablePrefix(),appId,regionId);
+        return String.format(MYSQL_TABLE_TMPL,appId,regionId);
     }
 
 

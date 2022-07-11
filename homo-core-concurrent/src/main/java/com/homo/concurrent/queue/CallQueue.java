@@ -5,12 +5,14 @@ import com.homo.concurrent.event.BaseEvent;
 import com.homo.concurrent.event.Event;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
+;
+
+@Log4j2
 public class CallQueue {
     @Getter
     int id;

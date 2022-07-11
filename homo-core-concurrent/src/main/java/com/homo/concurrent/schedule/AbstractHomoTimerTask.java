@@ -6,26 +6,27 @@ import com.homo.concurrent.event.Event;
 import com.homo.concurrent.queue.CallQueue;
 import com.homo.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.trace.ZipkinUtil;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
-import java.util.TimerTask;
+import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 
-@Slf4j
-public abstract class AbstractHomoTimerTask extends TimerTask {
+;
+
+@Log4j2
+public abstract class AbstractHomoTimerTask implements Runnable {
     public static int ENDLESS = 0;
     private final CallQueue callQueue;
-    private final Consumer<AbstractHomoTimerTask> onCancelConsumer;
+    public ScheduledFuture future;
     private final Consumer<AbstractHomoTimerTask> onErrorConsumer;
     public AbstractHomoTimerTask(){
         this(CallQueueMgr.getInstance().getLocalQueue());
     }
     public AbstractHomoTimerTask(CallQueue callQueue){
-        this(callQueue,null,null);
+        this(callQueue,null);
     }
-    public AbstractHomoTimerTask(CallQueue callQueue, Consumer<AbstractHomoTimerTask> onCancelConsumer, Consumer<AbstractHomoTimerTask> onErrorConsumer){
+    public AbstractHomoTimerTask(CallQueue callQueue,  Consumer<AbstractHomoTimerTask> onErrorConsumer){
         this.callQueue = callQueue;
-        this.onCancelConsumer = onCancelConsumer;
         this.onErrorConsumer = onErrorConsumer;
     }
 
@@ -41,14 +42,7 @@ public abstract class AbstractHomoTimerTask extends TimerTask {
         }
     }
 
-    @Override
-    public boolean cancel(){
-        boolean result = super.cancel();
-        if (onCancelConsumer!=null){
-            onCancelConsumer.accept(this);
-        }
-        return result;
-    }
+
 
     public abstract void doRun();
 

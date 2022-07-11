@@ -1,7 +1,7 @@
 package com.homo.core.redis.impl;
 
 import com.homo.core.redis.facade.HomoRedisPool;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Tuple;
@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Slf4j
+;
+
+@Log4j2
 public class HomoJedisPool implements HomoRedisPool {
     private JedisPool jedisPool;
 

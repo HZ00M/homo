@@ -9,13 +9,13 @@ else
         if not value then
             table.insert(needLoadKey, ARGV[i])
         end
-        if (value and value ~= "del") then
-            table.insert(result, ARGVi)
+        if (value and value ~= ":delFlag") then
+            table.insert(result, ARGV[i])
             table.insert(result, value)
         end
     end
-    table.insert(result, "needLoadFlag");  --设置一个缺失标志，当读到该标志，将从数据库捞取数据
-    table.insert(result, needLoadKey);
+    table.insert(result, "missNum");  --设置一个缺失数量key，将从数据库捞取数据
+    table.insert(result, needLoadKey);  --缺少key列表
     redis.call("EXPIRE", KEYS[1], ARGV[1])
     return result;
 end

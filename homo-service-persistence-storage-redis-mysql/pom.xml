@@ -23,10 +23,6 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-redis-base</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
             <artifactId>homo-service-mysql-landing</artifactId>
         </dependency>
         <dependency>

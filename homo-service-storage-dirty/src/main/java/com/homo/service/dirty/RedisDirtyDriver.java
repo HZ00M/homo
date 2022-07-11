@@ -9,15 +9,19 @@ import com.homo.core.facade.storege.landing.DBDataHolder;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-@Slf4j
+;
+
+@Log4j2
 public class RedisDirtyDriver implements DirtyDriver {
 
     @Autowired(required = false)
@@ -33,44 +37,47 @@ public class RedisDirtyDriver implements DirtyDriver {
     @Autowired(required = false)
     private LockDriver lockDriver;
 
-    public static String seed = UUID.randomUUID().toString();
+    public static int seed = 0;
 
     public int snapShotNum;
+
 
     @Override
     public Homo<Long> dirtyUpdate(Dirty dirty) {
         String dirtyKey = DirtyHelper.chooseDirtyMap(dirty.key());
         Mono<Long> update = redisPool.hsetAsyncReactive(dirtyKey, dirty.dirtyMap());
-        Sinks.One<Long> one = Sinks.one();
-        Homo<Long> homo = new Homo<>(one.asMono());
-        update.subscribe(result->{
-           try {
-               one.tryEmitValue(result);
-           }catch (Exception e){
-                one.tryEmitError(e);
-           }
-        });
-        return homo;
+        return Homo.warp(update);
     }
 
     @Override
-    public String chooseDirtyMap() throws InterruptedException {
+    public String chooseDirtyMap(){
         // 尝试找到一个没有锁的DirtyMsp
-        for (int increasing = 0; ; increasing++) {
-            String currentDirtyName = DirtyHelper.chooseDirtyMap(increasing);
+        for (; ; ) {
+            int key = seed%dirtyProperties.getTableNum();
+            String currentDirtyName = DirtyHelper.chooseDirtyMap(key);
             // 尝试去锁这个表
-            log.info("try to lock {} {}", currentDirtyName, increasing);
+            log.info("try to lock {} {}", currentDirtyName, seed);
+            seed++;
             if (lockDirtyMap(currentDirtyName)) {
                 // 如果锁到了就是自己的, 返回出去
                 return currentDirtyName;
             }
-            Thread.sleep(1000);
+            try {
+                Thread.sleep(1000);
+            }catch (Exception e){
+                log.error("chooseDirtyMap error",e);
+            }
         }
     }
 
     @Override
     public Boolean lockDirtyMap(String dirtyName) {
-        return lockDriver.lock(DirtyHelper.APP_ID, DirtyHelper.REGION_ID, DirtyHelper.LOGIC_ID, DirtyHelper.OWNER_ID, dirtyName, "", seed, dirtyProperties.getLockExpireTime());
+        return lockDriver.lock(DirtyHelper.APP_ID, DirtyHelper.REGION_ID, DirtyHelper.LOGIC_ID, DirtyHelper.OWNER_ID, dirtyName, dirtyProperties.getLockExpireTime());
+    }
+
+    @Override
+    public Boolean unlockDirtyMap(String dirtyName) {
+        return lockDriver.unlock(DirtyHelper.APP_ID, DirtyHelper.REGION_ID, DirtyHelper.LOGIC_ID, DirtyHelper.OWNER_ID, dirtyName);
     }
 
     @Override
@@ -92,13 +99,14 @@ public class RedisDirtyDriver implements DirtyDriver {
             if(!batchLandingResult){
                 // 保持失败了，开始单个保存
                 log.info("single update begin");
-                DBDataHolder.singleLanding(dirtyList, dirtyTableName);
+                boolean singleLandingResult = DBDataHolder.singleLanding(dirtyList, dirtyTableName);
+                log.info("single update end singleLandingResult {}",singleLandingResult);
             }
             index = (String) iterationList.get(0);
         } while (!"0".equals(index));
-        String dirtySavingIsDel = dirtySaving + "IsDel";
-        redisPool.rename(dirtySaving, dirtySavingIsDel);
-        redisPool.expire(dirtySavingIsDel, 1);
+        String dirtySavingDone = dirtySaving + ":done";
+        redisPool.rename(dirtySaving, dirtySavingDone);
+        redisPool.expire(dirtySavingDone, 1);
         log.info("-------------landing  dirtySaving is {} end----------------", dirtySaving);
         return true;
     }
@@ -155,6 +163,7 @@ public class RedisDirtyDriver implements DirtyDriver {
             // 刚启动的时候就没有改脏表的名字
             redisPool.rename(dirtyName, dirtySaving);
         }
+        snapShotNum++;
         // 返回保存的表
         return dirtySaving;
     }

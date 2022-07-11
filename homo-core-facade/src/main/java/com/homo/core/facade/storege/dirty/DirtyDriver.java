@@ -28,10 +28,11 @@ public interface DirtyDriver {
      */
     Homo<Long> dirtyUpdate(Dirty dirty);
 
-    String chooseDirtyMap() throws InterruptedException;
+    String chooseDirtyMap() ;
 
     Boolean lockDirtyMap(String dirtyName);
 
+    Boolean unlockDirtyMap(String dirtyName);
     /**
      * 迭代获得脏表的数据
      * @param key

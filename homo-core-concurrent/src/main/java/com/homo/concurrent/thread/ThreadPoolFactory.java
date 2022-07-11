@@ -1,11 +1,11 @@
 package com.homo.concurrent.thread;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.Optional;
 import java.util.concurrent.*;
 
-@Slf4j
+@Log4j2
 public class ThreadPoolFactory {
     static ExecutorService executorService = null;
     static int factoryCount = 0;
@@ -48,22 +48,22 @@ public class ThreadPoolFactory {
         return executorService;
     }
 
-    public static ThreadFactory newThreadFactory(String factoryName) {
-        log.warn("newHomoThreadFactory factoryName_{}", factoryName);
+    public static ThreadFactory newThreadFactory(String threadName) {
+        log.warn("newHomoThreadFactory threadName_{}", threadName);
         return new ThreadFactory() {
             int threadCount = 0;
             final int factoryIndex = factoryCount++;
 
             @Override
             public Thread newThread(Runnable r) {
-                String threadName = String.format("newHomoThreadFactory factoryName_[%s]:factoryIndex_[%d]:threadCount_[%d]", factoryName, factoryIndex, threadCount++);
-                log.warn("new thread [{}]", threadName);
+                String info = String.format("newHomoThreadFactory factoryName_[%s]:factoryIndex_[%d]:threadCount_[%d]", threadName, factoryIndex, threadCount++);
+                log.warn("new thread [{}]", info);
                 Runnable warp = () -> {
-                    log.warn("run task in {} >>> begin", threadName);
+                    log.warn("run task in {} >>> begin", info);
                     r.run();
-                    log.warn("new task in {} >>> end", threadName);
+                    log.warn("new task in {} >>> end", info);
                 };
-                Thread newThread = new Thread(warp, threadName);
+                Thread newThread = new Thread(warp, threadName+"["+threadCount+"]");
                 return newThread;
             }
         };

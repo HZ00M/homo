@@ -1,6 +1,6 @@
 package com.homo.core.common.module;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Slf4j
+;
+
+@Log4j2
 public class ModuleMgrImpl implements ModuleMgr{
     @Autowired(required = false)
     RootModule rootModule;

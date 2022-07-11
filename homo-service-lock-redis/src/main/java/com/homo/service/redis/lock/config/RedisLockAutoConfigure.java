@@ -2,13 +2,15 @@ package com.homo.service.redis.lock.config;
 
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.service.redis.lock.driver.RedisLockDriver;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
+;
+
 @Configuration
-@Slf4j
+@Log4j2
 public class RedisLockAutoConfigure {
 
     @Bean("luaScriptHelper")

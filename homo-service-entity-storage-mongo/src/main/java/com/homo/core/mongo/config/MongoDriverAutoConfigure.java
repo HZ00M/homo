@@ -1,14 +1,14 @@
 package com.homo.core.mongo.config;
 
 import com.homo.core.configurable.mongo.MongoDriverProperties;
+import com.homo.core.facade.document.EntityStorageDriver;
 import com.homo.core.mongo.storage.MongoEntityStorageDriverImpl;
 import com.homo.core.mongo.util.MongoHelper;
-import com.homo.core.facade.document.EntityStorageDriver;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +19,9 @@ import org.springframework.context.annotation.Lazy;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
+;
+
+@Log4j2
 @EnableConfigurationProperties({MongoDriverProperties.class})
 @Configuration
 public class MongoDriverAutoConfigure {

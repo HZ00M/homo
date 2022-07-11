@@ -1,13 +1,14 @@
-package com.homo.core.persisten.config;
+package com.homo.core.persistent.config;
 
 import com.homo.core.facade.storege.StorageDriver;
-import com.homo.core.persisten.storage.StorageRedisDriverImpl;
-import lombok.extern.slf4j.Slf4j;
+import com.homo.core.persistent.storage.StorageRedisDriverImpl;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
-@Slf4j
+
+@Log4j2
 @Configuration
 public class PersistentAutoConfiguration {
 

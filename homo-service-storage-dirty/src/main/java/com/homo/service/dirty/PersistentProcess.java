@@ -5,12 +5,12 @@ import com.homo.concurrent.schedule.TaskFun0;
 import com.homo.core.common.module.Module;
 import com.homo.core.configurable.dirty.DirtyProperties;
 import com.homo.core.facade.storege.dirty.DirtyDriver;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
+;
 
-@Slf4j
+@Log4j2
 public class PersistentProcess implements Module {
     @Autowired(required = false)
     DirtyDriver dirtyDriver;
@@ -22,27 +22,23 @@ public class PersistentProcess implements Module {
     @Override
     public void init() {
         log.info("landingTask start dirtyProperties {} ",dirtyProperties);
-        try {
-            String dirtyName = dirtyDriver.chooseDirtyMap();
             homoTimeMgr.once(() -> {
+                String dirtyName = dirtyDriver.chooseDirtyMap();
                 try {
-                    Boolean lock = dirtyDriver.lockDirtyMap(dirtyName);
-                    if (lock) {
                         String dirtySaving = dirtyDriver.snapShot(dirtyName);
                         long startTime = System.currentTimeMillis();
                         log.info("landingTask landing start dirtyName {} dirtySaving {} startTime", dirtyName, dirtySaving);
                         boolean landingResult = dirtyDriver.landing(dirtyName, dirtySaving);
                         long endTimeTime = System.currentTimeMillis();
                         log.info("landingTask landing finish dirtyName {} dirtySaving {} result {} spentTime {}", dirtyName, dirtySaving, landingResult,endTimeTime - startTime);
-                    }
                 } catch (Exception e) {
-                    log.error("landingTask error", e);
+                    log.error("landingTask landing  dirtyName {} error", dirtyName,e);
                 } finally {
+                    log.info("landingTask unlock dirtyName start{} ",dirtyName);
+                    dirtyDriver.unlockDirtyMap(dirtyName);
+                    log.info("landingTask unlock dirtyName end{} ",dirtyName);
                     init();
                 }
             }, dirtyProperties.getDelayTime());
-        } catch (InterruptedException e) {
-            log.error("landingTask error",e);
-         }
     }
 }

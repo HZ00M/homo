@@ -31,8 +31,11 @@ public class Homo<T> extends Mono<T> {
         mono.subscribe(actual);
     }
 
-    private static <T> Homo<T> warp(Mono<T> mono) {
-        return new Homo(mono);
+    public static <T> Homo<T> warp(Mono<T> mono) {
+        if (mono instanceof Homo){
+            return (Homo<T>) mono;
+        }
+        return new Homo<T>(mono);
     }
 
     public static <T> Homo<T> warp(Supplier<Mono<T>> supplier) {
@@ -93,6 +96,11 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(mono.doOnError(onError));
     }
 
+
+    public static <T> Homo<T> error(Throwable error) {
+        return Homo.warp(Mono.error(error));
+    }
+
     public final Homo<T> finallySignal(Consumer<SignalType> onFinally) {
         return Homo.warp(mono.doFinally(onFinally));
     }
@@ -106,6 +114,9 @@ public class Homo<T> extends Mono<T> {
     }
 
     public static <T> Homo<T> result(T data) {
+        if (data == null){
+            data = (T)Optional.empty();
+        }
         return Homo.warp(Mono.just(data));
     }
 
@@ -167,15 +178,19 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(Mono.zip(monos, combinator));
     }
 
-    public final Homo<T> onErrorContinue(FuncEx<? super Throwable, ? extends Mono<? extends T>> fallback) {
-        Function<? super Throwable, ? extends Mono<? extends T>> warp = (t) -> {
-            try {
-                return fallback.apply(t);
-            } catch (Throwable throwable) {
-                return Mono.error(throwable);
-            }
-        };
-        return warp(mono.onErrorResume(warp));
+    public final Homo<T> errorContinue(
+            FuncEx<? super Throwable, ? extends Mono<? extends T>> fallback) {
+        Function<? super Throwable, ? extends Mono<? extends T>> warp =
+                (Function<? super Throwable, Mono<? extends T>>)
+                        t -> {
+                            try {
+                                return fallback.apply(t);
+                            } catch (Throwable e) {
+                                return Mono.error(e);
+                            }
+                        };
+
+        return Homo.warp(mono.onErrorResume(warp));
     }
 
     public static final BiFunction<Integer, Class<? extends Throwable>, Predicate<Throwable>> matchRetryFun = ((retries, exception) -> (throwable) -> {

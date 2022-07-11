@@ -1,14 +1,15 @@
 package com.homo.core.landing;
 
-import com.homo.core.landing.mapper.ISchemeMapper;
-import com.homo.core.landing.pojo.DataObject;
+import com.homo.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.facade.storege.landing.DBDataHolder;
- import com.homo.core.facade.storege.landing.DataObjHelper;
+import com.homo.core.facade.storege.landing.DataObjHelper;
+import com.homo.core.landing.mapper.ISchemeMapper;
+import com.homo.core.mysql.entity.DataObject;
 import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.factory.RedisInfoHolder;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import reactor.core.publisher.Sinks;
@@ -22,10 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+;
+
 /**
  * 缓存mysql数据到redis处理器
  */
-@Slf4j
+@Log4j2
 public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
     Map<String, Boolean> tableTags = new ConcurrentHashMap<>();
     @Autowired(required = false)
@@ -41,7 +44,7 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
 
     //SynchronousQueue的一个使用场景是在线程池里。Executors.newCachedThreadPool()就使用了SynchronousQueue，
     // 这个线程池根据需要（新任务到来时）创建新的线程，如果有空闲线程则会重复使用，线程空闲了60秒后会被回收。
-    final ExecutorService executorService = Executors.newCachedThreadPool();
+    final ExecutorService executorService = Executors.newCachedThreadPool(ThreadPoolFactory.newThreadFactory("MysqlLoadDataHolder-Thread"));
 
     public Homo<Boolean> hotAllField(String appId, String regionId, String logicType, String ownerId, String redisKey) {
         log.trace("hotAllField begin appId_{} regionId_{} logicType_{} ownerId_{} redisKey_{}", appId, regionId, logicType, ownerId, redisKey);
@@ -65,8 +68,8 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
                     args.add(dataObject.getKey().getBytes(StandardCharsets.UTF_8));
                     args.add(dataObject.getValue());
                 }
-                redisPool.eval(hotAllFieldScript, keys, args);
-                log.trace("hotAllField complete appId_{} regionId_{} logicType_{} ownerId_{} list size is {}", appId, regionId, logicType, ownerId, fieldList.size());
+                Object ret = redisPool.eval(hotAllFieldScript, keys, args);
+                log.trace("hotAllField complete appId_{} regionId_{} logicType_{} ownerId_{} list size is {} ret {}", appId, regionId, logicType, ownerId, fieldList.size(),ret);
                 one.tryEmitValue(true);
             } catch (Exception e) {
                  one.emitError(e,(signalType, emitResult) -> true);
@@ -151,12 +154,12 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
     public boolean singleLanding(List<String> dirtyList, String dirtyName) {
         // 获取需要落地的数据，这里是否有必要加锁待定
         for(int i = 0; i < dirtyList.size(); i+=2){
-            String dirtyKey = dirtyList.get(i);
+            String queryKey = dirtyList.get(i);
             String option = dirtyList.get(i + 1);
             try {
-                log.info("begin build data pair dirtyKey is {} option is {}", dirtyKey, option);
-                Tuple2<String, DataObject> result = dataLandingProcess.processOne(dirtyKey, option);
-                log.info("end build data pair dirtyKey is {} option is {}", dirtyKey, option);
+                log.info("begin build data pair dirtyKey is {} option is {}", queryKey, option);
+                Tuple2<String, DataObject> result = dataLandingProcess.processOne(queryKey, option);
+                log.info("end build data pair dirtyKey is {} option is {}", queryKey, option);
                 String tableName = result.getT1();
                 DataObject dataObject = result.getT2();
                 if (checkTableNotExist(tableName)) {
@@ -167,15 +170,15 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
                 log.info("begin save {} >>>> {}", tableName, dataObject);
                 int executeResult = schemeMapper.add(dataObject,tableName);
                 log.info("{} single Update result is {}", tableName, result);
-                if(executeResult>0){
+                if(executeResult<=0){
                     log.error("{} {} execute result is false", tableName, dataObject);
                     throw new Exception("execute result is false");
                 }
             }catch (Throwable e){
                 //保存错误的key
                 String errorTableName = DataObjHelper.buildErrorTableName(dirtyName);
-                redisPool.hset(errorTableName, dirtyKey, option);
-                log.error("dirtyKey is {} option is {} is exception", dirtyKey, option, e);
+                redisPool.hset(errorTableName, queryKey, option);
+                log.error("dirtyKey is {} option is {} is exception", queryKey, option, e);
             }
         }
         return true;

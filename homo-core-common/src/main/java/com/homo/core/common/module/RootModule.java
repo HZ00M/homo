@@ -9,5 +9,13 @@ public interface RootModule {
         return defaultServerInfo;
     }
 
+    default String getAppId(){
+        return getServerInfo().getAppId();
+    }
+
+    default String getRegionId(){
+        return getServerInfo().getRegionId();
+    }
+
     String getPodName();
 }

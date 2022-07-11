@@ -1,4 +1,4 @@
-local result = {}
+local result = {0}
 for i = 2, #ARGV, 2 do
     redis.call("HSET",KEYS[1],ARGV[i],ARGV[i+1])
 end

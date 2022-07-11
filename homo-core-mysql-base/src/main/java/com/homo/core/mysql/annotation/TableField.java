@@ -10,5 +10,9 @@ import java.lang.annotation.*;
 public @interface TableField {
     String value() default "";
     JdbcType type();
+    int length() default 255;
     String comment() default "";
+    boolean notNull() default false;
+    boolean autoInr() default false;
+    boolean id() default false;
 }

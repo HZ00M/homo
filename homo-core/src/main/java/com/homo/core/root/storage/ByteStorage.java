@@ -4,19 +4,17 @@ import com.homo.core.common.module.Module;
 import com.homo.core.facade.storege.StorageDriver;
 import com.homo.core.utils.lang.Pair;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
-@Component
+@Log4j2
 public class ByteStorage implements Module {
-    @Autowired
+    @Autowired(required = false)
     StorageDriver storage;
 
     public Homo<Pair<Boolean, Map<String, byte[]>>> update(String logicType, String ownerId, Map<String, byte[]> keyList) {
@@ -24,7 +22,7 @@ public class ByteStorage implements Module {
     }
 
     public Homo<Pair<Boolean, Map<String, byte[]>>> update(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> keyList) {
-        return storage.asyncUpdate(appId,regionId,logicType,ownerId,keyList).onErrorContinue(Homo::error);
+        return storage.asyncUpdate(appId,regionId,logicType,ownerId,keyList).errorContinue(Homo::error);
     }
 
     public Homo<byte[]> save(String logicType, String ownerId, String key, byte[] data) {
@@ -42,7 +40,7 @@ public class ByteStorage implements Module {
                         return Homo.error(new Exception(String.format("save error, logicType_%s, ownerId_%s, key_%s", logicType, ownerId, key)));
                     }
                 })
-                .onErrorContinue(throwable -> Homo.error(new Exception(String.format("save error, logicType_%s, ownerId_%s, key_%s", logicType, ownerId, key))));
+                .errorContinue(throwable -> Homo.error(new Exception(String.format("save error, logicType_%s, ownerId_%s, key_%s", logicType, ownerId, key))));
     }
 
     public Homo<byte[]> get(String logicType, String ownerId, String key) {
@@ -54,13 +52,15 @@ public class ByteStorage implements Module {
         list.add(key);
         return storage.asyncGetByFields(appId,regionId,logicType,ownerId,list)
                 .nextDo(ret->{
-                    if (ret==null){
+                    if (ret==null||!ret.containsKey(key)){
                         return Homo.result(null);
                     }else {
                         return Homo.result(ret.get(key));
                     }
                 })
-                .onErrorContinue(Homo::error);
+                .errorContinue(throwable->{
+                    return Homo.error(throwable);
+                });
     }
 
     public Homo<Map<String, byte[]>> get(String logicType, String ownerId, List<String> keyList) {
@@ -70,7 +70,7 @@ public class ByteStorage implements Module {
     public Homo<Map<String, byte[]>> get(String appId, String regionId, String logicType, String ownerId, List<String> keyList) {
         return storage.asyncGetByFields(appId,regionId,logicType,ownerId,keyList)
                 .nextDo(Homo::result)
-                .onErrorContinue(Homo::error);
+                .errorContinue(Homo::error);
     }
 
     public Homo<Map<String, byte[]>> getAll(String logicType, String ownerId) {
@@ -80,7 +80,7 @@ public class ByteStorage implements Module {
     public Homo<Map<String, byte[]>> getAll(String appId, String regionId, String logicType, String ownerId) {
         return storage.asyncGetAll(appId,regionId,logicType,ownerId)
                 .nextDo(Homo::result)
-                .onErrorContinue(Homo::error);
+                .errorContinue(Homo::error);
     }
 
     public Homo<List<String>> removeKeys(String logicType, String ownerId, List<String> keys) {
@@ -95,7 +95,7 @@ public class ByteStorage implements Module {
                     }
                     return Homo.error(new Exception(String.format("removeKeys failed, appId_%s regionId_%s logicType_%s, ownerId_%s, keys_%s", appId, regionId, logicType, ownerId, keys)));
                 })
-                .onErrorContinue(throwable -> Homo.error(new Exception(String.format("removeKeys failed, appId_%s regionId_%s logicType_%s, ownerId_%s, keys_%s", appId, regionId, logicType, ownerId, keys))));
+                .errorContinue(throwable -> Homo.error(new Exception(String.format("removeKeys failed, appId_%s regionId_%s logicType_%s, ownerId_%s, keys_%s", appId, regionId, logicType, ownerId, keys))));
     }
 
     public Homo<Long> incr(String appId, String regionId, String logicType, String ownerId, String incrKey) {
@@ -103,7 +103,7 @@ public class ByteStorage implements Module {
         map.put(incrKey,1L);
         return incr(appId,regionId,logicType,ownerId,map)
                 .nextDo(ret-> Homo.result(ret.get(incrKey)))
-                .onErrorContinue(Homo::error);
+                .errorContinue(Homo::error);
     }
 
     public Homo<Map<String, Long>> incr(String appId, String regionId, String logicType, String ownerId, Map<String, Long> incrData) {
@@ -114,8 +114,8 @@ public class ByteStorage implements Module {
                     }
                     return Homo.error(new Exception(String.format("incr failed, appId_%s regionId_%s logicType_%s, ownerId_%s, incrData_%s", appId, regionId, logicType, ownerId, incrData)));
                 })
-                .onErrorContinue(throwable -> Homo.error(new Exception(String.format("incr failed, appId_%s regionId_%s logicType_%s, ownerId_%s, incrData_%s", appId, regionId, logicType, ownerId, incrData))))
-                .onErrorContinue(Homo::error);
+                .errorContinue(throwable -> Homo.error(new Exception(String.format("incr failed, appId_%s regionId_%s logicType_%s, ownerId_%s, incrData_%s", appId, regionId, logicType, ownerId, incrData))))
+                .errorContinue(Homo::error);
     }
 
 }

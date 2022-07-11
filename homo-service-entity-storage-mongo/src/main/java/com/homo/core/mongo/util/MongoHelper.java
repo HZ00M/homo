@@ -9,7 +9,7 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.bson.conversions.Bson;
 import org.springframework.core.annotation.AnnotationUtils;
 import reactor.core.publisher.Mono;
@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-@Slf4j
+;
+
+@Log4j2
 public class MongoHelper {
 
     private MongoDriverProperties properties;

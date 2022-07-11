@@ -4,10 +4,12 @@ import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
 import com.homo.core.common.apollo.ConfigDriver;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
+
+;
 
 @Data
-@Slf4j
+@Log4j2
 public class MysqlInfoHolder {
     private ConfigDriver configDriver;
 
@@ -60,7 +62,7 @@ public class MysqlInfoHolder {
     }
 
     private void load() {
-        driverClassName = configDriver.getProperty(publicMysqlNs,"spring.datasource.driver-class-name", "com.mysql.jdbc.Driver");
+        driverClassName = configDriver.getProperty(publicMysqlNs,"spring.datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
         initialSize = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.initialSize", 5);
         minIdle = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.minIdle", 5);
         maxActive = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.maxActive", 20);

@@ -6,7 +6,7 @@ import com.homo.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.common.module.Module;
 import com.homo.core.utils.rector.Homo;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.Map;
 import java.util.Timer;
@@ -16,10 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiFunction;
 
+;
+
 /**
  * 事件处理管理器
  */
-@Slf4j
+@Log4j2
 public class CallQueueMgr implements Module {
     public static final String DEFAULT_TYPE = "defaultPloyType";
     private volatile static CallQueueMgr instance = null;

@@ -4,7 +4,6 @@ import brave.Span;
 import brave.Tracer;
 import brave.Tracing;
 import brave.grpc.GrpcTracing;
-import brave.http.HttpTracing;
 import brave.internal.Nullable;
 import brave.propagation.TraceContext;
 import brave.rpc.RpcTracing;
@@ -16,9 +15,8 @@ import com.homo.core.configurable.zipkin.ZipKinProperties;
 import com.homo.core.utils.fun.ConsumerEx;
 import io.grpc.ClientInterceptor;
 import io.grpc.ServerInterceptor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.Sender;
 import zipkin2.reporter.brave.ZipkinSpanHandler;
@@ -26,11 +24,13 @@ import zipkin2.reporter.okhttp3.OkHttpSender;
 
 import java.util.function.Consumer;
 
+;
+
 /**
  * ZipKin全链路跟踪工具类
  * zipkin追踪流程  clientSend->serverReceiver->serverSend->clientReceive
  */
-@Slf4j
+@Log4j2
 public class ZipkinUtil implements Module {
     public static final String CLIENT_SEND_TAG = "cs";
     public static final String SERVER_RECEIVE_TAG = "sr";

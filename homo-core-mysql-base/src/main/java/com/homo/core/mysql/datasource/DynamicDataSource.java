@@ -1,6 +1,6 @@
 package com.homo.core.mysql.datasource;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 import java.util.ArrayList;
@@ -8,10 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+;
+
 /**
  * 动态数据源路由，读写使用主库，只读使用从库
  */
-@Slf4j
+@Log4j2
 public class DynamicDataSource extends AbstractRoutingDataSource {
     /**
      * 从数据源

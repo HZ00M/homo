@@ -1,13 +1,15 @@
 package com.homo.core.redis.lua;
 
 import com.homo.core.common.module.Module;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StreamUtils;
 
 import java.nio.charset.StandardCharsets;
 
-@Slf4j
+;
+
+@Log4j2
 public class LuaScriptHelper implements Module {
 
     public static String lockScript;

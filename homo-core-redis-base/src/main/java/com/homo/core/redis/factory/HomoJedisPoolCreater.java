@@ -2,12 +2,14 @@ package com.homo.core.redis.factory;
 
 import com.homo.core.redis.impl.HomoJedisPool;
 import com.homo.core.utils.spring.GetBeanUtil;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.util.StringUtils;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-@Slf4j
+;
+
+@Log4j2
 public class HomoJedisPoolCreater {
     public static HomoJedisPool createPool(){
         try {

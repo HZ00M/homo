@@ -1,15 +1,19 @@
 package com.homo.concurrent.schedule;
 
-import lombok.extern.slf4j.Slf4j;
+import com.homo.concurrent.thread.ThreadPoolFactory;
+import lombok.extern.log4j.Log4j2;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
+;
+
+@Log4j2
 public class HomoTimeMgr<T extends Task> {
 
     public static String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -33,7 +37,7 @@ public class HomoTimeMgr<T extends Task> {
         if (timer==null){
             synchronized (HomoTimeMgr.class){
                 if (timer==null){
-                    timer = Executors.newScheduledThreadPool(4);
+                    timer = Executors.newScheduledThreadPool(4, ThreadPoolFactory.newThreadFactory("HomoTimeMgr-Thread"));
                 }
             }
         }
@@ -43,7 +47,8 @@ public class HomoTimeMgr<T extends Task> {
 
     private void schedule(HomoTimerTask<T> timerTask, long date, long period){
         try {
-            getTimer().scheduleAtFixedRate(timerTask,date,period, TimeUnit.SECONDS);
+            ScheduledFuture<?> future = getTimer().scheduleAtFixedRate(timerTask, date, period, TimeUnit.SECONDS);
+            timerTask.future = future;
         }catch (IllegalStateException cancelled){
             timer = null;
             log.error("timerTask cancelled params {} runTimes {} currentTimes {}!",timerTask.objects,timerTask.runTimes,timerTask.currentTimes);

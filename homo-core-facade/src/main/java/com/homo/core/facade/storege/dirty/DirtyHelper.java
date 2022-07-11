@@ -2,19 +2,21 @@ package com.homo.core.facade.storege.dirty;
 
 import com.homo.core.configurable.dirty.DirtyProperties;
 import com.homo.core.facade.enums.DataOpType;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
+;
+
+@Log4j2
 public class DirtyHelper {
     public static  String ERROR_SUFFIX = "errorFlag";
-    public static  String DEL_SUFFIX = "delFlag";
+    public static  String DEL_SUFFIX = ":delFlag";
     public static  String DIRTY_DELIMITER = "&";
-    public static final String REDIS_KEY_TMPL = "sg:{%s:%s:%s:%s}";
-    public static final String MYSQL_TABLE_TMPL = "%s_%s_%s";
+    public static final String REDIS_KEY_TMPL = "slug:{%s:%s:%s:%s}";
+
     public static DirtyProperties dirtyProperties;
     public static String APP_ID = "dirty1";
     public static String REGION_ID = "dirty2";
@@ -71,15 +73,15 @@ public class DirtyHelper {
         if (hashCode<0){
             hashCode = - hashCode;
         }
-        return "sg:{"+dirtyProperties.getTablePrefix()+hashCode%dirtyProperties.getTableNum()+"}";
+        return "slug:{"+dirtyProperties.getTablePrefix()+":"+hashCode%dirtyProperties.getTableNum()+"}";
     }
 
     public static String chooseDirtyMap(Integer key){
-        return "sg:{"+dirtyProperties.getTablePrefix()+key%dirtyProperties.getTableNum()+"}";
+        return "slug:{"+dirtyProperties.getTablePrefix()+":"+key+"}";
     }
 
-    public static String buildDirtyKey(String redisKey, String field) {
-        String[] segments = splitDirtyKey(redisKey);
+    public static String buildDirtyKey(String queryKey, String field) {
+        String[] segments = splitQueryKey(queryKey);
         return buildDirtyKey(segments[0],segments[1],segments[2],segments[3],field);
     }
 
@@ -91,7 +93,7 @@ public class DirtyHelper {
         return dirtyTableName +ERROR_SUFFIX;
     }
 
-    public static String[] splitDirtyKey(String key) {
+    public static String[] splitQueryKey(String key) {
         return key.split(DIRTY_DELIMITER);
     }
 

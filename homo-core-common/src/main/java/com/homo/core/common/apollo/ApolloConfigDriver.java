@@ -3,13 +3,15 @@ package com.homo.core.common.apollo;
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-@Slf4j
+;
+
+@Log4j2
 public class ApolloConfigDriver implements ConfigDriver {
     private Map<String, Config> configMap = new ConcurrentHashMap<>();
     public Set<String> listenerKey = new HashSet<>();

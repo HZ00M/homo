@@ -1,24 +1,24 @@
 package com.homo.core.landing;
 
 import com.homo.core.common.module.Module;
-import com.homo.core.landing.pojo.DataObject;
 import com.homo.core.facade.enums.DataOpType;
 import com.homo.core.facade.storege.dirty.DirtyHelper;
 import com.homo.core.facade.storege.landing.DataObjHelper;
+import com.homo.core.mysql.entity.DataObject;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.spring.GetBeanUtil;
 import io.lettuce.core.KeyValue;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import lombok.extern.log4j.Log4j2;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-@Component
-@Slf4j
+;
+
+@Log4j2
 public class DataLandingProcess implements  Module {
 
     private static HomoAsyncRedisPool redisPool;
@@ -35,15 +35,16 @@ public class DataLandingProcess implements  Module {
                 .build();
     }
 
-    public Tuple2<String, DataObject> processOne(String dirtyField, String value) {
+    public Tuple2<String, DataObject> processOne(String queryKey, String option) {
         ArrayList<String> list = new ArrayList<>();
-        String[] segmentation = DirtyHelper.splitDirtyKey(dirtyField);
+        String[] segmentation = DirtyHelper.splitQueryKey(queryKey);
         String addId = segmentation[0];
-        String regionId = segmentation[0];
+        String regionId = segmentation[1];
         String tableName = DataObjHelper.buildTableName(addId,regionId);
-        list.add(dirtyField);
-        list.add(value);
-        return LandingContext.create(list).process(dirtyField,value).buildSingle(tableName);
+
+        list.add(queryKey);
+        list.add(option);
+        return LandingContext.create(list).queryUpdateKeys().checkDelKeys().buildSingle(tableName);
     }
 
     static class LandingContext {
@@ -60,9 +61,9 @@ public class DataLandingProcess implements  Module {
             LandingContext landingContext = new LandingContext();
             for(int i = 0; i < dataList.size(); i += 2){
                 //获得这个key的操作类型
-                String dirtyField = dataList.get(i);
+                String queryKey = dataList.get(i);
                 String option = dataList.get(i + 1);
-                landingContext.process(dirtyField,option);
+                landingContext.process(queryKey,option);
             }
             return landingContext;
         }
@@ -108,16 +109,16 @@ public class DataLandingProcess implements  Module {
              for(Map.Entry<String, List<String>> entry: batchQueryDelMap.entrySet()){
                  //准备key
                  String queryKey = entry.getKey();
-                 String redisTableName = DataObjHelper.buildTableName(queryKey);
+                 String redisKey = DataObjHelper.buildTableName(queryKey);
                  //查询现网这个key是否存在
-                 Set<String> exitKeys = queryUpdateByDelKey(entry, redisTableName);
+                 Set<String> exitKeys = queryUpdateByDelKey(entry, redisKey);
                  List<String> fileList = entry.getValue();
                  //如果获得的值够了，就跳过，不去找删除的值
                  if(exitKeys.size() >= fileList.size()){
                      continue;
                  }
                  //否则，说明有数据确实需要进行删除,将需要删除的数据找出来并删除
-                 queryDelKey(exitKeys, entry, redisTableName);
+                 queryDelKey(exitKeys, entry, redisKey);
              }
              return this;
          }
@@ -176,25 +177,21 @@ public class DataLandingProcess implements  Module {
             return Tuples.of(tableName,batchLandMap.get(tableName).get(0));
         }
 
-        private void buildUpdateQueryKey(String dirtyField){
-            String[] segmentation = DirtyHelper.splitDirtyKey(dirtyField);
-            //正常的redis key
-            String queryKey = DataObjHelper.buildTableName(segmentation[0], segmentation[1], segmentation[2], segmentation[3]);
+        private void buildUpdateQueryKey(String queryKey){
+            String[] segmentation = DirtyHelper.splitQueryKey(queryKey);
             batchQueryUpdateMap.computeIfAbsent(queryKey, key->new ArrayList<>()).add(segmentation[4]);
         }
 
-         private void buildDeleteQueryKey(String dirtyField){
-             String[] segmentation = DirtyHelper.splitDirtyKey(dirtyField);
-             //正常的redis key
-             String queryKey = DataObjHelper.buildTableName(segmentation[0], segmentation[1], segmentation[2], segmentation[3]);
+         private void buildDeleteQueryKey(String queryKey){
+             String[] segmentation = DirtyHelper.splitQueryKey(queryKey);
              batchQueryDelMap.computeIfAbsent(queryKey, key->new ArrayList<>()).add(segmentation[4]);
          }
 
-        public Tuple2<String,DataObject> buildOneLandData(String dirtyField, byte[] value, Integer isDel, Long delTime){
-            String[] segmentation = DirtyHelper.splitDirtyKey(dirtyField);
+        public Tuple2<String,DataObject> buildOneLandData(String queryKey, byte[] value, Integer isDel, Long delTime){
+            String[] segmentation = DirtyHelper.splitQueryKey(queryKey);
             String appId = segmentation[0];
             String regionId = segmentation[1];
-            Integer logicType = Integer.parseInt(segmentation[2]);
+            String logicType = segmentation[2];
             String ownerId = segmentation[3];
             String key = segmentation[4];
 

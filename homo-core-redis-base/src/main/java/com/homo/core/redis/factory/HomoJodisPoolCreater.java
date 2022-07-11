@@ -4,11 +4,13 @@ import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.impl.HomoJodisPool;
 import com.homo.core.utils.spring.GetBeanUtil;
 import io.codis.jodis.RoundRobinJedisPool;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.util.StringUtils;
 import redis.clients.jedis.JedisPoolConfig;
 
-@Slf4j
+;
+
+@Log4j2
 public class HomoJodisPoolCreater {
     public static HomoRedisPool createPool(){
         try {

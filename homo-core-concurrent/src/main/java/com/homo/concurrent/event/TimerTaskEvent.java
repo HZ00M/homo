@@ -1,21 +1,22 @@
 package com.homo.concurrent.event;
 
+import com.homo.concurrent.schedule.AbstractHomoTimerTask;
 import com.homo.concurrent.schedule.Task;
 import com.homo.concurrent.schedule.TaskFun;
 import com.homo.concurrent.schedule.TaskFun0;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
-import java.util.TimerTask;
+;
 
-@Slf4j
+@Log4j2
 public class TimerTaskEvent<T extends Task> extends AbstractBaseEvent{
 
-    TimerTask timerTask;
+    AbstractHomoTimerTask timerTask;
     T taskFun;
     Object[] params;
     boolean interrupt;
 
-    public  TimerTaskEvent(TimerTask timerTask, T taskFun,  boolean interrupt ,Object... params) {
+    public  TimerTaskEvent(AbstractHomoTimerTask timerTask, T taskFun, boolean interrupt , Object... params) {
         this.timerTask = timerTask;
         this.taskFun = taskFun;
         this.params = params;
@@ -34,7 +35,7 @@ public class TimerTaskEvent<T extends Task> extends AbstractBaseEvent{
         }catch (Exception e){
             log.error("TimerEvent error",e);
             if (interrupt){
-                timerTask.cancel();
+                timerTask.future.cancel(true);
             }
         }
     }

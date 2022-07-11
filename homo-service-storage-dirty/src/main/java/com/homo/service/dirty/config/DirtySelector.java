@@ -18,7 +18,7 @@ public class DirtySelector implements ImportSelector {
             return new String[0];
         }
         String[] typeClazz = new String[1];
-        typeClazz[0] = DirtyAutoConfiguration.class.getName();
+        typeClazz[0] = DirtyProccessAutoConfiguration.class.getName();
         return typeClazz;
     }
 

@@ -28,8 +28,8 @@ public class HomoTimerTask<T extends Task> extends AbstractHomoTimerTask {
         this.runTimes = runTimes;
     }
 
-    public HomoTimerTask(CallQueue callQueue, Consumer<AbstractHomoTimerTask> onCancelConsumer, Consumer<AbstractHomoTimerTask> onErrorConsumer, T task, int runTimes, Object... objects) {
-        super(callQueue, onCancelConsumer, onErrorConsumer);
+    public HomoTimerTask(CallQueue callQueue,  Consumer<AbstractHomoTimerTask> onErrorConsumer, T task, int runTimes, Object... objects) {
+        super(callQueue, onErrorConsumer);
         this.task = task;
         this.objects = objects;
         this.runTimes = runTimes;
@@ -39,7 +39,7 @@ public class HomoTimerTask<T extends Task> extends AbstractHomoTimerTask {
     public void doRun() {
         currentTimes++;
         if (runTimes != ENDLESS && currentTimes >= runTimes) {
-            cancel();
+            future.cancel(true);
         }
         addEvent(new TimerTaskEvent<T>(this, task, interrupt, objects));
     }

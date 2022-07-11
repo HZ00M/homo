@@ -3,18 +3,20 @@ package com.homo.core.common.config;
 import com.homo.core.common.apollo.ApolloConfigDriver;
 import com.homo.core.common.apollo.ConfigDriver;
 import com.homo.core.common.apollo.PropertyProcessor;
-import com.homo.core.common.module.*;
-import lombok.extern.slf4j.Slf4j;
+import com.homo.core.common.module.ModuleMgr;
+import com.homo.core.common.module.ModuleMgrImpl;
+import com.homo.core.common.module.RootModule;
+import com.homo.core.common.module.RootModuleImpl;
+import com.homo.core.configurable.module.ModuleProperties;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import org.springframework.context.annotation.Import;
 
 @Configuration
-@Slf4j
+@Import(ModuleProperties.class)
+@Log4j2
 public class CommonAutoConfiguration {
 
     @Bean("configDriver")

@@ -1,4 +1,4 @@
-package com.homo.core.landing.pojo;
+package com.homo.core.mysql.entity;
 
 import com.homo.core.mysql.annotation.TableField;
 import lombok.AllArgsConstructor;
@@ -10,16 +10,16 @@ import org.apache.ibatis.type.JdbcType;
 @Data
 @AllArgsConstructor
 public class DataObject {
-    @TableField(value = "primary_key", type = JdbcType.VARCHAR)
+    @TableField(value = "primary_key", type = JdbcType.VARCHAR,id = true)
     private String primaryKey;
 
-    @TableField(value = "logic_type", type = JdbcType.INTEGER)
-    private Integer logicType;
+    @TableField(value = "logic_type", type = JdbcType.VARCHAR)
+    private String logicType;
 
     @TableField(value = "owner_id", type = JdbcType.VARCHAR)
     private String ownerId;
 
-    @TableField(type = JdbcType.VARCHAR)
+    @TableField(type = JdbcType.VARCHAR,length = 100)
     private String key;
 
     @TableField(type = JdbcType.BLOB)
@@ -37,9 +37,15 @@ public class DataObject {
     @TableField(value = "query_all_key", type = JdbcType.VARCHAR)
     private String queryAllKey;
 
+    public DataObject(String logicType, String ownerId, String key, byte[] value) {
+        this.logicType = logicType;
+        this.ownerId = ownerId;
+        this.key = key;
+        this.value = value;
+    }
 
     public static String buildTableName(String appId, String regionId) {
-        return appId + ":" + regionId;
+        return appId + "_" + regionId;
     }
 
     public static String buildQueryAllKey(String logicType, String ownerId) {

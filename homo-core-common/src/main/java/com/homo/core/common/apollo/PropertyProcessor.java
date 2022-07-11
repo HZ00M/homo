@@ -2,16 +2,18 @@ package com.homo.core.common.apollo;
 
 import com.google.common.base.Strings;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
+;
+
 /**
  * 配置中心属性读取
  */
-@Slf4j
+@Log4j2
 public class PropertyProcessor {
     private static final String CONFIG_PROPERTIES_WINDOWS = "C:/opt/settings/server.properties";
     private static final String SERVER_PROPERTIES_LINUX = "/opt/settings/server.properties";

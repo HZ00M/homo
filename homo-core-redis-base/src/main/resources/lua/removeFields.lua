@@ -1,5 +1,5 @@
 local result = {}
-local delFlag = "delFlag";
+local delFlag = ":delFlag";
 local cacheAllKey = redis.call("HGET", KEYS[1], "cachedAllKey")
 if not cacheAllKey then
     table.insert(result,"unCachedAllKey")

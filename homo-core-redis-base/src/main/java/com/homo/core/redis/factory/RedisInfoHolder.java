@@ -2,10 +2,12 @@ package com.homo.core.redis.factory;
 
 import com.homo.core.common.apollo.ConfigDriver;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
+
+;
 
 @Data
-@Slf4j
+@Log4j2
 public class RedisInfoHolder {
 
     ConfigDriver configDriver;

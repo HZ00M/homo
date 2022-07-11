@@ -4,22 +4,22 @@ import com.homo.core.common.module.Module;
 import com.homo.core.facade.document.EntityStorageDriver;
 import com.homo.core.facade.lock.LockDriver;
 import com.homo.core.utils.callback.CallBack;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+;
+
 /**
  * 回调式 实体存储模块
  */
-@Slf4j
-@Component
+@Log4j2
 public class EntityStorage<F, S, U, P> implements Module {
 
     /**
@@ -860,8 +860,8 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param callBack        回调返回是否解锁成功
      */
     public <T> void asyncLock(String appId, String regionId, String logicType, String ownerId,
-                              String lockField, String lockVal, String uniqueId, Integer expireTime,CallBack<Boolean> callBack) {
-        lockDriver.asyncLock(appId, regionId, logicType, ownerId, lockField, lockVal, uniqueId, expireTime,
+                              String lockField, Integer expireTime,CallBack<Boolean> callBack) {
+        lockDriver.asyncLock(appId, regionId, logicType, ownerId, lockField, expireTime,
                 callBack);
     }
 
@@ -874,12 +874,11 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param logicType 逻辑类型
      * @param ownerId   ID
      * @param lockField 指定key
-     * @param uniqueId  令牌
      * @param callBack       回调返回是否解锁成功
      */
     public <T> void asyncUnlock(String appId, String regionId, String logicType, String ownerId,
-                                String lockField, String uniqueId, CallBack<Boolean> callBack) {
-        lockDriver.asyncUnlock(appId, regionId, logicType, ownerId, lockField, uniqueId, callBack);
+                                String lockField, CallBack<Boolean> callBack) {
+        lockDriver.asyncUnlock(appId, regionId, logicType, ownerId, lockField, callBack);
     }
 
     /**
@@ -896,8 +895,8 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @return
      */
     public boolean lock(String appId, String regionId, String logicType, String ownerId,
-                        String lockField, String lockVal, String uniqueId, Integer expireTime) {
-        return lockDriver.lock(appId, regionId, logicType, ownerId, lockField, lockVal, uniqueId, expireTime);
+                        String lockField, Integer expireTime) {
+        return lockDriver.lock(appId, regionId, logicType, ownerId, lockField, expireTime);
     }
 
     /**
@@ -908,11 +907,10 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param logicType 逻辑类型
      * @param ownerId   ID
      * @param lockField 指定key
-     * @param uniqueId  令牌
      * @return
      */
     public boolean unlock(String appId, String regionId, String logicType, String ownerId,
-                          String lockField, String uniqueId) {
-        return lockDriver.unlock(appId, regionId, logicType, ownerId, lockField, uniqueId);
+                          String lockField) {
+        return lockDriver.unlock(appId, regionId, logicType, ownerId, lockField);
     }
 }

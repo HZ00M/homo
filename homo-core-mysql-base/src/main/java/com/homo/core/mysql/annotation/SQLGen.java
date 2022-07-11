@@ -1,10 +1,11 @@
 package com.homo.core.mysql.annotation;
 
 import org.apache.ibatis.jdbc.SQL;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,49 +16,36 @@ import java.util.stream.Collectors;
  * insert,update则不受此限制, '%'百分号将作为内容被保存进数据库
  */
 public class SQLGen<T> {
+
     public static <T> String create(Class<T> entity, String tableName) {
         String finalTableName = entity.getSimpleName();
         if (!StringUtils.isEmpty(tableName)) {
             finalTableName = tableName;
-        }
-        Annotation[] annotations = entity.getAnnotations();
-        for (Annotation annotation : annotations) {
-            if (annotation instanceof TableName) {
-                finalTableName = ((TableName) annotation).value();
+        } else {
+            TableName annoTableName = AnnotationUtils.findAnnotation(entity, TableName.class);
+            if (annoTableName !=null) {
+                finalTableName = annoTableName.value();
             }
         }
+        StringBuilder sqlBuilder = new StringBuilder();
+
         List<SQLField> fieldList = new ArrayList<>();
         try {
             Field[] fields = entity.getDeclaredFields();
             for (Field field : fields) {
                 field.setAccessible(true);
-                Annotation[] fieldAnnotions = field.getAnnotations();
-                SQLField.SQLFieldBuilder builder = SQLField.builder();
-                for (Annotation annotation : fieldAnnotions) {
-                    if (annotation instanceof TableField) {
-                        builder.name(((TableField) annotation).value());
-                        builder.comment(((TableField) annotation).comment());
-                        builder.type(((TableField) annotation).type());
-                    }
-                    if (annotation instanceof Id) {
-                        builder.name(((Id) annotation).value());
-                        builder.increment(((Id) annotation).autoIncr());
-                        builder.isIdField(true);
-                    }
-                    fieldList.add(builder.build());
-                }
+                fieldList.add(SQLField.Builder.create(field,null));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        StringBuilder sqlBuilder = new StringBuilder();
+
         for (SQLField sqlField : fieldList) {
             sqlBuilder.append(sqlField.toCreateString());
         }
-        sqlBuilder.append("CREATE TABLE IF NOT EXISTS ");
-        sqlBuilder.append(finalTableName);
-        sqlBuilder.append(sqlBuilder.substring(0, sqlBuilder.length() - 1));
-        return sqlBuilder.toString();
+        String fieldStr = sqlBuilder.substring(0, sqlBuilder.length() - 1);
+        String sql = String.format("CREATE TABLE IF NOT EXISTS `%s`( %s )ENGINE=InnoDB DEFAULT CHARSET=utf8", finalTableName, fieldStr);
+        return sql;
     }
 
     public static <T> String drop(String tableName) {
@@ -72,11 +60,10 @@ public class SQLGen<T> {
             String finalTableName = obj.getClass().getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
                 finalTableName = tableName;
-            }
-            Annotation[] annotations = obj.getClass().getAnnotations();
-            for (Annotation annotation : annotations) {
-                if (annotation instanceof TableName) {
-                    finalTableName = ((TableName) annotation).value();
+            }else {
+                TableName annoTableName = AnnotationUtils.findAnnotation(obj.getClass(), TableName.class);
+                if (annoTableName !=null) {
+                    finalTableName = annoTableName.value();
                 }
             }
             FROM(finalTableName);
@@ -87,23 +74,20 @@ public class SQLGen<T> {
                     field.setAccessible(true);
                     Object v = field.get(obj);
                     //进行字段映射处理
-                    String fieldName = SQLUtil.humpToLine(field.getName());
                     String entityFieldName = field.getName();
-
-                    Annotation[] fieldAnnotions = field.getAnnotations();
-                    for (Annotation annotation : fieldAnnotions) {
-                        if (annotation instanceof TableField) {
-                            fieldName = ((TableField) annotation).value();
-                        }
+                    String colName = SQLUtil.humpToLine(entityFieldName);
+                    TableField tableField = AnnotationUtils.findAnnotation(field, TableField.class);
+                    if (tableField != null && !StringUtils.isEmpty(tableField.value())) {
+                        colName = tableField.value();
                     }
                     if (v != null) {
                         if (v instanceof String && ((String) v).contains("%")) {
-                            WHERE(fieldName + " like '" + v + "'");
+                            WHERE(colName + " like '" + v + "'");
                         } else {
-                            WHERE(fieldName + "=#{" + entityFieldName + "}");
+                            WHERE(colName + "='" + v + "'");
                         }
                     }
-                    searchFileds.add(fieldName + " as " + entityFieldName);
+                    searchFileds.add(" `" + colName + "` as `" + entityFieldName + "` ");
                 }
                 SELECT(searchFileds.stream().collect(Collectors.joining(",")));
             } catch (Exception e) {
@@ -117,11 +101,10 @@ public class SQLGen<T> {
             String finalTableName = obj.getClass().getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
                 finalTableName = tableName;
-            }
-            Annotation[] annotations = obj.getClass().getAnnotations();
-            for (Annotation annotation : annotations) {
-                if (annotation instanceof TableName) {
-                    finalTableName = ((TableName) annotation).value();
+            }else {
+                TableName annoTableName = AnnotationUtils.findAnnotation(obj.getClass(), TableName.class);
+                if (annoTableName !=null) {
+                    finalTableName = annoTableName.value();
                 }
             }
             UPDATE(finalTableName);
@@ -132,12 +115,10 @@ public class SQLGen<T> {
                 for (Field field : fields) {
                     field.setAccessible(true);
                     Object v = field.get(obj);
-                    Annotation[] fieldAnnotions = field.getAnnotations();
-                    for (Annotation annotation : fieldAnnotions) {
-                        if (annotation instanceof Id) {
-                            fieldId = ((Id) annotation).value();
-                            entityId = field.getName();
-                        }
+                    Id id = AnnotationUtils.findAnnotation(field, Id.class);
+                    if (id != null) {
+                        fieldId = id.value();
+                        entityId = field.getName();
                     }
                     if (v != null) {
                         String fieldName = SQLUtil.humpToLine(field.getName());
@@ -157,11 +138,10 @@ public class SQLGen<T> {
             String finalTableName = obj.getClass().getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
                 finalTableName = tableName;
-            }
-            Annotation[] annotations = obj.getClass().getAnnotations();
-            for (Annotation annotation : annotations) {
-                if (annotation instanceof TableName) {
-                    finalTableName = ((TableName) annotation).value();
+            }else {
+                TableName annoTableName = AnnotationUtils.findAnnotation(obj.getClass(), TableName.class);
+                if (annoTableName !=null) {
+                    finalTableName = annoTableName.value();
                 }
             }
             INSERT_INTO(finalTableName);
@@ -172,15 +152,12 @@ public class SQLGen<T> {
                     Object v = field.get(obj);
                     if (v != null) {
                         //进行字段映射处理
-                        String fieldName = SQLUtil.humpToLine(field.getName());
-                        String entityFieldName = field.getName();
-                        Annotation[] fieldAnnotions = field.getAnnotations();
-                        for (Annotation annotation : fieldAnnotions) {
-                            if (annotation instanceof TableField) {
-                                fieldName = ((TableField) annotation).value();
-                            }
+                        String colName = SQLUtil.humpToLine(field.getName());
+                        TableField tableField = AnnotationUtils.findAnnotation(field, TableField.class);
+                        if (tableField != null && !StringUtils.isEmpty(tableField.value())) {
+                            colName = tableField.value();
                         }
-                        VALUES(fieldName, "#{" + entityFieldName + "}");
+                        VALUES("`"+colName+"`",   "'"+v + "'");
                     }
                 }
             } catch (Exception e) {
@@ -194,11 +171,10 @@ public class SQLGen<T> {
             String finalTableName = entity.getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
                 finalTableName = tableName;
-            }
-            Annotation[] annotations = entity.getAnnotations();
-            for (Annotation annotation : annotations) {
-                if (annotation instanceof TableName) {
-                    finalTableName = ((TableName) annotation).value();
+            }else {
+                TableName annoTableName = AnnotationUtils.findAnnotation(entity, TableName.class);
+                if (annoTableName !=null) {
+                    finalTableName = annoTableName.value();
                 }
             }
             DELETE_FROM(finalTableName);
@@ -209,18 +185,16 @@ public class SQLGen<T> {
                     Object v = field.get(entity);
                     if (v != null) {
                         //进行字段映射处理
-                        String fieldName = SQLUtil.humpToLine(field.getName());
                         String entityFieldName = field.getName();
-                        Annotation[] fieldAnnotions = field.getAnnotations();
-                        for (Annotation annotation : fieldAnnotions) {
-                            if (annotation instanceof TableField) {
-                                fieldName = ((TableField) annotation).value();
-                            }
+                        String colName = SQLUtil.humpToLine(entityFieldName);
+                        TableField tableField = AnnotationUtils.findAnnotation(field, TableField.class);
+                        if (tableField != null && !StringUtils.isEmpty(tableField.value())) {
+                            colName = tableField.value();
                         }
                         if (v instanceof String && ((String) v).contains("%")) {
-                            WHERE(fieldName + " like '" + v + "'");
+                            WHERE(colName + " like '" + v + "'");
                         } else {
-                            WHERE(fieldName + "=#{" + entityFieldName + "}");
+                            WHERE(colName + "= '" + entityFieldName + "'");
                         }
                     }
                 }

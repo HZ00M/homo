@@ -25,5 +25,5 @@ public class ServerInfo {
     /**
      * 服务名
      */
-    public String serverName = "null";
+    public String serverName ;
 }

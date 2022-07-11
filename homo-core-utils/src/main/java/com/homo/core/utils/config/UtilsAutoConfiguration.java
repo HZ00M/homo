@@ -7,7 +7,7 @@ import com.homo.core.utils.serial.HomoSerializationProcessor;
 import com.homo.core.utils.serial.JacksonSerializationProcessor;
 import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,7 +16,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 
-@Slf4j
+;
+
+@Log4j2
 @Configuration
 @Import({ZipKinProperties.class})
 public class UtilsAutoConfiguration {
@@ -38,18 +40,17 @@ public class UtilsAutoConfiguration {
     }
 
     @Bean("homoSerializationProcessor")
-    @ConditionalOnProperty(
-            prefix = "homo.serial",
-            name = {"type"},
-            havingValue = "fastjson",
-            matchIfMissing = true)
+    @ConditionalOnMissingBean
     public HomoSerializationProcessor fastjsonSerializationProcessor(){
         log.info("register bean homoSerializationProcessor implement FastjsonSerializationProcessor");
         return new FastjsonSerializationProcessor();
     }
 
     @Bean("homoSerializationProcessor")
-    @ConditionalOnMissingBean
+    @ConditionalOnProperty(
+            prefix = "homo.serial",
+            name = {"type"},
+            havingValue = "fastjson")
     public HomoSerializationProcessor jacksonSerializationProcessor(){
         log.info("register bean homoSerializationProcessor implement JacksonSerializationProcessor");
         return new JacksonSerializationProcessor();

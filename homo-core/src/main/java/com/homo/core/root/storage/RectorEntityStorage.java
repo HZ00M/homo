@@ -7,19 +7,19 @@ import com.homo.core.facade.lock.LockDriver;
 import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 
+;
+
 /**
  * 响应式 实体存储模块
  */
-@Slf4j
-@Component
+@Log4j2
 public class RectorEntityStorage<F, S, U, P> implements Module {
     private boolean useCache;   //todo 增加缓存支持
     @Autowired(required = false)
@@ -362,8 +362,8 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
     public Homo<Boolean> asyncLock(String logicType, String ownerId,
-                                         String lockField, String lockVal, String uniqueId, Integer expireTime) {
-        return Homo.warp(monoSink -> storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, lockVal, uniqueId, expireTime, new CallBack<Boolean>() {
+                                         String lockField,Integer expireTime) {
+        return Homo.warp(monoSink -> storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, expireTime, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
                 monoSink.success(aBoolean);
@@ -377,8 +377,8 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
     public Homo<Boolean> asyncLock(String logicType, String ownerId,
-                                         String lockField, String lockVal, String uniqueId, Integer expireTime, Integer retryCount, Integer retryDelaySecond) {
-        return Homo.warp((HomoSink<Boolean> monoSink) -> storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, lockVal, uniqueId, expireTime, new CallBack<Boolean>() {
+                                         String lockField,Integer expireTime, Integer retryCount, Integer retryDelaySecond) {
+        return Homo.warp((HomoSink<Boolean> monoSink) -> storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, expireTime, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
                 if (aBoolean) {
@@ -396,8 +396,8 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
     public Homo<Boolean> asyncUnlock(String logicType, String ownerId,
-                                           String lockField, String uniqueId) {
-        return Homo.warp(monoSink -> storage.asyncUnlock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, uniqueId, new CallBack<Boolean>() {
+                                           String lockField) {
+        return Homo.warp(monoSink -> storage.asyncUnlock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
                 monoSink.success(aBoolean);
@@ -409,6 +409,4 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
             }
         }));
     }
-
-
 }

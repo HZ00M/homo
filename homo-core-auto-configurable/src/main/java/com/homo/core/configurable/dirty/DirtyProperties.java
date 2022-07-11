@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 @ToString
 @Configurable
 public class DirtyProperties {
-    @Value("${homo.dirty.tableNum:4}")
+    @Value("${homo.dirty.tableNum:1}")
     private int tableNum;
 
     @Value("${homo.dirty.table.prefix:dirtyKey}")
