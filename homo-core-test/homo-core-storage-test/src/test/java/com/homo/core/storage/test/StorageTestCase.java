@@ -128,6 +128,49 @@ public class StorageTestCase {
 
     @Test
     @Order(5)
+    public void testUpdateBatch() throws InterruptedException {
+
+        TestSaveObj saveObj1 = new TestSaveObj("user_1",logicType);
+        TestSaveObj saveObj2 = new TestSaveObj("user_2",logicType);
+        TestSaveObj saveObj3 = new TestSaveObj("user_3",logicType);
+        byte[] bytes1 = serializationProcessor.writeByte(saveObj1);
+        byte[] bytes2 = serializationProcessor.writeByte(saveObj2);
+        byte[] bytes3 = serializationProcessor.writeByte(saveObj3);
+        Map<String,byte[]> map = new HashMap<>();
+        map.put(key,bytes1);
+        StepVerifier.create(
+                byteStorage.update(rootModule.getAppId(),rootModule.getRegionId(), saveObj1.getLogicType(),
+                        saveObj1.getOwnerId(),map)
+                        .nextDo(ret-> {
+                            return Homo.result(ret.getKey());
+                        })
+        )
+                .expectNext(true)
+                .verifyComplete();
+        map.put(key,bytes2);
+        StepVerifier.create(
+                byteStorage.update(rootModule.getAppId(),rootModule.getRegionId(), saveObj2.getLogicType(),
+                        saveObj2.getOwnerId(),map)
+                        .nextDo(ret-> {
+                            return Homo.result(ret.getKey());
+                        })
+        )
+                .expectNext(true)
+                .verifyComplete();
+        map.put(key,bytes3);
+        StepVerifier.create(
+                byteStorage.update(rootModule.getAppId(),rootModule.getRegionId(), saveObj3.getLogicType(),
+                        saveObj3.getOwnerId(),map)
+                        .nextDo(ret-> {
+                            return Homo.result(ret.getKey());
+                        })
+        )
+                .expectNext(true)
+                .verifyComplete();
+    }
+
+//    @Test
+    @Order(6)
     public void testIncrLoading() {
         String incrKey1 = "incrKey1";
         String incrKey2 = "incrKey2";

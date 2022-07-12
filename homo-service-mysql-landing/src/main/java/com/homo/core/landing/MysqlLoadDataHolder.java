@@ -3,7 +3,7 @@ package com.homo.core.landing;
 import com.homo.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.facade.storege.landing.DBDataHolder;
 import com.homo.core.facade.storege.landing.DataObjHelper;
-import com.homo.core.landing.mapper.ISchemeMapper;
+import com.homo.core.landing.mapper.DataObjMapper;
 import com.homo.core.mysql.entity.DataObject;
 import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.factory.RedisInfoHolder;
@@ -37,7 +37,7 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
     @Autowired(required = false)
     private RedisInfoHolder redisInfoHolder;
     @Autowired(required = false)
-    private ISchemeMapper schemeMapper;
+    private DataObjMapper schemeMapper;
     @Autowired(required = false)
     private DataLandingProcess dataLandingProcess;
 
