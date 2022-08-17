@@ -18,3 +18,4 @@ target/
 # Gradle
 .gradle/
 build/
+*.flattened-pom.xml
