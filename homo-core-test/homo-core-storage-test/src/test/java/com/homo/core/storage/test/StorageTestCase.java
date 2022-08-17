@@ -14,7 +14,6 @@ import reactor.util.function.Tuples;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-;
 
 @Log4j2
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -30,10 +29,11 @@ public class StorageTestCase {
     public String ownerId = "default";
     public String logicType = "logicType";
     String key = "test";
-    TestSaveObj saveObj = new TestSaveObj(ownerId,logicType);
+    TestSaveObj saveObj;
     @BeforeAll
     public void init(){
         ownerId = UUID.randomUUID().toString();
+        saveObj = new TestSaveObj(ownerId,logicType);
     }
 
     @Test

@@ -23,7 +23,7 @@ public class SQLGen<T> {
             finalTableName = tableName;
         } else {
             TableName annoTableName = AnnotationUtils.findAnnotation(entity, TableName.class);
-            if (annoTableName !=null) {
+            if (annoTableName != null) {
                 finalTableName = annoTableName.value();
             }
         }
@@ -34,7 +34,7 @@ public class SQLGen<T> {
             Field[] fields = entity.getDeclaredFields();
             for (Field field : fields) {
                 field.setAccessible(true);
-                fieldList.add(SQLField.Builder.create(field,null));
+                fieldList.add(SQLField.Builder.create(field, null));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -60,9 +60,9 @@ public class SQLGen<T> {
             String finalTableName = obj.getClass().getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
                 finalTableName = tableName;
-            }else {
+            } else {
                 TableName annoTableName = AnnotationUtils.findAnnotation(obj.getClass(), TableName.class);
-                if (annoTableName !=null) {
+                if (annoTableName != null) {
                     finalTableName = annoTableName.value();
                 }
             }
@@ -77,7 +77,10 @@ public class SQLGen<T> {
                     String entityFieldName = field.getName();
                     String colName = SQLUtil.humpToLine(entityFieldName);
                     TableField tableField = AnnotationUtils.findAnnotation(field, TableField.class);
-                    if (tableField != null && !StringUtils.isEmpty(tableField.value())) {
+                    if (tableField == null) {
+                        continue;
+                    }
+                    if (!StringUtils.isEmpty(tableField.value())) {
                         colName = tableField.value();
                     }
                     if (v != null) {
@@ -101,9 +104,9 @@ public class SQLGen<T> {
             String finalTableName = obj.getClass().getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
                 finalTableName = tableName;
-            }else {
+            } else {
                 TableName annoTableName = AnnotationUtils.findAnnotation(obj.getClass(), TableName.class);
-                if (annoTableName !=null) {
+                if (annoTableName != null) {
                     finalTableName = annoTableName.value();
                 }
             }
@@ -138,9 +141,9 @@ public class SQLGen<T> {
             String finalTableName = obj.getClass().getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
                 finalTableName = tableName;
-            }else {
+            } else {
                 TableName annoTableName = AnnotationUtils.findAnnotation(obj.getClass(), TableName.class);
-                if (annoTableName !=null) {
+                if (annoTableName != null) {
                     finalTableName = annoTableName.value();
                 }
             }
@@ -157,7 +160,7 @@ public class SQLGen<T> {
                         if (tableField != null && !StringUtils.isEmpty(tableField.value())) {
                             colName = tableField.value();
                         }
-                        VALUES("`"+colName+"`",   "'"+v + "'");
+                        VALUES("`" + colName + "`", "'" + v + "'");
                     }
                 }
             } catch (Exception e) {
@@ -171,9 +174,9 @@ public class SQLGen<T> {
             String finalTableName = entity.getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
                 finalTableName = tableName;
-            }else {
+            } else {
                 TableName annoTableName = AnnotationUtils.findAnnotation(entity, TableName.class);
-                if (annoTableName !=null) {
+                if (annoTableName != null) {
                     finalTableName = annoTableName.value();
                 }
             }

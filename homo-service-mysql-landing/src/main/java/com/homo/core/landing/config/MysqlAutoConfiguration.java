@@ -9,15 +9,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
-;
-
 @Log4j2
 @Configuration
 @MapperScan("com.homo.core.landing.mapper")
 public class MysqlAutoConfiguration {
 
     @Bean("dbDataHolder")
-    @DependsOn({"homoRedisPool","ISchemeMapper"})
+    @DependsOn({"homoRedisPool","dataObjMapper"})
     public DBDataHolder dbDataHolder(){
         log.info("register bean dbDataHolder actual MysqlLoadDataHolder");
         return new MysqlLoadDataHolder();

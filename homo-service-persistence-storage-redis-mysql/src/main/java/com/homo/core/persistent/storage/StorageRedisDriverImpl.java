@@ -287,6 +287,7 @@ public class StorageRedisDriverImpl implements StorageDriver {
                         .hotAllField(appId, regionId, logicType, ownerId, redisKey)
                         .nextDo(res->
                             asyncRemoveKeys(appId,regionId,logicType,ownerId,remKeys)
+                                .consumerValue(one::tryEmitValue)
                         )
                         .start();
             }else {
