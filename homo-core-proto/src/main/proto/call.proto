@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.homo.proto";
+option java_outer_classname = "HomoCallProto";
+
+package rpc;
+
+service RpcCallService{
+  rpc JsonCall(JsonReq) returns (JsonRes){}
+  rpc RpcCall(Req) returns (Res){}
+  rpc StreamCall(StreamReq) returns (StreamRes){}
+}
+
+message Req{
+  string srcService = 1;
+  string msgId = 2;
+  repeated bytes msgContent = 3;
+}
+
+message Res{
+  string msgId = 1;
+  repeated bytes msgContent = 2;
+}
+
+message JsonReq{
+  string srcService = 1;
+  string msgId = 2;
+  string msgContent = 3;
+}
+
+message JsonRes{
+  string msgId = 1;
+  string msgContent = 2;
+}
+
+message StreamReq{
+  string srcService = 1;
+  string msgId = 2;
+  repeated bytes msgContent = 3;
+  string reqId = 4;
+  TraceInfo traceInfo = 5;
+}
+
+message StreamRes{
+  string msgId = 1;
+  repeated bytes msgContent = 2;
+  string reqId = 3;
+  int64 spanId = 4;
+}
+
+message TraceInfo{
+  int64 traceId = 1;
+  int64  spanId = 2;
+  bool sample = 3;
+}

@@ -1,12 +1,13 @@
 package com.homo.core.facade.rpc;
 
-import com.homo.core.utils.callback.CallBack2;
+import com.homo.core.facade.serial.RpcContent;
+import com.homo.core.utils.rector.Homo;
 
 /**
  * Rpc服务器接口
  * 驱动层使用，接收rpc调用，分发到本服务器具体函数
  */
-public interface RpcServer {
+public interface RpcServer<RETURN,ERROR> {
 
     /**
      * 获取rpc服务器的域名
@@ -32,10 +33,9 @@ public interface RpcServer {
      * 接受一个byte 远程调用
      * @param srcService 返送方服务名
      * @param funName 函数名
-     * @param params 参数
-     * @param callBack 支持多参数的回调
+     * @param param 参数
      */
-    void onCall(String srcService, String funName, Object params, CallBack2<String, byte[][]> callBack) throws Exception;
+    Homo<RETURN> onCall(String srcService, String funName, RpcContent param) throws Exception;
 
     /**
      * 处理调用异常
@@ -44,5 +44,5 @@ public interface RpcServer {
      * @param e
      * @return
      */
-    byte[] processError(String msgId, Throwable e);
+    Homo<ERROR> processError(String msgId, Throwable e);
 }

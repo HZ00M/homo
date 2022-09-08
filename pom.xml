@@ -28,6 +28,10 @@
         <module>homo-core-mysql-base</module>
         <module>homo-service-storage-dirty</module>
         <module>homo-service-mysql-landing</module>
+        <module>homo-core-service-base</module>
+        <module>homo-core-rpc-server</module>
+        <module>homo-core-rpc-client</module>
+        <module>homo-core-rpc-base</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -227,7 +231,26 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
-
+            <dependency>
+                <artifactId>homo-core-service-base</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-rpc-base</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-rpc-client</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-rpc-server</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
 
             <!--            第三方依赖             -->
             <dependency>

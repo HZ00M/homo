@@ -5,17 +5,16 @@
     <parent>
         <artifactId>homo-root</artifactId>
         <groupId>com.homo</groupId>
-        <version>${revision}</version>
+        <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>homo-core-redis-base</artifactId>
+    <artifactId>homo-core-rpc-client</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
@@ -23,20 +22,7 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-concurrent</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.codis.jodis</groupId>
-            <artifactId>jodis</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.lettuce</groupId>
-            <artifactId>lettuce-core</artifactId>
+            <artifactId>homo-core-facade</artifactId>
         </dependency>
     </dependencies>
 </project>
