@@ -13,11 +13,18 @@ import reactor.util.function.Tuples;
  * rpc服务器实现
  */
 @Slf4j
-public class RpcServerDelegate<T,E> implements RpcServer<T,E> {
+public class RpcServerImpl implements RpcServer {
 
-    private final Service<T,E> actualService;
+    private final Service actualService;
 
-    public RpcServerDelegate(Service<T,E> actualService) {
+    private CallDispatcher callDispatcher;
+
+    public static RpcServer doBind(Service actualService){
+        RpcServerImpl delegate = new RpcServerImpl(actualService);
+        return delegate;
+    }
+
+    private RpcServerImpl(Service actualService) {
         log.info(
                 "RpcServerImpl serviceName {} port {} class name {}",
                 actualService.getServiceName(),
@@ -42,21 +49,22 @@ public class RpcServerDelegate<T,E> implements RpcServer<T,E> {
     }
 
     @Override
-    public Homo<T> onCall(String srcService, String funName, RpcContent param) throws Exception {
+    public Homo onCall(String srcService, String funName, RpcContent param) throws Exception {
         Span span = ZipkinUtil.getTracing().tracer().currentSpan();
         if (span != null) {
             span.name(funName);
         }
         if (actualService == null) {
             log.warn("RpcServerImpl onCall service is null, funName_{}", funName);
-            return Homo.result((T) Tuples.of(DriverRpcBack.NO_FUNCTION, null));
+            return Homo.result( Tuples.of(DriverRpcBack.NO_FUNCTION, null));
 
         }
         return actualService.callFun(srcService, funName, param);
     }
 
     @Override
-    public Homo<E> processError(String msgId, Throwable e) {
+    public Homo processError(String msgId, Throwable e) {
         return actualService.processError(msgId, e);
     }
+
 }

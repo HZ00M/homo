@@ -5,7 +5,7 @@ public interface RpcServerFactory {
      * 驱动的类型，比如grpc,http等
      * @return 驱动类型字符串
      */
-    String getType();
+    RpcType getType();
 
     /**
      * 启动一个Rpc服务器

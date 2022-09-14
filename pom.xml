@@ -32,6 +32,7 @@
         <module>homo-core-rpc-server</module>
         <module>homo-core-rpc-client</module>
         <module>homo-core-rpc-base</module>
+        <module>homo-core-rpc-grpc</module>
     </modules>
 
     <groupId>com.homo</groupId>

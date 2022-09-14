@@ -3,7 +3,7 @@ package com.homo.core.facade.service;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.utils.rector.Homo;
 
-public interface Service<RETURN, ERROR> {
+public interface Service {
     /**
      * 获取服务标识符  带端口号
      *
@@ -37,7 +37,7 @@ public interface Service<RETURN, ERROR> {
      */
     boolean isStateful();
 
-    Homo<RETURN> callFun(String srcService, String funName, RpcContent param);
+    <RETURN> Homo<RETURN> callFun(String srcService, String funName, RpcContent param);
 
-    Homo<ERROR> processError(String msgId, Throwable e);
+    <ERROR> Homo<ERROR> processError(String msgId, Throwable e);
 }
