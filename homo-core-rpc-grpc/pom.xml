@@ -19,15 +19,15 @@
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
             <artifactId>homo-core-concurrent</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-proto</artifactId>
+            <artifactId>homo-core-rpc-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-trace</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>

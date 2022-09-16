@@ -81,11 +81,11 @@ public class ZipkinUtil implements Module {
         rpcTracing = RpcTracing.create(tracing);
     }
 
-    public ClientInterceptor clientInterceptor() {
+    public static ClientInterceptor clientInterceptor() {
         return GrpcTracing.create(rpcTracing).newClientInterceptor();
     }
 
-    public ServerInterceptor serverInterceptor() {
+    public static ServerInterceptor serverInterceptor() {
         return GrpcTracing.create(rpcTracing).newServerInterceptor();
     }
 

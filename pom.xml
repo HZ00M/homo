@@ -28,11 +28,11 @@
         <module>homo-core-mysql-base</module>
         <module>homo-service-storage-dirty</module>
         <module>homo-service-mysql-landing</module>
-        <module>homo-core-service-base</module>
         <module>homo-core-rpc-server</module>
         <module>homo-core-rpc-client</module>
         <module>homo-core-rpc-base</module>
         <module>homo-core-rpc-grpc</module>
+        <module>homo-core-rpc-trace</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -168,6 +168,11 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
+                <artifactId>homo-core-proto</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
                 <artifactId>homo-core-module</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
@@ -239,6 +244,11 @@
             </dependency>
             <dependency>
                 <artifactId>homo-core-rpc-base</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-rpc-trace</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
@@ -322,6 +332,13 @@
                 <version>${grpc.version}</version>
             </dependency>
 
+
+            <!--            <dependency>-->
+            <!--                <groupId>com.google.protobuf</groupId>-->
+            <!--                <artifactId>protobuf-java-util</artifactId>-->
+            <!--                <version>${protobuf.version}</version>-->
+            <!--            </dependency>-->
+
             <dependency>
                 <groupId>io.zipkin.brave</groupId>
                 <artifactId>brave-bom</artifactId>
@@ -336,11 +353,6 @@
                 <version>${zipkin.reporter2.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.google.protobuf</groupId>
-                <artifactId>protobuf-java-util</artifactId>
-                <version>${protobuf.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>

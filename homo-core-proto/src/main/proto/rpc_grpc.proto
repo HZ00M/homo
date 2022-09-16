@@ -9,7 +9,7 @@ package rpc;
 service RpcCallService{
   rpc JsonCall(JsonReq) returns (JsonRes){}
   rpc RpcCall(Req) returns (Res){}
-  rpc StreamCall(StreamReq) returns (StreamRes){}
+  rpc StreamCall(stream StreamReq) returns (stream StreamRes){}
 }
 
 message Req{

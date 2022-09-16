@@ -39,5 +39,5 @@ public interface Service {
 
     <RETURN> Homo<RETURN> callFun(String srcService, String funName, RpcContent param);
 
-    <ERROR> Homo<ERROR> processError(String msgId, Throwable e);
+//    <ERROR> Homo<ERROR> processError(String msgId, Throwable e);
 }

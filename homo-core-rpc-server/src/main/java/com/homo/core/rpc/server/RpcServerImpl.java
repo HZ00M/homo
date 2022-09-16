@@ -49,7 +49,7 @@ public class RpcServerImpl implements RpcServer {
     }
 
     @Override
-    public Homo onCall(String srcService, String funName, RpcContent param) throws Exception {
+    public Homo onCall(String srcService, String funName, RpcContent param)  {
         Span span = ZipkinUtil.getTracing().tracer().currentSpan();
         if (span != null) {
             span.name(funName);
@@ -62,9 +62,9 @@ public class RpcServerImpl implements RpcServer {
         return actualService.callFun(srcService, funName, param);
     }
 
-    @Override
-    public Homo processError(String msgId, Throwable e) {
-        return actualService.processError(msgId, e);
-    }
+//    @Override
+//    public Homo processError(String msgId, Throwable e) {
+//        return actualService.processError(msgId, e);
+//    }
 
 }

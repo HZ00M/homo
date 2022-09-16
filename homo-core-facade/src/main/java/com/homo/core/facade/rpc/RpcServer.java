@@ -7,7 +7,7 @@ import com.homo.core.utils.rector.Homo;
  * Rpc服务器接口
  * 驱动层使用，接收rpc调用，分发到本服务器具体函数
  */
-public interface RpcServer<RETURN,ERROR> {
+public interface RpcServer {
 
     /**
      * 获取rpc服务器的域名
@@ -35,14 +35,14 @@ public interface RpcServer<RETURN,ERROR> {
      * @param funName 函数名
      * @param param 参数
      */
-    Homo<RETURN> onCall(String srcService, String funName, RpcContent param) throws Exception;
+    <RETURN> Homo<RETURN> onCall(String srcService, String funName, RpcContent<RETURN> param);
 
-    /**
-     * 处理调用异常
-     *
-     * @param msgId
-     * @param e
-     * @return
-     */
-    Homo<ERROR> processError(String msgId, Throwable e);
+//    /**
+//     * 处理调用异常
+//     *
+//     * @param msgId
+//     * @param e
+//     * @return
+//     */
+//    Homo<ERROR> processError(String msgId, Throwable e);
 }

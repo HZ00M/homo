@@ -86,16 +86,16 @@ public class BaseService implements Service {
         return callDispatcher.callFun(srcService,funName,param);
     }
 
-    /**
-     * 委派处理异常
-     * @param msgId
-     * @param e
-     * @return
-     */
-    @Override
-    public Homo processError(String msgId, Throwable e) {
-        return callDispatcher.processError(msgId,e);
-    }
+//    /**
+//     * 委派处理异常
+//     * @param msgId
+//     * @param e
+//     * @return
+//     */
+//    @Override
+//    public Homo processError(String msgId, Throwable e) {
+//        return callDispatcher.processError(msgId,e);
+//    }
 
     /**
      * 注册调用拦截

@@ -24,9 +24,9 @@ public class CallDispatcher {
         return null;
     }
 
-    public Homo processError(String msgId, Throwable e) {
-        return null;
-    }
+//    public Homo processError(String msgId, Throwable e) {
+//        return null;
+//    }
 
     public static BiFunction getErrorFun() {
         return errorFun;

@@ -9,20 +9,17 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>homo-core-service-base</artifactId>
+    <artifactId>homo-core-rpc-trace</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-facade</artifactId>
+            <artifactId>homo-core-rpc-base</artifactId>
         </dependency>
     </dependencies>
 </project>
