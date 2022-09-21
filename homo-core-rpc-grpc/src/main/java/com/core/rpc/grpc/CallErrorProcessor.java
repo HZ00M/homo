@@ -1,4 +1,4 @@
-package com.core.rpc.grpc.error;
+package com.core.rpc.grpc;
 
 import io.homo.proto.rpc.Req;
 import io.homo.proto.rpc.Res;

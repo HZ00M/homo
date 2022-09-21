@@ -1,4 +1,4 @@
-package com.core.rpc.grpc.error;
+package com.core.rpc.grpc;
 
 import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.StreamRes;

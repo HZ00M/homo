@@ -1,6 +1,6 @@
 package com.homo.service.dirty;
 
-import com.homo.concurrent.schedule.HomoTimeMgr;
+import com.homo.concurrent.schedule.HomoTimerMgr;
 import com.homo.concurrent.schedule.TaskFun0;
 import com.homo.core.common.module.Module;
 import com.homo.core.configurable.dirty.DirtyProperties;
@@ -17,12 +17,12 @@ public class PersistentProcess implements Module {
     @Autowired(required = false)
     DirtyProperties dirtyProperties;
 
-    HomoTimeMgr<TaskFun0> homoTimeMgr = HomoTimeMgr.getInstance();
+    HomoTimerMgr<TaskFun0> homoTimerMgr = HomoTimerMgr.getInstance();
 
     @Override
     public void init() {
         log.info("landingTask start dirtyProperties {} ",dirtyProperties);
-            homoTimeMgr.once(() -> {
+            homoTimerMgr.once(() -> {
                 String dirtyName = dirtyDriver.chooseDirtyMap();
                 try {
                         String dirtySaving = dirtyDriver.snapShot(dirtyName);

@@ -10,7 +10,6 @@ import java.util.function.BiFunction;
 
 @Slf4j
 public class CallDispatcher {
-    static BiFunction errorFun = null;
 
     RpcHandleInfo rpcHandleInfo;
 
@@ -23,19 +22,6 @@ public class CallDispatcher {
     public Homo callFun(String srcService, String funName, RpcContent param) {
         return null;
     }
-
-//    public Homo processError(String msgId, Throwable e) {
-//        return null;
-//    }
-
-    public static BiFunction getErrorFun() {
-        return errorFun;
-    }
-
-    public static void setErrorFun(BiFunction errorFun) {
-        CallDispatcher.errorFun = errorFun;
-    }
-
     public void setInterceptor(RpcInterceptor interceptor) {
         if (this.interceptor != null) {
             log.error("CallDispatcher setInterceptor recall!");

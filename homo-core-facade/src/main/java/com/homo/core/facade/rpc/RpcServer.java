@@ -37,12 +37,4 @@ public interface RpcServer {
      */
     <RETURN> Homo<RETURN> onCall(String srcService, String funName, RpcContent<RETURN> param);
 
-//    /**
-//     * 处理调用异常
-//     *
-//     * @param msgId
-//     * @param e
-//     * @return
-//     */
-//    Homo<ERROR> processError(String msgId, Throwable e);
 }

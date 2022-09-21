@@ -49,22 +49,18 @@ public class RpcServerImpl implements RpcServer {
     }
 
     @Override
-    public Homo onCall(String srcService, String funName, RpcContent param)  {
-        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
+    public <T> Homo<T> onCall(String srcService, String funName, RpcContent<T> param)  {
+        Span span = ZipkinUtil.currentSpan();
         if (span != null) {
             span.name(funName);
         }
         if (actualService == null) {
             log.warn("RpcServerImpl onCall service is null, funName_{}", funName);
-            return Homo.result( Tuples.of(DriverRpcBack.NO_FUNCTION, null));
+            return Homo.result((T) Tuples.of(DriverRpcBack.NO_FUNCTION, null));
 
         }
         return actualService.callFun(srcService, funName, param);
     }
 
-//    @Override
-//    public Homo processError(String msgId, Throwable e) {
-//        return actualService.processError(msgId, e);
-//    }
 
 }

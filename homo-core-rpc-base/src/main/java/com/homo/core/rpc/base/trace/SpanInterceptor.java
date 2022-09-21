@@ -1,4 +1,4 @@
-package com.core.rpc.trace;
+package com.homo.core.rpc.base.trace;
 
 import brave.Span;
 import brave.Tracer;

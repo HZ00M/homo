@@ -14,28 +14,28 @@ import java.util.concurrent.TimeUnit;
 ;
 
 @Log4j2
-public class HomoTimeMgr<T extends Task> {
+public class HomoTimerMgr<T extends Task> {
 
     public static String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static SimpleDateFormat dateFormat = new SimpleDateFormat(TIME_FORMAT);
     private ScheduledExecutorService timer;
-    private HomoTimeMgr(){}
-    private static volatile HomoTimeMgr homoTimeMgr;
+    private HomoTimerMgr(){}
+    private static volatile HomoTimerMgr homoTimerMgr;
 
-    public static HomoTimeMgr getInstance(){
-        if (homoTimeMgr==null){
-            synchronized (HomoTimeMgr.class){
-                if (homoTimeMgr==null){
-                    homoTimeMgr = new HomoTimeMgr();
+    public static HomoTimerMgr getInstance(){
+        if (homoTimerMgr ==null){
+            synchronized (HomoTimerMgr.class){
+                if (homoTimerMgr ==null){
+                    homoTimerMgr = new HomoTimerMgr();
                 }
             }
         }
-        return homoTimeMgr;
+        return homoTimerMgr;
     }
 
     public ScheduledExecutorService getTimer(){
         if (timer==null){
-            synchronized (HomoTimeMgr.class){
+            synchronized (HomoTimerMgr.class){
                 if (timer==null){
                     timer = Executors.newScheduledThreadPool(4, ThreadPoolFactory.newThreadFactory("HomoTimeMgr-Thread"));
                 }

@@ -1,9 +1,6 @@
 package com.core.rpc.grpc;
 
 import brave.Span;
-import com.core.rpc.grpc.error.CallErrorProcessor;
-import com.core.rpc.grpc.error.JsonCallErrorProcessor;
-import com.core.rpc.grpc.error.StreamCallErrorProcessor;
 import com.google.protobuf.ByteString;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.rpc.base.serial.BytesArrayRpcContent;
@@ -15,10 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 @Slf4j
-public class RpcCallServiceImpl extends RpcCallServiceGrpc.RpcCallServiceImplBase {
+public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImplBase {
     private final RpcServer rpcServer;
 
-    public RpcCallServiceImpl(RpcServer rpcServer) {
+    public RpcCallServiceGrpcImpl(RpcServer rpcServer) {
         this.rpcServer = rpcServer;
     }
 
@@ -119,13 +116,13 @@ public class RpcCallServiceImpl extends RpcCallServiceGrpc.RpcCallServiceImplBas
 
     @Override
     public void rpcCall(Req req, StreamObserver<Res> responseObserver) {
-        Span span = ZipkinUtil.currentSpan();//todo 处理调用过程的跟踪
+        Span span = ZipkinUtil.currentSpan();
         byte[][] params = new byte[req.getMsgContentCount()][];
         for (int i = 0; i < req.getMsgContentCount(); i++) {
             params[i] = req.getMsgContent(i).toByteArray();
         }
         rpcServer.onCall(req.getSrcService(), req.getMsgId(),
-                BytesArrayRpcContent.builder().data(params).build())
+                BytesArrayRpcContent.builder().data(params).span(span).build())
                 .consumerValue(ret -> {
                     processMsgResult(responseObserver, req, ret);
                 })
@@ -145,7 +142,7 @@ public class RpcCallServiceImpl extends RpcCallServiceGrpc.RpcCallServiceImplBas
                     params[i] = req.getMsgContent(i).toByteArray();
                 }
                 rpcServer.onCall(req.getSrcService(), req.getMsgId(),
-                        BytesArrayRpcContent.builder().data(params).build())
+                        BytesArrayRpcContent.builder().data(params).span(span).build())
                         .consumerValue(ret -> {
                             processStreamResult(responseObserver, req, ret);
                         })
@@ -172,7 +169,7 @@ public class RpcCallServiceImpl extends RpcCallServiceGrpc.RpcCallServiceImplBas
     public void jsonCall(JsonReq req, StreamObserver<JsonRes> responseObserver) {
         String param = req.getMsgContent();
         Span span = ZipkinUtil.currentSpan();
-        rpcServer.onCall(req.getSrcService(), req.getMsgId(), JsonRpcContent.builder().data(param).build())
+        rpcServer.onCall(req.getSrcService(), req.getMsgId(), JsonRpcContent.builder().data(param).span(span).build())
                 .consumerValue(ret -> {
                     processJsonResult(responseObserver, req, ret);
                 })

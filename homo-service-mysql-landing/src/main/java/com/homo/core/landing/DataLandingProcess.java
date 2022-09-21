@@ -1,7 +1,7 @@
 package com.homo.core.landing;
 
 import com.homo.core.common.module.Module;
-import com.homo.core.facade.enums.DataOpType;
+import com.homo.core.facade.storege.DataOpType;
 import com.homo.core.facade.storege.dirty.DirtyHelper;
 import com.homo.core.facade.storege.landing.DataObjHelper;
 import com.homo.core.mysql.entity.DataObject;

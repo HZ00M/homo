@@ -27,10 +27,6 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-rpc-trace</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
             <artifactId>homo-core-facade</artifactId>
         </dependency>
     </dependencies>

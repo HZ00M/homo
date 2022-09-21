@@ -1,7 +1,7 @@
 package com.homo.core.facade.storege.dirty;
 
 import com.homo.core.configurable.dirty.DirtyProperties;
-import com.homo.core.facade.enums.DataOpType;
+import com.homo.core.facade.storege.DataOpType;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.util.Assert;
 

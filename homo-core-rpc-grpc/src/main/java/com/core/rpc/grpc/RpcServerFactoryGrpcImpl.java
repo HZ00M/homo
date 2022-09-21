@@ -1,6 +1,6 @@
 package com.core.rpc.grpc;
 
-import com.core.rpc.trace.SpanInterceptor;
+import com.homo.core.rpc.base.trace.SpanInterceptor;
 import com.homo.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.facade.rpc.RpcServerFactory;
@@ -54,7 +54,7 @@ public class RpcServerFactoryGrpcImpl implements RpcServerFactory {
     @Override
     public void startServer(RpcServer rpcServer) {
         int port = rpcServer.getPort();
-        RpcCallServiceImpl rpcCallService = new RpcCallServiceImpl(rpcServer);
+        RpcCallServiceGrpcImpl rpcCallService = new RpcCallServiceGrpcImpl(rpcServer);
         try {
             log.info("RpcServerFactoryGrpcImpl start, listening on {}", port);
             final List<ServerInterceptor> interceptors = Optional.ofNullable(serviceServerInterceptors).orElse(Collections.emptyList());

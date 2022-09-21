@@ -32,7 +32,6 @@
         <module>homo-core-rpc-client</module>
         <module>homo-core-rpc-base</module>
         <module>homo-core-rpc-grpc</module>
-        <module>homo-core-rpc-trace</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -247,11 +246,7 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
-            <dependency>
-                <artifactId>homo-core-rpc-trace</artifactId>
-                <groupId>com.homo</groupId>
-                <version>${revision}</version>
-            </dependency>
+
             <dependency>
                 <artifactId>homo-core-rpc-client</artifactId>
                 <groupId>com.homo</groupId>

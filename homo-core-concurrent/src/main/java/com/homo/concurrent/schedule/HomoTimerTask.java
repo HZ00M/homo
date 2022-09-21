@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 public class HomoTimerTask<T extends Task> extends AbstractHomoTimerTask {
     public T task;
     public Object[] objects;
-    public int runTimes;
+    public int runTimes;//0表示无限次
     public int currentTimes;
     @Setter
     public volatile boolean interrupt;
@@ -28,7 +28,7 @@ public class HomoTimerTask<T extends Task> extends AbstractHomoTimerTask {
         this.runTimes = runTimes;
     }
 
-    public HomoTimerTask(CallQueue callQueue,  Consumer<AbstractHomoTimerTask> onErrorConsumer, T task, int runTimes, Object... objects) {
+    public HomoTimerTask(CallQueue callQueue, Consumer<AbstractHomoTimerTask> onErrorConsumer, T task, int runTimes, Object... objects) {
         super(callQueue, onErrorConsumer);
         this.task = task;
         this.objects = objects;
