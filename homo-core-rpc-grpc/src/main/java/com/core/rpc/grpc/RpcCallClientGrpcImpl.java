@@ -1,8 +1,10 @@
 package com.core.rpc.grpc;
 
+import com.core.rpc.grpc.exception.RpcTimeOutException;
 import com.homo.concurrent.schedule.HomoTimerMgr;
 import com.homo.concurrent.schedule.TaskFun0;
 import com.homo.concurrent.thread.ThreadPoolFactory;
+import com.homo.core.configurable.rpc.RpcClientProperties;
 import com.homo.core.facade.rpc.RpcClient;
 import com.homo.core.rpc.base.serial.BytesArrayRpcContent;
 import com.homo.core.rpc.base.serial.JsonRpcContent;
@@ -42,9 +44,14 @@ public class RpcCallClientGrpcImpl implements RpcClient {
     private final EventLoopGroup eventLoopGroup;
     private boolean servicePodChanged;
     private final boolean isStateful;
+    private final int checkDelay ;
+    private final int checkPeriod ;
+    private final int messageMaxSize ;
+    private final int channelKeepLiveMills ;
+    private final int channelKeepLiveTimeoutMills ;
     private StreamObserver<StreamReq> reqStreamObserver;
 
-    public RpcCallClientGrpcImpl(String hostname, int port, List<ClientInterceptor> clientInterceptorList, boolean isDirectExecutor, boolean isStateful) {
+    public RpcCallClientGrpcImpl(String hostname, int port, List<ClientInterceptor> clientInterceptorList, boolean isStateful, RpcClientProperties clientProperties) {
         this.serviceName = hostname;
         this.servicePort = port;
         this.isStateful = isStateful;
@@ -52,11 +59,15 @@ public class RpcCallClientGrpcImpl implements RpcClient {
         this.channelReferenceMap = new HashMap<>();
         this.channelReleaseMap = new HashMap<>();
         this.requestContextMap = new ConcurrentHashMap<>(1024);
-        this.isDirectExecutor = isDirectExecutor;
+        this.isDirectExecutor = clientProperties.isDirector();
         this.clientInterceptorList = clientInterceptorList != null ? clientInterceptorList : Collections.emptyList();
         this.servicePodChanged = false;
-        this.eventLoopGroup = new NioEventLoopGroup(2, ThreadPoolFactory.newThreadPool("RPC_POOL", 2, 0));
-
+        this.eventLoopGroup = new NioEventLoopGroup(clientProperties.getWorkerThread(), ThreadPoolFactory.newThreadPool("RPC_POOL", 2, 0));
+        this.checkDelay = clientProperties.getCheckDelaySecond();
+        this.checkPeriod = clientProperties.getCheckPeriodSecond();
+        this.messageMaxSize = clientProperties.getMessageMaxSize();
+        this.channelKeepLiveMills = clientProperties.getChannelKeepLiveMillsSecond();
+        this.channelKeepLiveTimeoutMills = clientProperties.getChannelKeepLiveTimeoutMillsSecond();
         channel = buildChannel();
         updateStreamObserver(channel);
         lookupCheckAddress();
@@ -76,7 +87,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                         log.error("RpcCallClientGrpcImpl lookupCheckAddress parse service pod error,service {}", serviceName);
                     }
                 }
-            }, 0, 5, 0);
+            }, checkDelay, checkPeriod, 0);
         }
     }
 
@@ -141,9 +152,9 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                 .channelType(NioSocketChannel.class)
                 .usePlaintext()
                 .intercept(clientInterceptorList)
-                .keepAliveTime(5000, TimeUnit.MILLISECONDS)
-                .keepAliveTimeout(5000, TimeUnit.MILLISECONDS)
-                .maxInboundMessageSize(5 * 1024 * 1024)//最大消息大小 5M
+                .keepAliveTime(channelKeepLiveMills, TimeUnit.MILLISECONDS)
+                .keepAliveTimeout(channelKeepLiveTimeoutMills, TimeUnit.MILLISECONDS)
+                .maxInboundMessageSize(messageMaxSize)//最大消息大小 5M
                 .defaultLoadBalancingPolicy("round_robin")//默认负载均衡策略
                 .keepAliveWithoutCalls(true);
         if (isDirectExecutor) {
@@ -251,7 +262,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
 
             @Override
             public void onError(Throwable throwable) {
-                log.error("asyncBytesStreamCall onError completed",throwable);
+                log.error("asyncBytesStreamCall onError completed", throwable);
                 channel.shutdown();
             }
 
@@ -284,10 +295,10 @@ public class RpcCallClientGrpcImpl implements RpcClient {
         }, 10000);
         try {
             ZipkinUtil.currentSpan().annotate("grpc_send");
-            synchronized (reqStreamObserver){
+            synchronized (reqStreamObserver) {
                 reqStreamObserver.onNext(streamReq);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.info("asyncBytesStreamCall catch error, targetServiceName {} funName {}", streamReq.getSrcService(), streamReq.getMsgId(), e);
             requestContextMap.get(reqId).error(e);
         }

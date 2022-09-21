@@ -1,4 +1,4 @@
-package com.core.rpc.grpc;
+package com.core.rpc.grpc.proccessor;
 
 import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.StreamRes;

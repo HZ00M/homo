@@ -49,6 +49,9 @@ public class RpcServerMgr implements Module {
                     RpcServer rpcServer = RpcServerImpl.doBind(baseService);
                     rpcServerMap.put(baseService.getServiceName(), rpcServer);
                     rpcServerFactoryMap.get(baseService.getServiceExport().DriverType()).startServer(rpcServer);
+                    if (serviceExport.isStateful()){
+                        getServerInfo().setStateful(true);
+                    }
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.core.rpc.client;
+package com.core.rpc.grpc;
 
 import brave.Span;
 import brave.Tracer;
@@ -24,23 +24,22 @@ public class RpcAgentClientImpl implements RpcAgentClient {
     private final RpcClient rpcClient;
     private final String srcServiceName;
     private final String targetServiceName;
-    HomoTimerMgr homoTimerMgr;
-    Boolean srcIsStateFul;
-    Boolean targetIsStateful;
+    private boolean srcIsStateFul;
+    private boolean targetIsStateful;
+    private HomoTimerMgr homoTimerMgr = HomoTimerMgr.getInstance();
 
-    public RpcAgentClientImpl(String hostname, int port, String srcServiceName, String targetServiceName, RpcClient client) {
+
+    public RpcAgentClientImpl(String srcServiceName, String targetServiceName, RpcClient client, boolean srcIsStateFul, boolean targetIsStateful) {
         this.rpcClient = client;
-        homoTimerMgr = HomoTimerMgr.getInstance();
         this.srcServiceName = srcServiceName;
         this.targetServiceName = targetServiceName;
+        this.srcIsStateFul = srcIsStateFul;
+        this.targetIsStateful = targetIsStateful;
     }
-
-    @Override
     public String getSrcServiceName() {
         return srcServiceName;
     }
 
-    @Override
     public String getTargetServiceName() {
         return targetServiceName;
     }

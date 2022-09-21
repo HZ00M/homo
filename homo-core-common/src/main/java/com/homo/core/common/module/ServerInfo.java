@@ -26,4 +26,8 @@ public class ServerInfo {
      * 服务名
      */
     public String serverName ;
+    /**
+     * 是否是有状态服务器
+     */
+    public boolean isStateful;
 }

@@ -5,7 +5,4 @@ package com.homo.core.facade.rpc;
  */
 public interface RpcAgentClient extends RpcAgent {
 
-    String getSrcServiceName();
-
-    String getTargetServiceName();
 }

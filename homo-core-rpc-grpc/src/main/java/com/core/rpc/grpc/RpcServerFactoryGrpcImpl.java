@@ -1,5 +1,6 @@
 package com.core.rpc.grpc;
 
+import com.homo.core.configurable.rpc.RpcServerProperties;
 import com.homo.core.rpc.base.trace.SpanInterceptor;
 import com.homo.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.facade.rpc.RpcServer;
@@ -14,7 +15,7 @@ import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.grpc.protobuf.services.ProtoReflectionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,22 +27,15 @@ import java.util.concurrent.TimeUnit;
  * rpc的GRPC实现
  */
 @Slf4j
+@Component
 public class RpcServerFactoryGrpcImpl implements RpcServerFactory {
-    @Value("${homo.rpc.grpc.thread.size:3}")
-    private int corePoolSize;
-    @Value("${homo.rpc.grpc.thread.keepLive:0}")
-    private int keepLive;
-    @Value("${homo.rpc.grpc.boss.thread.size:1}")
-    private int boosThreadSize;
-    @Value("${homo.rpc.grpc.worker.thread.size:2}")
-    private int workerThreadSize;
-    @Value("${homo.rpc.grpc.message.maxInboundMessageSize:5242880}")//5M
-    private int maxInboundMessageSize;
-    @Value("${homo.rpc.grpc.message.permitKeepAliveTime:5000}")
-    private int permitKeepAliveTime;
-    private final Executor executor = ThreadPoolFactory.newThreadPool("RpcServer", corePoolSize, keepLive);
-    EventLoopGroup bossGroup = new NioEventLoopGroup(boosThreadSize, executor);
-    EventLoopGroup workerGroup = new NioEventLoopGroup(workerThreadSize, executor);
+
+    @Autowired
+    private RpcServerProperties rpcServerProperties;
+
+    private final Executor executor = ThreadPoolFactory.newThreadPool("RpcServer", rpcServerProperties.getCorePoolSize(), rpcServerProperties.getKeepLive());
+    EventLoopGroup bossGroup = new NioEventLoopGroup(rpcServerProperties.getBoosThreadSize(), executor);
+    EventLoopGroup workerGroup = new NioEventLoopGroup(rpcServerProperties.getWorkerThreadSize(), executor);
 
     @Autowired(required = false)
     private List<ServerInterceptor> serviceServerInterceptors;
@@ -64,8 +58,8 @@ public class RpcServerFactoryGrpcImpl implements RpcServerFactory {
                             .workerEventLoopGroup(workerGroup)
                             .channelType(NioServerSocketChannel.class)
                             .directExecutor()
-                            .maxInboundMessageSize(maxInboundMessageSize)
-                            .permitKeepAliveTime(permitKeepAliveTime, TimeUnit.MILLISECONDS)
+                            .maxInboundMessageSize(rpcServerProperties.getMaxInboundMessageSize())
+                            .permitKeepAliveTime(rpcServerProperties.getPermitKeepAliveTime(), TimeUnit.MILLISECONDS)
                             .permitKeepAliveWithoutCalls(true)
                             .intercept(new SpanInterceptor())// 顺序不能反，先添加的拦截器会后执行，需要先添加trace信息才能处理span
                             .intercept(ZipkinUtil.serverInterceptor())

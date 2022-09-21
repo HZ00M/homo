@@ -7,5 +7,5 @@ public interface RpcClientFactory {
      * @param port
      * @return
      */
-    RpcAgentClient newAgent(String hostname, int port);
+    RpcAgentClient newAgent(String hostname, int port ,boolean isStateful);
 }
