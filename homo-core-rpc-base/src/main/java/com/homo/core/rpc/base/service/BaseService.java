@@ -1,12 +1,12 @@
-package com.homo.core.rpc.server;
+package com.homo.core.rpc.base.service;
 
 import com.homo.core.facade.rpc.RpcInterceptor;
+import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.facade.serial.RpcHandleInfo;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
-import com.homo.core.facade.service.ServiceMgr;
-import com.homo.core.rpc.base.cache.ServerCache;
+import com.homo.core.rpc.base.cache.ServiceCache;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -20,17 +20,17 @@ public class BaseService implements Service {
     private String serviceName;
     private int port;
     private String hostName;
-    private String driverType;
+    private RpcType driverType;
     private boolean stateful;
     private CallDispatcher callDispatcher;
     private RpcHandleInfo rpcHandleInfo;
-    private ServerCache serverCache;
+    private ServiceCache serviceCache;
 
-    public void init(ServiceMgr serviceMgr, ServerCache serverCache,RpcHandleInfo rpcHandleInfo, CallDispatcher callDispatcher){
+    public void init(ServiceMgr serviceMgr, ServiceCache serviceCache, RpcHandleInfo rpcHandleInfo, CallDispatcher callDispatcher){
         preInit();
 
         this.serviceMgr = serviceMgr;
-        this.serverCache = serverCache;
+        this.serviceCache = serviceCache;
         this.rpcHandleInfo = rpcHandleInfo;
         this.callDispatcher = callDispatcher;
 
@@ -40,10 +40,10 @@ public class BaseService implements Service {
         String[] split = serviceName.split(":");
         hostName = split[0];
         port = Integer.parseInt(split[1]);
-        driverType = serviceExport.DriverType().name();
+        driverType = serviceExport.DriverType();
         stateful = serviceExport.isStateful();
 
-        serverCache.setServiceNameTag(serviceName,serviceName);
+        serviceCache.setServiceNameTag(serviceName,serviceName);
 
         postInit();
     }
@@ -65,7 +65,7 @@ public class BaseService implements Service {
     }
 
     @Override
-    public String getType() {
+    public RpcType getType() {
         return driverType;
     }
 
@@ -122,15 +122,5 @@ public class BaseService implements Service {
     public String getPodName(){
         return serviceMgr.getStateMgr().getPodName();
     }
-
-    /**
-     * 初始化时给子类的回调
-     */
-    protected void preInit(){}
-
-    /**
-     * 初始化时给子类的回调
-     */
-    protected void postInit(){};
 
 }

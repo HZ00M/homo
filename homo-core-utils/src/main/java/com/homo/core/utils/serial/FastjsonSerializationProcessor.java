@@ -45,7 +45,7 @@ public class FastjsonSerializationProcessor implements HomoSerializationProcesso
     }
 
     @Override
-    public <T> T readValue(String obj, HomoTypeReference reference) {
+    public <T> T readValue(String obj, HomoTypeReference<T> reference) {
         return JSON.parseObject(obj,reference.type);
     }
 }

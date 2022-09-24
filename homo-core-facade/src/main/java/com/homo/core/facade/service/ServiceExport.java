@@ -16,7 +16,6 @@ public @interface ServiceExport {
     String ServiceName() default ""; //服务名
     RpcType DriverType() default RpcType.grpc;    //服务类型
     boolean isStateful() default false; //是否是有状态服务器
-
 }
 
 

@@ -84,7 +84,7 @@ public class JacksonSerializationProcessor implements HomoSerializationProcessor
     }
 
     @Override
-    public <T> T readValue(String obj, HomoTypeReference reference) {
+    public <T> T readValue(String obj, HomoTypeReference<T> reference) {
         try {
             return mapper.readValue(obj,mapper.constructType(reference.type));
         } catch (JsonProcessingException e) {

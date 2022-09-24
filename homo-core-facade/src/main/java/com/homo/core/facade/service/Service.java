@@ -1,9 +1,11 @@
 package com.homo.core.facade.service;
 
+import com.homo.core.common.module.Module;
+import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.utils.rector.Homo;
 
-public interface Service {
+public interface Service extends Module {
     /**
      * 获取服务标识符  带端口号
      *
@@ -29,7 +31,7 @@ public interface Service {
      * 获取服务类型
      * @return
      */
-    String getType();
+    RpcType getType();
 
     /**
      * 是否是有状态服

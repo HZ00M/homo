@@ -1,4 +1,4 @@
-package com.homo.core.rpc.server;
+package com.homo.core.rpc.base.service;
 
 import com.homo.core.facade.rpc.RpcInterceptor;
 import com.homo.core.facade.serial.RpcContent;

@@ -52,5 +52,5 @@ public interface HomoSerializationProcessor {
      * @param <T> 对象泛型信息
      * @return 反序列化结果对象
      */
-    <T> T readValue(String obj,HomoTypeReference reference);
+    <T> T readValue(String obj,HomoTypeReference<T> reference);
 }

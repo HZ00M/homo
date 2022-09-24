@@ -28,5 +28,9 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-proto</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+        </dependency>
     </dependencies>
 </project>

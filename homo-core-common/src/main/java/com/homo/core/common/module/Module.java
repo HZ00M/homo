@@ -49,4 +49,14 @@ public interface Module{
      * 所有模块初始化完毕调用
      */
     default void afterAllModuleInit(){}
+
+    /**
+     * 初始化时给子类的回调
+     */
+    default void preInit(){}
+
+    /**
+     * 初始化时给子类的回调
+     */
+    default void postInit(){};
 }

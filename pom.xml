@@ -65,6 +65,7 @@
         <zipkin.reporter2.version>2.16.3</zipkin.reporter2.version>
         <jackson.version>2.12.5</jackson.version>
         <fastjson.version>1.2.76</fastjson.version>
+        <fst.version>2.57</fst.version>
         <!--        frame       -->
         <jboss.resteasy.version>3.11.4.Final</jboss.resteasy.version>
         <mapstruct.version>1.1.0.Final</mapstruct.version>
@@ -629,6 +630,12 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
                 <version>${fastjson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.ruedigermoeller</groupId>
+                <artifactId>fst</artifactId>
+                <version>${fst.version}</version>
             </dependency>
 
             <dependency>
