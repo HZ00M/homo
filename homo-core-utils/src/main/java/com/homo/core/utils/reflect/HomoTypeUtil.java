@@ -1,5 +1,6 @@
 package com.homo.core.utils.reflect;
 
+import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.lang.reflect.*;
@@ -9,9 +10,8 @@ import java.lang.reflect.*;
  * 1. 获取方法的参数和返回值类型（包括Type和Class）
  * 2. 获取泛型参数类型（包括对象的泛型参数或集合元素的泛型类型）
  */
+@UtilityClass
 public class HomoTypeUtil {
-    private HomoTypeUtil() {
-    }
 
 
     /**

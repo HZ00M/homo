@@ -1,7 +1,9 @@
 package com.core.rpc.client.proxy;
 
 import com.core.rpc.client.RpcClientMgr;
+import com.homo.core.facade.service.StateMgr;
 import com.homo.core.rpc.base.cache.ServiceCache;
+import com.homo.core.rpc.base.service.ServiceMgr;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -13,10 +15,10 @@ public class RpcProxyMgr {
 
     static Map<Class<?>,Object> proxyMap = new HashMap<>();
 
-    public static <T> T createProxy(RpcClientMgr rpcClientMgr, Class<T> interfaceType, ServiceCache serviceCache)throws Exception {
+    public static <T> T createProxy(RpcClientMgr rpcClientMgr, Class<T> interfaceType, ServiceCache serviceCache, ServiceMgr serviceMgr, StateMgr stateMgr)throws Exception {
         Object proxy = proxyMap.get(interfaceType);
         if (proxy == null){
-            proxy = new RpcProxy(rpcClientMgr,interfaceType, serviceCache).getProxyInstance();
+            proxy = new RpcProxy(rpcClientMgr,interfaceType, serviceCache,serviceMgr,stateMgr).getProxyInstance();
             proxyMap.put(interfaceType,proxy);
         }
         @SuppressWarnings("unchecked")

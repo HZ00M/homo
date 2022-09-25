@@ -11,8 +11,8 @@ import java.io.Serializable;
 @Slf4j
 @Data
 public class SerializeInfo {
-    Class<?> paramType;
-    private HomoSerializationProcessor homoSerializationProcessor;
+    public Class<?> paramType;
+    public HomoSerializationProcessor processor;
 
     private SerializeInfo(Class<?> paramType) {
         this.paramType = paramType;
@@ -21,9 +21,9 @@ public class SerializeInfo {
     public static SerializeInfo create(Class<?> clazz, HomoSerializationProcessor serializationProcessor) {
         SerializeInfo serializeInfo = new SerializeInfo(clazz);
         if (serializationProcessor != null) {
-            serializeInfo.homoSerializationProcessor = serializationProcessor;
+            serializeInfo.processor = serializationProcessor;
         } else {
-            serializeInfo.homoSerializationProcessor = matchProcess(clazz);
+            serializeInfo.processor = matchProcess(clazz);
         }
         return serializeInfo;
     }

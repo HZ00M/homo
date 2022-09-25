@@ -46,7 +46,7 @@ public class RpcHandlerInfoForClient implements RpcHandleInfo<RpcContent, Object
     }
 
     @Override
-    public Object[] serializeParamForReturn(RpcContentType contentType, String funKey, Tuple2<String, Object[]> result) {
+    public Object[] serializeParamForCall(RpcContentType contentType, String funKey, Tuple2<String, Object[]> result) {
         return new Object[0];
     }
 

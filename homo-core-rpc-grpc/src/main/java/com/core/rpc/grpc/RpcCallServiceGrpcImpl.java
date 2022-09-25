@@ -6,8 +6,7 @@ import com.core.rpc.grpc.proccessor.JsonCallErrorProcessor;
 import com.core.rpc.grpc.proccessor.StreamCallErrorProcessor;
 import com.google.protobuf.ByteString;
 import com.homo.core.facade.rpc.RpcServer;
-import com.homo.core.rpc.base.serial.BytesArrayRpcContent;
-import com.homo.core.rpc.base.serial.JsonRpcContent;
+import com.homo.core.rpc.base.serial.TraceRpcContent;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.grpc.stub.StreamObserver;
 import io.homo.proto.rpc.*;
@@ -125,9 +124,9 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
             params[i] = req.getMsgContent(i).toByteArray();
         }
         rpcServer.onCall(req.getSrcService(), req.getMsgId(),
-                BytesArrayRpcContent.builder().data(params).span(span).build())
+                TraceRpcContent.builder().data(params).span(span).build())
                 .consumerValue(ret -> {
-                    processMsgResult(responseObserver, req, ret);
+                    processMsgResult(responseObserver, req, (byte[][]) ret);
                 })
                 .catchError(e -> {
                     processError(responseObserver,req, e);
@@ -145,9 +144,9 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
                     params[i] = req.getMsgContent(i).toByteArray();
                 }
                 rpcServer.onCall(req.getSrcService(), req.getMsgId(),
-                        BytesArrayRpcContent.builder().data(params).span(span).build())
+                        TraceRpcContent.builder().data(params).span(span).build())
                         .consumerValue(ret -> {
-                            processStreamResult(responseObserver, req, ret);
+                            processStreamResult(responseObserver, req, (byte[][]) ret);
                         })
                         .catchError(e -> {
                             processStreamError(responseObserver, req, e);
@@ -172,9 +171,9 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
     public void jsonCall(JsonReq req, StreamObserver<JsonRes> responseObserver) {
         String param = req.getMsgContent();
         Span span = ZipkinUtil.currentSpan();
-        rpcServer.onCall(req.getSrcService(), req.getMsgId(), JsonRpcContent.builder().data(param).span(span).build())
+        rpcServer.onCall(req.getSrcService(), req.getMsgId(), TraceRpcContent.builder().data(param).span(span).build())
                 .consumerValue(ret -> {
-                    processJsonResult(responseObserver, req, ret);
+                    processJsonResult(responseObserver, req, (String) ret);
                 })
                 .catchError(e -> {
                     processJsonError(responseObserver, req, e);

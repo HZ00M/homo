@@ -7,11 +7,13 @@ import com.homo.core.facade.service.StateMgr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
 import java.util.Set;
 
 @Component
 public class ServiceMgr implements Module{
      private Set<Service> services;
+     private Map<String,Service> serviceMap;
      @Autowired
      private StateMgr stateMgr;
 
@@ -22,6 +24,7 @@ public class ServiceMgr implements Module{
 
     public void init() {
         services.forEach(service -> {
+            serviceMap.put(service.getServiceName(),service);
             ServiceExport serviceExport = service.getClass().getAnnotation(ServiceExport.class);
             if (serviceExport != null) {
                 if (serviceExport.isStateful()){
@@ -36,6 +39,10 @@ public class ServiceMgr implements Module{
 
     public Set<Service> getServices() {
         return services;
+    }
+
+    public Service getService(String serviceName){
+        return serviceMap.get(serviceName);
     }
 
     public boolean isLocalService(String serviceName, Integer podIndex) {

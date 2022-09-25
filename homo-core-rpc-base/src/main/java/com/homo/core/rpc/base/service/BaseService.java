@@ -36,11 +36,11 @@ public class BaseService implements Service {
 
         log.info("BaseService init !");
         ServiceExport serviceExport = getServiceExport();
-        serviceName = serviceExport.ServiceName();
+        serviceName = serviceExport.tagName();
         String[] split = serviceName.split(":");
         hostName = split[0];
         port = Integer.parseInt(split[1]);
-        driverType = serviceExport.DriverType();
+        driverType = serviceExport.driverType();
         stateful = serviceExport.isStateful();
 
         serviceCache.setServiceNameTag(serviceName,serviceName);

@@ -7,22 +7,22 @@ import com.homo.core.rpc.base.trace.TraceAble;
 import lombok.Builder;
 
 @Builder
-public class JsonRpcContent implements RpcContent<String>, TraceAble<Span> {
-    String data;
+public class TraceRpcContent<T> implements RpcContent<T>, TraceAble<Span> {
+    T data;
     Span span;
 
     @Override
     public RpcContentType getType() {
-        return RpcContentType.JSON;
+        return RpcContentType.BYTES;
     }
 
     @Override
-    public String getData() {
+    public T getData() {
         return data;
     }
 
     @Override
-    public void setData(String data) {
+    public void setData(T data) {
         this.data = data;
     }
 
