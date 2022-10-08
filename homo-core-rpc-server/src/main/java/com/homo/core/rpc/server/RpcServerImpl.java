@@ -1,10 +1,10 @@
 package com.homo.core.rpc.server;
 
 import brave.Span;
-import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.facade.rpc.RpcServer;
+import com.homo.core.facade.rpc.RpcType;
+import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.facade.service.Service;
-import com.homo.core.rpc.base.service.CallDispatcher;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +17,6 @@ import reactor.util.function.Tuples;
 public class RpcServerImpl implements RpcServer {
 
     private final Service actualService;
-
-    private CallDispatcher callDispatcher;
 
     public static RpcServer doBind(Service actualService){
         RpcServerImpl delegate = new RpcServerImpl(actualService);
@@ -45,12 +43,12 @@ public class RpcServerImpl implements RpcServer {
     }
 
     @Override
-    public String getType() {
+    public RpcType getType() {
         return actualService.getType();
     }
 
     @Override
-    public <T> Homo<T> onCall(String srcService, String funName, RpcContent<T> param)  {
+    public <T> Homo<T> onCall(String srcService, String funName, RpcContent<T> param) throws Exception {
         Span span = ZipkinUtil.currentSpan();
         if (span != null) {
             span.name(funName);

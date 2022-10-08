@@ -1,4 +1,4 @@
-package com.homo.core.rpc.base;
+package com.homo.core.rpc.base.utils;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;

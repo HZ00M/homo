@@ -7,7 +7,8 @@ import java.util.Map;
 /**
  * 服务器状态信息管理器
  */
-public interface StateMgr {
+public interface ServiceStateMgr {
+
     /**
      * 判断本进程是否是有状态进程
      * 这个本质是判断本进程的所有服务中是不是包含有状态服务
@@ -17,15 +18,15 @@ public interface StateMgr {
 
     /**
      * 设置服务器状态
-     * @param state
+     * @param load
      */
-    void setState(Integer state);
+    void setLoad(Integer load);
 
     /**
      * 获取服务器状态
      * @return
      */
-    Integer getState(Integer state);
+    Integer getLoad();
 
     /**
      * 获取pod名称
@@ -47,7 +48,7 @@ public interface StateMgr {
      * @param podIndex
      * @return
      */
-    Homo<Boolean> setLinkedPod(String uid,String serviceName,Integer podIndex);
+    Homo<Integer> setUserLinkedPod(String uid, String serviceName, Integer podIndex, boolean persist);
 
     /**
      * 获取唯一id下指定服务的连接index(会先去拿本地缓存)
@@ -63,7 +64,7 @@ public interface StateMgr {
      * @param serviceName
      * @return
      */
-    Homo<Integer> getLinkedPodNoCache(String uid,String serviceName);
+    Homo<Integer> getUserLinkedPodNoCache(String uid, String serviceName);
 
     /**
      * 获取唯一id下指定的连接Index
@@ -73,7 +74,7 @@ public interface StateMgr {
      * @param persist  是否需要永久保留连接信息,false只保留连接信息一段时间.(只有在对应连接信息不存在时此参数才有效,一般RRC请求方置为false即可)
      * @return
      */
-    Homo<Integer> computeLinkedPodIfAbsent(String uid,String serviceName,Boolean persist);
+    Homo<Integer> computeUserLinkedPodIfAbsent(String uid, String serviceName, Boolean persist);
 
     /**
      * 移除唯一id下指定服务的连接index
@@ -82,26 +83,20 @@ public interface StateMgr {
      * @param immediately 是否立即删除连接信息,true立即删除(false设置过期时间，默认1分钟，有的场景不应该立即删除，比如并发情况)
      * @return
      */
-    Homo<Boolean> removeLinkedPod(String uid,String serviceName,Boolean immediately);
+    Homo<Boolean> removeUserLinkedPod(String uid, String serviceName, Boolean immediately);
 
     /**
      * 获取唯一id下所有连接的服务
      * @param uid
      * @return
      */
-    Homo<Map<String,Integer>> getAllLinkInfo(String uid);
+    Homo<Map<String,Integer>> getAllUserLinkInfo(String uid);
 
-    /**
-     * 获取目标服务的最优pod
-     * @param serviceName
-     * @return
-     */
-    Homo<Integer> getBestPod(String serviceName);
 
     /**
      * 获取目标服务所有Pod状态
      * @param serviceName
      * @return
      */
-    Homo<Map<String,Integer>> getAllStateInfo(String serviceName);
+    Homo<Map<Integer,Integer>> getServiceAllStateInfo(String serviceName);
 }

@@ -3,7 +3,9 @@ package com.homo.core.rpc.base.service;
 import com.homo.core.common.module.Module;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
-import com.homo.core.facade.service.StateMgr;
+import com.homo.core.facade.service.ServiceStateHandler;
+import com.homo.core.facade.service.ServiceStateMgr;
+import com.homo.core.rpc.base.serial.RpcHandleInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +15,13 @@ import java.util.Set;
 @Component
 public class ServiceMgr implements Module{
      private Set<Service> services;
-     private Map<String,Service> serviceMap;
+     private Map<String,Service> localServiceMap;
      @Autowired
-     private StateMgr stateMgr;
+     private ServiceStateMgr serviceStateMgr;
+     @Autowired
+     private ServiceStateHandler serviceStateHandler;
+     @Autowired
+     private RpcHandleInfo rpcHandleInfo;
 
 
     public ServiceMgr(Set<Service> services){
@@ -24,7 +30,7 @@ public class ServiceMgr implements Module{
 
     public void init() {
         services.forEach(service -> {
-            serviceMap.put(service.getServiceName(),service);
+            localServiceMap.put(service.getServiceName(),service);
             ServiceExport serviceExport = service.getClass().getAnnotation(ServiceExport.class);
             if (serviceExport != null) {
                 if (serviceExport.isStateful()){
@@ -32,7 +38,8 @@ public class ServiceMgr implements Module{
                 }
             }
             if (service instanceof BaseService){
-                ((BaseService)service).init(this, null, null, null);//todo 实现接口
+                CallDispatcher callDispatcher = new CallDispatcher(service.getServiceName(),service,rpcHandleInfo);
+                ((BaseService)service).init(this, serviceStateHandler, rpcHandleInfo, callDispatcher);
             }
         });
     }
@@ -42,16 +49,18 @@ public class ServiceMgr implements Module{
     }
 
     public Service getService(String serviceName){
-        return serviceMap.get(serviceName);
+        return localServiceMap.get(serviceName);
     }
 
     public boolean isLocalService(String serviceName, Integer podIndex) {
-        //todo
+        if (localServiceMap.containsKey(serviceName)){
+            return serviceStateMgr==null ||podIndex.equals(serviceStateMgr.getPodIndex());
+        }
         return false;
     }
 
-    public StateMgr getStateMgr() {
-        return stateMgr;
+    public ServiceStateMgr getStateMgr() {
+        return serviceStateMgr;
     }
 
     public Service getMainService() {

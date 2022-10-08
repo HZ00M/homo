@@ -4,7 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.ibatis.type.JdbcType;
 
 import java.lang.reflect.Field;
-import java.text.MessageFormat;
 
 @Log4j2
 public class SQLField {

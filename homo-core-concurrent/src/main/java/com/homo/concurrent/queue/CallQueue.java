@@ -59,7 +59,7 @@ public class CallQueue {
         log.info("CallQueue[{}] start!",id);
         callQueueMgr.executorService.submit(()->{
             callQueueMgr.setLocalQueue(this);
-            running=true;
+            running = true;
             while (!isShutDown){
                 try {
                     Event event = eventQueue.poll(1L, TimeUnit.SECONDS);

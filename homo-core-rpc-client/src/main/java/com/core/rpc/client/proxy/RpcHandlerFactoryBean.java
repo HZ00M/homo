@@ -1,8 +1,8 @@
 package com.core.rpc.client.proxy;
 
 import com.core.rpc.client.RpcClientMgr;
-import com.homo.core.facade.service.StateMgr;
-import com.homo.core.rpc.base.cache.ServiceCache;
+import com.homo.core.facade.service.ServiceStateHandler;
+import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -15,11 +15,11 @@ public class RpcHandlerFactoryBean<T> extends AbstractFactoryBean<T> {
     @Autowired
     private RpcClientMgr rpcClientMgr;
     @Autowired
-    private ServiceCache serviceCache;
+    private ServiceStateHandler serviceStateHandler;
     @Autowired
     private ServiceMgr serviceMgr;
     @Autowired
-    private StateMgr stateMgr;
+    private ServiceStateMgr serviceStateMgr;
 
     public RpcHandlerFactoryBean(Class<T> interfaceType) {
         this.interfaceType = interfaceType;
@@ -33,6 +33,6 @@ public class RpcHandlerFactoryBean<T> extends AbstractFactoryBean<T> {
     @Override
     protected @NotNull T createInstance() throws Exception {
         log.info("get RpcProxy from  RpcHandlerFactoryBean, interfaceType_{}", interfaceType.getName());
-        return RpcProxyMgr.createProxy(rpcClientMgr,interfaceType, serviceCache,serviceMgr,stateMgr);
+        return RpcProxyMgr.createProxy(rpcClientMgr,interfaceType, serviceStateHandler,serviceMgr, serviceStateMgr);
     }
 }

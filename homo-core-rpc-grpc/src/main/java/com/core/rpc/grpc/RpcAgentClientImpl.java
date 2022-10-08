@@ -8,6 +8,7 @@ import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcClient;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.facade.serial.RpcContentType;
+import com.homo.core.rpc.base.serial.TraceRpcContent;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.rpc.JsonReq;
@@ -19,7 +20,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class RpcAgentClientImpl implements RpcAgentClient {
+public class RpcAgentClientImpl implements RpcAgentClient<TraceRpcContent> {
 
     private final RpcClient rpcClient;
     private final String srcServiceName;
@@ -45,7 +46,7 @@ public class RpcAgentClientImpl implements RpcAgentClient {
     }
 
     @Override
-    public <RETURN, PARAM> Homo<RETURN> rpcCall(String funName, RpcContent<PARAM> param) {
+    public <PARAM> Homo<TraceRpcContent> rpcCall(String funName, RpcContent<PARAM> param) {
         try (Tracer.SpanInScope ignored = ZipkinUtil.getTracing().tracer().withSpanInScope(ZipkinUtil.currentSpan())) {
             if (param.getType().equals(RpcContentType.BYTES)) {
                 byte[][] data = (byte[][]) param.getData();

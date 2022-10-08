@@ -3,10 +3,10 @@ package com.homo.core.rpc.base.service;
 import com.homo.core.facade.rpc.RpcInterceptor;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.serial.RpcContent;
-import com.homo.core.facade.serial.RpcHandleInfo;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
-import com.homo.core.rpc.base.cache.ServiceCache;
+import com.homo.core.facade.service.ServiceStateHandler;
+import com.homo.core.rpc.base.serial.RpcHandleInfo;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -24,13 +24,13 @@ public class BaseService implements Service {
     private boolean stateful;
     private CallDispatcher callDispatcher;
     private RpcHandleInfo rpcHandleInfo;
-    private ServiceCache serviceCache;
+    private ServiceStateHandler serviceStateHandler;
 
-    public void init(ServiceMgr serviceMgr, ServiceCache serviceCache, RpcHandleInfo rpcHandleInfo, CallDispatcher callDispatcher){
+    public void init(ServiceMgr serviceMgr, ServiceStateHandler serviceStateHandler, RpcHandleInfo rpcHandleInfo, CallDispatcher callDispatcher){
         preInit();
 
         this.serviceMgr = serviceMgr;
-        this.serviceCache = serviceCache;
+        this.serviceStateHandler = serviceStateHandler;
         this.rpcHandleInfo = rpcHandleInfo;
         this.callDispatcher = callDispatcher;
 
@@ -43,7 +43,7 @@ public class BaseService implements Service {
         driverType = serviceExport.driverType();
         stateful = serviceExport.isStateful();
 
-        serviceCache.setServiceNameTag(serviceName,serviceName);
+        serviceStateHandler.setServiceNameTag(serviceName,serviceName);
 
         postInit();
     }
@@ -82,20 +82,9 @@ public class BaseService implements Service {
      * @return
      */
     @Override
-    public Homo callFun(String srcService, String funName, RpcContent param) {
+    public Homo callFun(String srcService, String funName, RpcContent param) throws Exception {
         return callDispatcher.callFun(srcService,funName,param);
     }
-
-//    /**
-//     * 委派处理异常
-//     * @param msgId
-//     * @param e
-//     * @return
-//     */
-//    @Override
-//    public Homo processError(String msgId, Throwable e) {
-//        return callDispatcher.processError(msgId,e);
-//    }
 
     /**
      * 注册调用拦截

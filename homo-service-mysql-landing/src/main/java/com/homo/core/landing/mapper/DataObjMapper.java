@@ -1,9 +1,9 @@
 package com.homo.core.landing.mapper;
 
 import com.homo.core.facade.storege.landing.DataObjHelper;
-import com.homo.core.mysql.entity.DataObject;
 import com.homo.core.mysql.GeneralMapper;
 import com.homo.core.mysql.annotation.SQLGen;
+import com.homo.core.mysql.entity.DataObject;
 import lombok.extern.log4j.Log4j2;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Mapper;

@@ -27,7 +27,7 @@ public interface RpcServer {
      * 服务驱动的类型，如grpc或http
      * @return
      */
-    String getType();
+    RpcType getType();
 
     /**
      * 接受一个byte 远程调用
@@ -35,6 +35,6 @@ public interface RpcServer {
      * @param funName 函数名
      * @param param 参数
      */
-    <RETURN> Homo<RETURN> onCall(String srcService, String funName, RpcContent<RETURN> param);
+    <RETURN> Homo<RETURN> onCall(String srcService, String funName, RpcContent<RETURN> param) throws Exception;
 
 }

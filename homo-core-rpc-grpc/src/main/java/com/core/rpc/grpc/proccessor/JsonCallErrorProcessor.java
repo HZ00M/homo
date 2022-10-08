@@ -1,6 +1,7 @@
 package com.core.rpc.grpc.proccessor;
 
-import io.homo.proto.rpc.*;
+import io.homo.proto.rpc.JsonReq;
+import io.homo.proto.rpc.JsonRes;
 
 import java.util.function.BiFunction;
 

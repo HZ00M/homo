@@ -15,7 +15,10 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2
 public class HomoTimerMgr<T extends Task> {
-
+    /**
+     * 任务无限执行次数
+     */
+    public static final int UNLESS_TIMES = 0;
     public static String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static SimpleDateFormat dateFormat = new SimpleDateFormat(TIME_FORMAT);
     private ScheduledExecutorService timer;

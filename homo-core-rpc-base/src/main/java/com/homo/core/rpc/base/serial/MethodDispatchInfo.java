@@ -10,6 +10,7 @@ import com.homo.core.utils.serial.HomoSerializationProcessor;
 import com.homo.core.utils.serial.JacksonSerializationProcessor;
 import com.homo.core.utils.serial.ProtoSerializationProcessor;
 import io.homo.proto.client.ParameterMsg;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
@@ -18,6 +19,7 @@ import java.lang.reflect.Type;
 import java.util.function.BiPredicate;
 
 @Slf4j
+@Data
 public class MethodDispatchInfo implements RpcSecurity {
     private Method method;
     private int paramCount;
@@ -125,8 +127,22 @@ public class MethodDispatchInfo implements RpcSecurity {
         return TraceRpcContent.builder().data(byteParams).build();
     }
 
-    public Integer choicePodIndex(Object o, Method method, Object[] objects) {
 
+    public Object[] unSerializeParam(RpcContent rpcContent) {
+        int paramCount = returnSerializeInfos.length;
+        if (paramCount <=0){
+            return null;
+        }
+        Object[] returnParams = new Object[paramCount];
+        byte[][] data = (byte[][]) rpcContent.getData();
+        for (int i =0;i<returnSerializeInfos.length;i++){
+            Object value = returnSerializeInfos[i].processor.readValue(data[i], returnSerializeInfos[i].paramType);
+            returnParams[i] = value;
+        }
+        return returnParams;
+    }
+
+    public Integer choicePodIndex(Object o, Method method, Object[] objects) {
         return null;
     }
 }

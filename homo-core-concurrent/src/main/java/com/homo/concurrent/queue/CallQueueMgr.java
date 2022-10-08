@@ -32,6 +32,8 @@ public class CallQueueMgr implements Module {
     CallQueue[] callQueues;
     ExecutorService executorService;
     ThreadLocal<CallQueue> localQueue = new ThreadLocal<>();
+    public static final int frame_queue_id = 1;
+    public static final int user_queue_id = 2;
     public static final BiFunction<Event, Object, Integer> robinPloyFun = new BiFunction<Event, Object, Integer>() {
         int index = 0;
 
@@ -52,7 +54,7 @@ public class CallQueueMgr implements Module {
                 return queueId;
             }
             if (index >= queueCount) {
-                //绕开主线程
+                //绕开主线程 0 和框架线程 1 //todo 分队列优先级
                 index = 1;
             }
             return index++;
@@ -203,6 +205,14 @@ public class CallQueueMgr implements Module {
     }
 
     /**
+     * 通过队列执行一个任务，系统任务分配到一个指定队列执行（默认队列1）
+     */
+    public void frameTask(Runnable runnable) {
+        getQueue(frame_queue_id).addEvent(runnable::run);
+    }
+
+
+    /**
      * 在指定的队列，执行一个任务，一般用作自己计算队列ID的情况
      *
      * @param runnable 任务
@@ -255,4 +265,11 @@ public class CallQueueMgr implements Module {
         );
     }
 
+    public int getAllWaitCount() {
+        int count = 0;
+        for (CallQueue callQueue : callQueues) {
+            count+= callQueue.getWaitingTasksNum();
+        }
+        return count;
+    }
 }

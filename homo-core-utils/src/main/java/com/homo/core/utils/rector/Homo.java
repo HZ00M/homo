@@ -26,6 +26,7 @@ public class Homo<T> extends Mono<T> {
         this.mono = mono;
     }
 
+
     @Override
     public void subscribe(CoreSubscriber<? super T> actual) {
         mono.subscribe(actual);
@@ -251,4 +252,18 @@ public class Homo<T> extends Mono<T> {
         );
     }
 
+    public Homo<T> zipCalling(String tag) {
+        return this;//todo 实现合并调用
+    }
+
+    public final Homo<T> consumerEmpty(Runnable onEmpty) {
+        return Homo.warp(mono.doOnSuccess(new Consumer<T>() {
+            @Override
+            public void accept(T t) {
+                if (t == null){
+                    onEmpty.run();
+                }
+            }
+        }));
+    }
 }
