@@ -7,8 +7,6 @@ import org.springframework.util.StreamUtils;
 
 import java.nio.charset.StandardCharsets;
 
-;
-
 @Log4j2
 public class LuaScriptHelper implements Module {
 
@@ -40,6 +38,18 @@ public class LuaScriptHelper implements Module {
 
     public static String getDirtyKeyScript;
 
+    public static String statefulSetLink;
+
+    public static String statefulSetLinkIfAbsent;
+
+    public static String statefulGetLink;
+
+    public static String statefulRemoveLink;
+
+    public static String getAllLinkService;
+
+    public static String getServiceState;
+
     @Override
     public void init() {
         try {
@@ -57,6 +67,13 @@ public class LuaScriptHelper implements Module {
             dirtyDataScript = StreamUtils.copyToString(new ClassPathResource("lua/dirtyData.lua").getInputStream(), StandardCharsets.UTF_8);
             queryExistFieldsScript = StreamUtils.copyToString(new ClassPathResource("lua/queryExistFields.lua").getInputStream(), StandardCharsets.UTF_8);
             getDirtyKeyScript = StreamUtils.copyToString(new ClassPathResource("lua/getDirtyKey.lua").getInputStream(), StandardCharsets.UTF_8);
+            statefulSetLink = StreamUtils.copyToString(new ClassPathResource("lua/statefulSetLink.lua").getInputStream(), StandardCharsets.UTF_8);
+            statefulSetLinkIfAbsent = StreamUtils.copyToString(new ClassPathResource("lua/statefulSetLinkIfAbsent.lua").getInputStream(), StandardCharsets.UTF_8);
+            statefulGetLink = StreamUtils.copyToString(new ClassPathResource("lua/statefulGetLink.lua").getInputStream(), StandardCharsets.UTF_8);
+            statefulRemoveLink = StreamUtils.copyToString(new ClassPathResource("lua/statefulRemoveLink.lua").getInputStream(), StandardCharsets.UTF_8);
+            getAllLinkService = StreamUtils.copyToString(new ClassPathResource("lua/getAllLinkService.lua").getInputStream(), StandardCharsets.UTF_8);
+            getServiceState = StreamUtils.copyToString(new ClassPathResource("lua/getServiceState.lua").getInputStream(), StandardCharsets.UTF_8);
+
         } catch (Exception e) {
             log.error("LuaScriptHelper init load lua exception_", e);
         }

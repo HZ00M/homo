@@ -29,7 +29,7 @@ public class MethodDispatchInfo implements RpcSecurity {
     private RpcContentType rpcContentType = RpcContentType.BYTES;
     // 向参数数组中填充podId和parameterMsg的标志
     private boolean paddingParams = false;
-    private final BiPredicate<Object,Object> needFillParamsPredicate = (o1, o2) -> {
+    private final BiPredicate<Object, Object> needFillParamsPredicate = (o1, o2) -> {
         // 如果方法的参数列表第一个是Integer类型，第二个是是ParameterMsg，则设置填充参数标志为true
         return o1.getClass().isAssignableFrom(Integer.class) && o2.getClass().isAssignableFrom(ParameterMsg.class);
     };
@@ -42,7 +42,7 @@ public class MethodDispatchInfo implements RpcSecurity {
     private void init() {
         this.paramCount = exportParamCount();
         this.paramSerializeInfos = exportSerializeInfos(method.getParameterTypes());
-        this.returnSerializeInfos = exportSerializeInfos(getTypeParamsByType(method.getReturnType()));
+        this.returnSerializeInfos = exportSerializeInfos(getTypeParamsByType(method.getGenericReturnType()));
     }
 
     private SerializeInfo[] exportSerializeInfos(Class<?>[] classes) {
@@ -53,17 +53,17 @@ public class MethodDispatchInfo implements RpcSecurity {
             SerializeInfo[] serializeInfos = new SerializeInfo[classes.length];
             for (int i = 0; i < classes.length; i++) {
                 Class<?> clazz = classes[i];
-                    HomoSerializationProcessor serializationProcessor = null;
-                    if (com.google.protobuf.GeneratedMessageV3.class.isAssignableFrom(clazz)){
-                        serializationProcessor = new ProtoSerializationProcessor();
-                    }else if (rpcContentType.equals(RpcContentType.JSON)){
-                        serializationProcessor = new JacksonSerializationProcessor();
-                    }else {
-                        serializationProcessor = new FSTSerializationProcessor();
-                    }
-                    serializeInfos[i] = exportSerializeInfo(clazz,serializationProcessor);
+                HomoSerializationProcessor serializationProcessor = null;
+                if (com.google.protobuf.GeneratedMessageV3.class.isAssignableFrom(clazz)) {
+                    serializationProcessor = new ProtoSerializationProcessor();
+                } else if (rpcContentType.equals(RpcContentType.JSON)) {
+                    serializationProcessor = new JacksonSerializationProcessor();
+                } else {
+                    serializationProcessor = new FSTSerializationProcessor();
+                }
+                serializeInfos[i] = exportSerializeInfo(clazz, serializationProcessor);
             }
-            if (needFillParamsPredicate.test(serializeInfos[0].paramType,serializeInfos[1].paramType)){
+            if (serializeInfos.length > 1 && needFillParamsPredicate.test(serializeInfos[0].paramType, serializeInfos[1].paramType)) {
                 paddingParams = true;
             }
             return serializeInfos;
@@ -74,10 +74,9 @@ public class MethodDispatchInfo implements RpcSecurity {
     }
 
     private SerializeInfo exportSerializeInfo(Class<?> clazz, HomoSerializationProcessor serializationProcessor) {
-        SerializeInfo serializeInfo = SerializeInfo.create(clazz,serializationProcessor);
+        SerializeInfo serializeInfo = SerializeInfo.create(clazz, serializationProcessor);
         return serializeInfo;
     }
-
 
 
     private Class<?>[] getTypeParamsByType(Type type) {
@@ -97,14 +96,14 @@ public class MethodDispatchInfo implements RpcSecurity {
     }
 
     public static MethodDispatchInfo create(Method method) {
-        return create(method,null);
+        return create(method, null);
     }
 
-    public static MethodDispatchInfo create(Method method,RpcSecurity rpcSecurity) {
+    public static MethodDispatchInfo create(Method method, RpcSecurity rpcSecurity) {
         MethodDispatchInfo methodDispatchInfo = new MethodDispatchInfo(method);
-        if (rpcSecurity!=null){
+        if (rpcSecurity != null) {
             methodDispatchInfo.rpcSecurity = rpcSecurity;
-        }else {
+        } else {
             methodDispatchInfo.rpcSecurity = AccessControl.create(method);
         }
         return methodDispatchInfo;
@@ -130,12 +129,12 @@ public class MethodDispatchInfo implements RpcSecurity {
 
     public Object[] unSerializeParam(RpcContent rpcContent) {
         int paramCount = returnSerializeInfos.length;
-        if (paramCount <=0){
+        if (paramCount <= 0) {
             return null;
         }
         Object[] returnParams = new Object[paramCount];
         byte[][] data = (byte[][]) rpcContent.getData();
-        for (int i =0;i<returnSerializeInfos.length;i++){
+        for (int i = 0; i < returnSerializeInfos.length; i++) {
             Object value = returnSerializeInfos[i].processor.readValue(data[i], returnSerializeInfos[i].paramType);
             returnParams[i] = value;
         }

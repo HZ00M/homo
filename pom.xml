@@ -32,6 +32,7 @@
         <module>homo-core-rpc-client</module>
         <module>homo-core-rpc-base</module>
         <module>homo-core-rpc-grpc</module>
+        <module>homo-service-stateful-driver-redis</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -179,6 +180,16 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
+                <artifactId>homo-core-rpc-grpc</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-service-stateful-driver-redis</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
                 <artifactId>homo-core-auto-configurable</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
@@ -259,6 +270,9 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
+
+
+
 
             <!--            第三方依赖             -->
             <dependency>
@@ -432,21 +446,21 @@
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.fasterxml.jackson.core</groupId>-->
+<!--                <artifactId>jackson-core</artifactId>-->
+<!--                <version>${jackson.version}</version>-->
+<!--            </dependency>-->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.fasterxml.jackson.core</groupId>-->
+<!--                <artifactId>jackson-annotations</artifactId>-->
+<!--                <version>${jackson.version}</version>-->
+<!--            </dependency>-->
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>
                 <artifactId>jackson-module-parameter-names</artifactId>
@@ -645,11 +659,6 @@
                 <version>${fst.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-crypto</artifactId>

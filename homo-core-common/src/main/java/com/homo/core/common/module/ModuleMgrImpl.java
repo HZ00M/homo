@@ -2,36 +2,36 @@ package com.homo.core.common.module;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.SmartLifecycle;
 
-import javax.annotation.PostConstruct;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-;
+import java.util.*;
 
 @Log4j2
-public class ModuleMgrImpl implements ModuleMgr{
+public class ModuleMgrImpl implements ModuleMgr, SmartLifecycle {
     @Autowired(required = false)
     RootModule rootModule;
     @Autowired(required = false)
-    Map<String,Module> moduleMap;
+    Map<String, Module> moduleMap;
+    List<Module> modules;
+    private boolean isRunning = false;
 
-    @PostConstruct
-    public void init(){
+    @Override
+    public void start() {
+        /**
+         * spring容器加载所有bean并初始化之后调用
+         */
         try {
-            rootModule.init();
             initModules();
             afterInitModules();
-        }catch (Exception e){
-            log.error("ModuleMgr init error !",e);
+            isRunning = true;
+        } catch (Exception e) {
+            log.error("ModuleMgr init error !", e);
         }
     }
 
-
     @Override
-    public Set<Module> getModules() {
-        return moduleMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toSet());
+    public List<Module> getModules() {
+        return modules;
     }
 
     @Override
@@ -41,7 +41,14 @@ public class ModuleMgrImpl implements ModuleMgr{
 
     @Override
     public void initModules() {
-        moduleMap.values().forEach(item->{item.init(rootModule);item.init();});
+        modules = new ArrayList(moduleMap.values());
+        Collections.sort(modules, Comparator.comparing(Module::getOrder));
+        modules.forEach(module -> {
+            log.info("module {} init start", module.getClass().getName());
+            module.init(rootModule);
+            module.init();
+            log.info("module {} init end", module.getClass().getName());
+        });
     }
 
     @Override
@@ -50,8 +57,21 @@ public class ModuleMgrImpl implements ModuleMgr{
     }
 
     @Override
-    public String getPodName(){
+    public String getPodName() {
         return rootModule.getPodName();
     }
 
+    @Override
+    public void stop() {
+        for (Module module : moduleMap.values()) {
+            module.onStop();
+            log.warn("module {} had been stop",module.getClass().getName());
+        }
+        isRunning = false;
+    }
+
+    @Override
+    public boolean isRunning() {
+        return isRunning;
+    }
 }

@@ -1,0 +1,12 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "io.homo.proto.rpc.test";     // 指定包名
+option java_outer_classname = "RpcServerTest"; // 指定类名
+
+message TestServerRequest {
+  string param = 1;
+}
+
+message TestServerResponse {
+  int32 code = 1;
+}

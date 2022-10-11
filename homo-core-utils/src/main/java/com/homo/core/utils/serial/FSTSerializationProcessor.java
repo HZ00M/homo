@@ -85,7 +85,7 @@ public class FSTSerializationProcessor implements HomoSerializationProcessor{
     }
 
     @Slf4j
-    private class  HomoStreamEncoder extends FSTStreamEncoder{
+    private static class  HomoStreamEncoder extends FSTStreamEncoder{
         //读取父类clnames属性 ，提供其修改能力
         private Field clnames;
         public HomoStreamEncoder(FSTConfiguration conf) throws NoSuchFieldException {

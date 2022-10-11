@@ -1,0 +1,1 @@
+return redis.call("HGETALL",KEYS[1])

@@ -1,9 +1,10 @@
 package com.homo.core.rpc.base.service;
 
+import com.homo.core.facade.excption.HomoError;
+import com.homo.core.facade.excption.HomoException;
 import com.homo.core.facade.rpc.RpcInterceptor;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.rpc.base.CallData;
-import com.homo.core.rpc.base.exception.CallAllowException;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.rpc.base.serial.RpcHandleInfo;
 import com.homo.core.utils.rector.Homo;
@@ -25,11 +26,11 @@ public class CallDispatcher {
         this.rpcHandleInfo = rpcHandleInfo;
     }
 
-    public Homo callFun(String srcService, String funName, RpcContent rpcContent) throws CallAllowException {
+    public Homo callFun(String srcService, String funName, RpcContent rpcContent) throws HomoException {
         MethodDispatchInfo methodDispatchInfo = rpcHandleInfo.getMethodDispatchInfo(funName);
         if (!methodDispatchInfo.isCallAllowed(srcService)) {
             log.error("callFun srcService {} funName {} not allow", srcService, funName);
-            throw new CallAllowException("call fun not allow");
+            throw HomoError.throwError(HomoError.callAllow);
         }
         Object[] unSerializeParam = methodDispatchInfo.unSerializeParam(rpcContent);
         RpcInterceptor callTask;

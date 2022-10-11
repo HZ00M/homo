@@ -8,7 +8,6 @@ import org.springframework.util.StringUtils;
 
 @Log4j2
 public class RootModuleImpl implements RootModule{
-    public static String ROOT_INFO_NAMESPACE = "homo_root_info";
     @Autowired(required = false)
     ModuleProperties moduleProperties;
     public static String SERVER_POD_NAME = "POD_NAME";

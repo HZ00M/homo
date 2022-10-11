@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.homo.service.state.driver.redis.config.RedisStatefulAutoConfiguration
+

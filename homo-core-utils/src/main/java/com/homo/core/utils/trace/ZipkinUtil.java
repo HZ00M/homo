@@ -11,6 +11,7 @@ import brave.sampler.RateLimitingSampler;
 import brave.sampler.Sampler;
 import brave.sampler.SamplerFunction;
 import com.homo.core.common.module.Module;
+import com.homo.core.common.module.SupportModule;
 import com.homo.core.configurable.zipkin.ZipKinProperties;
 import com.homo.core.utils.fun.ConsumerEx;
 import io.grpc.ClientInterceptor;
@@ -31,7 +32,7 @@ import java.util.function.Consumer;
  * zipkin追踪流程  clientSend->serverReceiver->serverSend->clientReceive
  */
 @Log4j2
-public class ZipkinUtil implements Module {
+public class ZipkinUtil implements SupportModule {
     public static final String CLIENT_SEND_TAG = "cs";
     public static final String SERVER_RECEIVE_TAG = "sr";
     public static final String SERVER_SEND_TAG = "ss";

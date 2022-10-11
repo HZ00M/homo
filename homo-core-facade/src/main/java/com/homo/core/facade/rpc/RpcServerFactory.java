@@ -1,6 +1,9 @@
 package com.homo.core.facade.rpc;
 
-public interface RpcServerFactory {
+import com.homo.core.common.module.DriverModule;
+
+
+public interface RpcServerFactory extends DriverModule {
     /**
      * 驱动的类型，比如grpc,http等
      * @return 驱动类型字符串

@@ -8,4 +8,5 @@ public class HomoException extends Exception{
         this.code = code;
         this.msg = msg;
     }
+
 }

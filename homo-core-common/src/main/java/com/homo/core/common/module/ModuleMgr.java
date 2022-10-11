@@ -1,7 +1,7 @@
 package com.homo.core.common.module;
 
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * 提供组件统一管理
@@ -11,7 +11,7 @@ public interface ModuleMgr {
      * 获取所有组件
      * @return
      */
-    Set<Module> getModules();
+    List<Module> getModules();
 
     /**
      * 获取指定组件

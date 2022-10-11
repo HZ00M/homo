@@ -7,30 +7,25 @@ import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 @Slf4j
 public class RpcServerMgr implements Module {
-    Set<Class<?>> rpcHandlers;//todo 可能没用了
-    Map<RpcType, RpcServerFactory> rpcServerFactoryMap;
-    Map<String, RpcServer> rpcServerMap;
-    @Autowired
-    @Lazy
+    Map<RpcType, RpcServerFactory> rpcServerFactoryMap = new HashMap<>();
+    Map<String, RpcServer> rpcServerMap = new HashMap<>();
+    @Autowired(required = false)
     private ServiceMgr serviceMgr;
-
-    public RpcServerMgr(Set<Class<?>> rpcHandlerClazz, Set<RpcServerFactory> rpcServerFactories) {
-        this.rpcHandlers = rpcHandlerClazz;
-        for (RpcServerFactory rpcServerFactory : rpcServerFactories) {
-            this.rpcServerFactoryMap.put(rpcServerFactory.getType(), rpcServerFactory);
-        }
-    }
+    @Autowired(required = false)
+    private Set<RpcServerFactory> rpcServerFactories;
 
     @Override
     public void init() {
-        log.info("RpcServerMgr init rpcHandlers size {}", rpcHandlers.size());
+        for (RpcServerFactory rpcServerFactory : rpcServerFactories) {
+            this.rpcServerFactoryMap.put(rpcServerFactory.getType(), rpcServerFactory);
+        }
         serviceMgr.getServices().forEach(service -> {
             RpcServer rpcServer = RpcServerImpl.doBind(service);
             rpcServerMap.put(service.getServiceName(),rpcServer);

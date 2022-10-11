@@ -12,6 +12,10 @@
     <modules>
         <module>homo-core-storage-test</module>
         <module>homo-core-persistent-test</module>
+        <module>homo-core-rpc-server-test</module>
+        <module>hom-core-rpc-client-test</module>
+        <module>homo-core-rpc-server-facade-test</module>
+        <module>homo-core-rpc-client-facade-test</module>
     </modules>
     <artifactId>homo-core-test</artifactId>
 
@@ -19,6 +23,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
+
 
     <build>
         <plugins>
@@ -38,21 +43,88 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
+<!--            <scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-services</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <artifactId>homo-core-facade</artifactId>
                 <groupId>com.homo</groupId>
-                <artifactId>homo-core</artifactId>
                 <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+<!--            <dependency>-->
+<!--                <artifactId>homo-core-proto</artifactId>-->
+<!--                <groupId>com.homo</groupId>-->
+<!--                <version>${revision}</version>-->
+<!--            </dependency>-->
+            <dependency>
+                <artifactId>homo-core-storage-test</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-persistent-test</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <!--            单元测试-->
+            <dependency>
+                <artifactId>homo-core-rpc-server-facade-test</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-rpc-server-test</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>hom-core-rpc-client-test</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-rpc-client-facade-test</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-test</artifactId>
+                <version>3.1.4.RELEASE</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

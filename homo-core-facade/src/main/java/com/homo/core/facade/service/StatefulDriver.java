@@ -97,14 +97,4 @@ public interface StatefulDriver {
      */
     Homo<Map<Integer, Integer>> getServiceState(String appId,String regionId, String logicType,String serviceName,long beginTimeMillis);
 
-    /**
-     * 获取目标服务负载最小pod
-     * @param appId 游戏id
-     * @param regionId 区服id
-     * @param logicType 类型
-     * @param serviceName 服务名
-     * @param beginTimeMillis 有效起始时间
-     * @return   最优pod, 没有则返回null
-     */
-    Homo<Integer> choiceServicePod(String appId, String regionId, String logicType, String serviceName, long beginTimeMillis);
 }

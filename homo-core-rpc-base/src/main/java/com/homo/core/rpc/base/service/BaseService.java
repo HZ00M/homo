@@ -7,9 +7,11 @@ import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.rpc.base.serial.RpcHandleInfo;
+import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * 提供获取服务器信息及服务调用的基本能力
@@ -26,15 +28,10 @@ public class BaseService implements Service {
     private RpcHandleInfo rpcHandleInfo;
     private ServiceStateHandler serviceStateHandler;
 
-    public void init(ServiceMgr serviceMgr, ServiceStateHandler serviceStateHandler, RpcHandleInfo rpcHandleInfo, CallDispatcher callDispatcher){
+    public void init(ServiceMgr serviceMgr, ServiceStateHandler serviceStateHandler){
         preInit();
-
         this.serviceMgr = serviceMgr;
         this.serviceStateHandler = serviceStateHandler;
-        this.rpcHandleInfo = rpcHandleInfo;
-        this.callDispatcher = callDispatcher;
-
-        log.info("BaseService init !");
         ServiceExport serviceExport = getServiceExport();
         serviceName = serviceExport.tagName();
         String[] split = serviceName.split(":");
@@ -43,8 +40,9 @@ public class BaseService implements Service {
         driverType = serviceExport.driverType();
         stateful = serviceExport.isStateful();
 
-        serviceStateHandler.setServiceNameTag(serviceName,serviceName);
-
+        serviceStateHandler.setServiceNameTag(serviceName,serviceName);//todo 还没有实现
+        rpcHandleInfo = new RpcHandlerInfoForServer(this.getClass());
+        callDispatcher = new CallDispatcher(serviceName,this,rpcHandleInfo);
         postInit();
     }
 
@@ -95,7 +93,7 @@ public class BaseService implements Service {
     }
 
     public ServiceExport getServiceExport(){
-        return AnnotationUtils.getAnnotation(getClass(),ServiceExport.class);
+        return AnnotationUtils.findAnnotation(getClass(),ServiceExport.class);
     }
 
     /**

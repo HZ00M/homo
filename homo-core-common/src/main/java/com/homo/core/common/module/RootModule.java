@@ -1,21 +1,12 @@
 package com.homo.core.common.module;
 
-public interface RootModule {
+public interface RootModule extends Module{
+
+    default Integer getOrder() {
+        return Integer.MIN_VALUE ;
+    }
+
     ServerInfo defaultServerInfo = new ServerInfo();
-
-    void init();
-
-    default ServerInfo getServerInfo(){
-        return defaultServerInfo;
-    }
-
-    default String getAppId(){
-        return getServerInfo().getAppId();
-    }
-
-    default String getRegionId(){
-        return getServerInfo().getRegionId();
-    }
 
     String getPodName();
 }

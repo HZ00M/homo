@@ -16,7 +16,6 @@ import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -26,15 +25,14 @@ import java.util.function.Supplier;
  * 管理服务器状态实现类
  */
 @Slf4j
-@Component
 public class ServiceStateMgrImpl implements ServiceStateMgr, Module {
-    @Autowired
+    @Autowired(required = false)
     private ServerStateProperties serverStateProperties;
-    @Autowired
+    @Autowired(required = false)
     private ServiceMgr serviceMgr;
-    @Autowired
+    @Autowired(required = false)
     private StatefulDriver statefulDriver;
-    @Autowired
+    @Autowired(required = false)
     private ServiceStateHandler serviceStateHandler;
     boolean isStateful = false;
     //有状态服务当前状态（值越高代表压力越大）

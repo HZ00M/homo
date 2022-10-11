@@ -3,11 +3,14 @@ package com.homo.core.rpc.base.state;
 import com.homo.concurrent.queue.CallQueueMgr;
 import com.homo.concurrent.schedule.HomoTimerMgr;
 import com.homo.concurrent.schedule.TaskFun0;
+import com.homo.core.common.module.Module;
 import com.homo.core.configurable.rpc.ServerStateProperties;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,13 +21,19 @@ import java.util.stream.Collectors;
  * 缓存服务器状态信息
  */
 @Slf4j
-public class ServiceStateHandlerImpl implements ServiceStateHandler, TaskFun0 {
+public class ServiceStateHandlerImpl implements ServiceStateHandler, TaskFun0 , Module {
     private Map<String, List<Integer>> goodServiceMap = new ConcurrentHashMap<>();
     private Map<String, List<Integer>> availableServiceMap = new ConcurrentHashMap<>();
+    @Autowired(required = false)
     private ServerStateProperties serverStateProperties;
+    @Lazy
+    @Autowired(required = false)
     private ServiceStateMgr stateMgr;
-    private Map<String, Integer> serviceRangeConfig;
 
+    @Override
+    public void init() {
+        scheduleUpdate();
+    }
 
     private BiFunction<String, List<Integer>, Integer> choiceFun = new BiFunction<String, List<Integer>, Integer>() {
         /**
@@ -43,11 +52,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, TaskFun0 {
         }
     };
 
-    public ServiceStateHandlerImpl(ServiceStateMgr stateMgr, ServerStateProperties serverStateProperties) {
-        this.stateMgr = stateMgr;
-        this.serverStateProperties = serverStateProperties;
-        scheduleUpdate();
-    }
+
 
     private void scheduleUpdate() {
         CallQueueMgr.getInstance().frameTask(new Runnable() {
@@ -138,4 +143,6 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, TaskFun0 {
     public void setChoiceFun(BiFunction<String, List<Integer>, Integer> choiceFun) {
         this.choiceFun = choiceFun;
     }
+
+
 }

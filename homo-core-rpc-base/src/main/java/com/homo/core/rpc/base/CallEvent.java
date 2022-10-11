@@ -3,8 +3,7 @@ package com.homo.core.rpc.base;
 import brave.Span;
 import com.homo.concurrent.event.AbstractBaseEvent;
 import com.homo.concurrent.queue.CallQueueProducer;
-import com.homo.core.rpc.base.exception.CallEmptyException;
-import com.homo.core.rpc.base.exception.CallException;
+import com.homo.core.facade.excption.HomoError;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import com.homo.core.utils.trace.ZipkinUtil;
@@ -38,7 +37,7 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
                 homo.consumerEmpty(()->{
                     log.debug("CallEvent consumerEmpty method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start,  handlerClazz, methodName);
 
-                    sink.error(new CallEmptyException("call empty!"));
+                    sink.error(HomoError.throwError(HomoError.callEmpty));
                 })
                 .consumerValue(ret->{
                     log.debug("CallEvent consumerValue method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start,  handlerClazz, methodName);
@@ -48,10 +47,9 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
                     log.debug("CallEvent catchError method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start,  handlerClazz, methodName);
                     sink.error(throwable);
                 })
-                .start()
-                ;
+                .start();
             }else {
-                throw new CallException("not support yet");
+                throw HomoError.throwError(HomoError.callError);
             }
         }catch (Throwable e){
             log.error("CallEvent precess finished with error, o_{}, methodName_{} milliseconds_{}",  handlerClazz, methodName, System.currentTimeMillis() - start, e);

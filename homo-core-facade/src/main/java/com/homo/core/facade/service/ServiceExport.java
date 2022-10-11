@@ -15,7 +15,8 @@ import java.lang.annotation.Target;
 public @interface ServiceExport {
     String tagName() default ""; //服务名（格式：serviceName:port）
     RpcType driverType() default RpcType.grpc;    //服务类型
-    boolean isStateful() default false; //是否是有状态服务器
+    boolean isStateful() default true; //是否是有状态服务器
+    boolean isMainServer(); //是否是主服务
 }
 
 

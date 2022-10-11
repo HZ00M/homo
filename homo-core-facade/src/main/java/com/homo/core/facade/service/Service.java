@@ -41,5 +41,5 @@ public interface Service extends Module {
 
     <RETURN> Homo<RETURN> callFun(String srcService, String funName, RpcContent param) throws Exception;
 
-//    <ERROR> Homo<ERROR> processError(String msgId, Throwable e);
+    public ServiceExport getServiceExport();
 }
