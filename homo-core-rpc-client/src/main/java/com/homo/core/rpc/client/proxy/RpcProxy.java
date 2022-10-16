@@ -1,10 +1,13 @@
 package com.homo.core.rpc.client.proxy;
 
+import com.homo.core.facade.excption.HomoError;
+import com.homo.core.facade.excption.HomoException;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
+import com.homo.core.rpc.base.serial.TraceRpcContent;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.client.ExportHostName;
 import com.homo.core.rpc.client.RpcClientMgr;
@@ -14,9 +17,12 @@ import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoInterfaceUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.lang.reflect.Method;
 
@@ -26,14 +32,14 @@ public class RpcProxy implements MethodInterceptor {
     private final ServiceMgr serviceMgr;
     private final RpcClientMgr rpcClientMgr;
     private final Class<?> interfaceType;
-    private final String serviceName;
+    private final String tagName;
     private final ServiceStateHandler serviceStateHandler;
     private final RpcHandlerInfoForClient rpcHandlerInfoForClient;
     private MultiFunA<String,Homo<String>> choiceHostFun = ExportHostName.STRATEGY0;
     public RpcProxy(RpcClientMgr rpcClientMgr, Class<?> interfaceType, ServiceStateHandler serviceStateHandler, ServiceMgr serviceMgr, ServiceStateMgr serviceStateMgr) throws Exception {
         this.rpcClientMgr = rpcClientMgr;
         this.interfaceType = interfaceType;
-        this.serviceName = interfaceType.getAnnotation(ServiceExport.class).tagName();
+        this.tagName = interfaceType.getAnnotation(ServiceExport.class).tagName();
         this.serviceStateHandler = serviceStateHandler;
         this.serviceMgr = serviceMgr;
         this.serviceStateMgr = serviceStateMgr;
@@ -45,7 +51,7 @@ public class RpcProxy implements MethodInterceptor {
         ServiceExport export = interfaceType.getAnnotation(ServiceExport.class);
         if (export != null){
             String tag = export.tagName();
-            serviceStateHandler.setLocalServiceNameTag(tag, serviceName);
+            serviceStateHandler.setLocalServiceNameTag(tag, tagName);
         }
     }
 
@@ -56,32 +62,53 @@ public class RpcProxy implements MethodInterceptor {
         if (!interfaceType.equals(declaringClass) && !HomoInterfaceUtil.getAllInterfaces(interfaceType).contains(declaringClass)) {
             return (Homo) methodProxy.invokeSuper(o, objects);
         }
-            String methodName = method.getName();
+        String methodName = method.getName();
         log.trace(
                 "intercept service_{}, method_{} class_{}",
-                serviceName,
+                tagName,
                 methodName,
                 declaringClass.getSimpleName());
-        return choiceHostFun.apply(serviceName,objects)
-                .nextDo(hostName->{
-                    if (!StringUtils.isEmpty(hostName)){
-                        MethodDispatchInfo methodDispatchInfo = rpcHandlerInfoForClient.getMethodDispatchInfo(methodName);
-                        RpcContent callContent = methodDispatchInfo.serializeParam(objects);
+        return choiceHostFun.apply(tagName,objects)
+                .nextDo(realHostName ->{
+                    if (!StringUtils.isEmpty(realHostName)){
+                        RpcContent callContent = rpcHandlerInfoForClient.serializeParamForInvoke(methodName,objects);
                         return rpcClientMgr
-                                .getRpcAgentClient(serviceName,hostName)
+                                .getRpcAgentClient(tagName, realHostName)
                                 .rpcCall(methodName, callContent)
-                                .nextDo(ret->{
-                                    RpcContent returnContent = (RpcContent) ret;
-                                    Object[] param = rpcHandlerInfoForClient.unSerializeParamForCallback(methodName, returnContent);
-                                    //todo 待完善
-                                    return Homo.result(param);
+                                .nextDo(ret-> {
+                                    return processReturn(methodName, (Tuple2<String, TraceRpcContent>) ret);
                                 })
                                 ;
                     }else {
-                        return Homo.error(new RuntimeException("can't find hostname"));
+                        throw HomoError.throwError(HomoError.hostNotFound,tagName);
                     }
                 });
 
+    }
+
+    @NotNull
+    private Homo processReturn(String methodName, Tuple2<String, TraceRpcContent> ret) throws HomoException {
+        Tuple2<String, TraceRpcContent> retTuple = ret;
+        String msgId = retTuple.getT1();
+        TraceRpcContent rpcContent = retTuple.getT2();
+        if (!msgId.equals(methodName)){//返回的msgId不等于方法名  抛出异常
+            throw HomoError.throwError(Integer.parseInt(msgId),msgId);
+        }
+        Object[] param = rpcHandlerInfoForClient.unSerializeParamForCallback(methodName, rpcContent);
+        Homo returnHomo;
+        /**
+         * 如果返回值是空 或 长度为0，返回null
+         * 如果返回值长度为1，返回第一个元素
+         * 如果返回值是数组，返回Tuples
+         */
+        if (param == null || param.length == 0){
+            returnHomo = Homo.result(null);
+        }else if (param.length <=1){
+            returnHomo = Homo.result(param[0]);
+        }else {
+            returnHomo = Homo.result(Tuples.fromArray(param));
+        }
+        return returnHomo;
     }
 
 

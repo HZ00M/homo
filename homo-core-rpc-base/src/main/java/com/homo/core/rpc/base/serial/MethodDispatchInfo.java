@@ -116,18 +116,44 @@ public class MethodDispatchInfo implements RpcSecurity {
 
     public RpcContent serializeParam(Object[] params) {
         if (paramSerializeInfos == null || paramSerializeInfos.length <= 0) {
-            return TraceRpcContent.builder().build();
+            return new TraceRpcContent();
         }
         byte[][] byteParams = new byte[paramSerializeInfos.length][];
         for (int i = 0; i < paramSerializeInfos.length; i++) {
             Object obj = params[i];
             byteParams[i] = paramSerializeInfos[i].processor.writeByte(obj);
         }
-        return TraceRpcContent.builder().data(byteParams).build();
+        return new TraceRpcContent(byteParams,null);
     }
 
 
     public Object[] unSerializeParam(RpcContent rpcContent) {
+        int paramCount = paramSerializeInfos.length;
+        if (paramCount <= 0) {
+            return null;
+        }
+        Object[] returnParams = new Object[paramCount];
+        byte[][] data = (byte[][]) rpcContent.getData();
+        for (int i = 0; i < paramSerializeInfos.length; i++) {
+            Object value = paramSerializeInfos[i].processor.readValue(data[i], paramSerializeInfos[i].paramType);
+            returnParams[i] = value;
+        }
+        return returnParams;
+    }
+
+    public byte[][] serializeReturn(Object[] params) {
+        if (returnSerializeInfos == null || returnSerializeInfos.length <= 0) {
+            return new byte[][]{};
+        }
+        byte[][] byteParams = new byte[returnSerializeInfos.length][];
+        for (int i = 0; i < returnSerializeInfos.length; i++) {
+            Object obj = params[i];
+            byteParams[i] = returnSerializeInfos[i].processor.writeByte(obj);
+        }
+        return byteParams;
+    }
+
+    public Object[] unSerializeReturn(RpcContent rpcContent) {
         int paramCount = returnSerializeInfos.length;
         if (paramCount <= 0) {
             return null;

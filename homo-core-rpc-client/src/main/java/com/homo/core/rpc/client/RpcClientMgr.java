@@ -36,17 +36,17 @@ public class RpcClientMgr<T> implements ServiceModule {
      */
     public RpcAgentClient<T> getRpcAgentClient(String tagName,String hostname) {
        RpcAgentClient<T> rpcAgentClient ;
-        Service service = serviceMgr.getService(tagName);
         synchronized (RpcAgentClient.class){
            //k8s域名格式: hostname(tagName带-n序号).tagName.namespaceId.svc.cluster.local
            rpcAgentClient = rpcAgentClientMap.computeIfAbsent(hostname,s -> {
+               String host = ServiceUtil.getServiceHostName(hostname);
                int port = ServiceUtil.getServicePort(tagName);
                log.info(
                        "new agent begin, tagName_{} hostname_{} port_{}",
                        tagName,
                        hostname,
                        port);
-               RpcAgentClient<T> newAgent = rpcClientFactory.newAgent(hostname, port,service.isStateful());
+               RpcAgentClient<T> newAgent = rpcClientFactory.newAgent(host, port,serviceMgr.getServiceExportInfo(tagName).isStateful());
                log.info(
                        "new agent finish, tagName_{} hostname_{} port_{}",
                        tagName,

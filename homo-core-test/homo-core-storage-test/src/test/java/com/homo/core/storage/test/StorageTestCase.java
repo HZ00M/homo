@@ -43,7 +43,7 @@ public class StorageTestCase {
         Map<String,byte[]> map = new HashMap<>();
         map.put(key,bytes);
         StepVerifier.create(
-                byteStorage.update(rootModule.getAppId(),rootModule.getRegionId(), saveObj.getLogicType(),
+                byteStorage.update(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(), saveObj.getLogicType(),
                         saveObj.getOwnerId(),map)
                 .nextDo(ret-> {
                     return Homo.result(ret.getKey());
@@ -57,7 +57,7 @@ public class StorageTestCase {
     @Order(2)
     public void testGet(){
         StepVerifier.create(
-                byteStorage.get(rootModule.getAppId(),rootModule.getRegionId(),logicType,ownerId,key)
+                byteStorage.get(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(),logicType,ownerId,key)
                 .nextValue(ret->{
                     return serializationProcessor.readValue(ret, TestSaveObj.class);
                 })
@@ -75,7 +75,7 @@ public class StorageTestCase {
         List<String> list = new ArrayList<>();
         list.add(key);
         StepVerifier.create(
-                byteStorage.removeKeys(rootModule.getAppId(),rootModule.getRegionId(),logicType,ownerId,list)
+                byteStorage.removeKeys(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(),logicType,ownerId,list)
                         .nextValue(ret->{
                             return ret.get(0);
                         })
@@ -83,7 +83,7 @@ public class StorageTestCase {
                             return ret.equals(key);
                         })
                         .nextDo(ret->{
-                            return byteStorage.get(rootModule.getAppId(),rootModule.getRegionId(),logicType,ownerId,key);
+                            return byteStorage.get(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(),logicType,ownerId,key);
                         })
                         .nextDo(ret->{
                             return Homo.result(ret==null);
@@ -104,12 +104,12 @@ public class StorageTestCase {
         map.put(incrKey2,1L);
         map.put(incrKey3,1L);
         StepVerifier.create(
-                byteStorage.incr(rootModule.getAppId(),rootModule.getRegionId(),logicType,ownerId,incrKey1)
+                byteStorage.incr(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(),logicType,ownerId,incrKey1)
         )
                 .expectNext(1L)
                 .verifyComplete();
         StepVerifier.create(
-                byteStorage.get(rootModule.getAppId(),rootModule.getRegionId(),logicType,ownerId,incrKey1)
+                byteStorage.get(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(),logicType,ownerId,incrKey1)
                 .nextDo(ret->{
                     return  Homo.result(Long.valueOf(new String(ret, StandardCharsets.UTF_8)));
                 })
@@ -117,7 +117,7 @@ public class StorageTestCase {
                 .expectNext(1L)
                 .verifyComplete();
         StepVerifier.create(
-                byteStorage.incr(rootModule.getAppId(),rootModule.getRegionId(),logicType,ownerId,map)
+                byteStorage.incr(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(),logicType,ownerId,map)
                         .nextDo(ret->{
                             return  Homo.result(Tuples.of(map.get(incrKey1),map.get(incrKey2),map.get(incrKey3)));
                         })
@@ -139,7 +139,7 @@ public class StorageTestCase {
         Map<String,byte[]> map = new HashMap<>();
         map.put(key,bytes1);
         StepVerifier.create(
-                byteStorage.update(rootModule.getAppId(),rootModule.getRegionId(), saveObj1.getLogicType(),
+                byteStorage.update(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(), saveObj1.getLogicType(),
                         saveObj1.getOwnerId(),map)
                         .nextDo(ret-> {
                             return Homo.result(ret.getKey());
@@ -149,7 +149,7 @@ public class StorageTestCase {
                 .verifyComplete();
         map.put(key,bytes2);
         StepVerifier.create(
-                byteStorage.update(rootModule.getAppId(),rootModule.getRegionId(), saveObj2.getLogicType(),
+                byteStorage.update(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(), saveObj2.getLogicType(),
                         saveObj2.getOwnerId(),map)
                         .nextDo(ret-> {
                             return Homo.result(ret.getKey());
@@ -159,7 +159,7 @@ public class StorageTestCase {
                 .verifyComplete();
         map.put(key,bytes3);
         StepVerifier.create(
-                byteStorage.update(rootModule.getAppId(),rootModule.getRegionId(), saveObj3.getLogicType(),
+                byteStorage.update(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(), saveObj3.getLogicType(),
                         saveObj3.getOwnerId(),map)
                         .nextDo(ret-> {
                             return Homo.result(ret.getKey());
@@ -180,7 +180,7 @@ public class StorageTestCase {
         keys.add(incrKey2);
         keys.add(incrKey3);
         StepVerifier.create(
-                byteStorage.get(rootModule.getAppId(),rootModule.getRegionId(),logicType,"78b1b220-7df1-4271-9916-3a34df90f8bb",keys)
+                byteStorage.get(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(),logicType,"78b1b220-7df1-4271-9916-3a34df90f8bb",keys)
                         .nextDo(ret->{
                             return  Homo.result(Tuples.of(Long.valueOf(new String(ret.get(incrKey1), StandardCharsets.UTF_8)),
                                     Long.valueOf(new String(ret.get(incrKey2), StandardCharsets.UTF_8)),

@@ -26,7 +26,7 @@ public class RpcServerImpl implements RpcServer {
     private RpcServerImpl(Service actualService) {
         log.info(
                 "RpcServerImpl serviceName {} port {} class name {}",
-                actualService.getServiceName(),
+                actualService.getTagName(),
                 actualService.getPort(),
                 actualService.getClass().getName());
         this.actualService = actualService;

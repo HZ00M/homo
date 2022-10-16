@@ -5,6 +5,7 @@ import lombok.ToString;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -41,14 +42,14 @@ public class ServerStateProperties {
      * 服务良好状态配置
      * Map<serviceName,goodState>
      */
-    @Value("#{${homo.service.state.range:{}}")
-    private Map<String,Integer> goodStateRange;
+    @Value("#{${homo.service.state.range:{}}}")
+    private Map<String,Integer> goodStateRange = new HashMap<>();
 
     /**
      * 服务负载基数，提供一个缓冲值
      * Map<serviceName,goodState>
      */
-    @Value("${homo.service.state.range.default:0}")
+    @Value("${homo.service.state.range.default:500}")
     private int defaultRange;
 
 

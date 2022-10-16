@@ -2,12 +2,14 @@ package com.homo.service.state.driver.redis;
 
 import com.homo.core.facade.service.StatefulDriver;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
+import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.Map;
 public class StatefulDriverRedisImpl implements StatefulDriver {
 
     @Autowired(required = false)
+    @Qualifier("homoRedisPool")
     private HomoAsyncRedisPool asyncRedisPool;
 
     private static final String SERVICE_STATE_TEMP = "state:{%s:%s:%s:%s}";//服务器负载信息
@@ -30,20 +33,20 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
     public static String[] nullArgs = new String[]{};
 
     @Override
-    public Homo<Integer> setLinkedPod(String appId, String regionId, String logicType, String uid, String serviceName, int podId, int persistSeconds) {
+    public Homo<Boolean> setLinkedPod(String appId, String regionId, String logicType, String uid, String serviceName, int podId, int persistSeconds) {
         String uidSvcKey = String.format(USER_SERVICE_TEMP, appId, regionId, logicType, uid, serviceName);
         String uidKey = String.format(USER_TEMP, appId, regionId, logicType, uid);
         String[] keys = {uidSvcKey, uidKey};
         String[] args = {String.valueOf(serviceName), String.valueOf(podId), String.valueOf(persistSeconds)};
         String statefulSetLink = LuaScriptHelper.statefulSetLink;
-        return Homo.warp(new ConsumerEx<HomoSink<Integer>>() {
+        return Homo.warp(new ConsumerEx<HomoSink<Boolean>>() {
             @Override
-            public void accept(HomoSink<Integer> homoSink) throws Exception {
+            public void accept(HomoSink<Boolean> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(statefulSetLink, keys, args)
                         .subscribe(ret -> {
-                            Integer rel = (Integer) ret;
+                            Long rel = (Long) ((List) ret).get(0);
                             log.trace("setLinkedPod  appId {} regionId {} logicType {} uid {} serviceName {} podId {} persistSeconds {} rel {}", appId, regionId, logicType, uid, serviceName, podId, persistSeconds, rel);
-                            homoSink.success(rel);
+                            homoSink.success(rel==1L);
                         });
             }
         });
@@ -61,9 +64,9 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
             public void accept(HomoSink<Integer> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(statefulSetLinkIfAbsent, keys, args)
                         .subscribe(ret -> {
-                            Integer rel = (Integer) ret;
+                            String rel = (String) ((List) ret).get(0);
                             log.trace("setLinkedPodIfAbsent  appId {} regionId {} logicType {} serviceName {} uid {} podId {} persistSeconds {} rel {}", appId, regionId, logicType, serviceName, uid, podId, persistSeconds, rel);
-                            homoSink.success(rel);
+                            homoSink.success(Integer.parseInt(rel));
                         });
             }
         });
@@ -148,8 +151,8 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
                     if (ret != null) {
                         return Homo.result(true);
                     } else {
-                        log.error("setServiceState error appId {} regionId {} logicType {} serviceName {} podId {} load {}",
-                                appId, regionId, logicType, serviceName, podId, load
+                        log.error("setServiceState error appId {} regionId {} logicType {} serviceName {} podId {} load {} loadTimestamp {}",
+                                appId, regionId, logicType, serviceName, podId, load,loadTimestamp
                         );
                         return Homo.result(false);
                     }

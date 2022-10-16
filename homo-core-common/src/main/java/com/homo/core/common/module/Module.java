@@ -34,7 +34,7 @@ public interface Module {
      * @return
      */
     default <T> T getInfo(ModuleInfoType moduleInfoType, Class<T> type) {
-        return (T) moduleInfo.getOrDefault(ModuleInfoType.SERVER_INFO, null);
+        return (T) moduleInfo.getOrDefault(moduleInfoType, null);
     }
 
     /**

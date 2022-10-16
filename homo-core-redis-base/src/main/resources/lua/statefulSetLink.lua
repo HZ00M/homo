@@ -18,7 +18,7 @@ if ttl == -1 then   --如果设置永不过期，将 uidSvcKeys连接设置永�
     redis.call("PERSIST",uidSvcKey)
     redis.call("HSET",uidKey,svcName,podIndex)
 else                --否则设置连接超时时间,uidKey Map里移除这个service的信息
-    redis.call("EXPIRE",uidSvcKey)
+    redis.call("EXPIRE",uidSvcKey,ttl)
     redis.call("HDEL",uidKey,svcName)
 end
 return {1}

@@ -18,7 +18,7 @@ public class RpcHandlerInfoForClient extends RpcHandleInfo {
 
     public Object[] unSerializeParamForCallback(String funName,RpcContent rpcContent) {
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.unSerializeParam(rpcContent);
+        return methodDispatchInfo.unSerializeReturn(rpcContent);
     }
 
 }

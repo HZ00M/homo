@@ -30,7 +30,7 @@ public class CallQueueMgr implements Module {
     private static final int keepLive = Integer.parseInt(System.getProperty("call.queue.maxWaitNum", "10"));
     Map<String, BiFunction<Event, Object, Integer>> ployFunMap = new ConcurrentHashMap<>();
     CallQueue[] callQueues;
-    ExecutorService executorService;
+    public ExecutorService executorService;
     ThreadLocal<CallQueue> localQueue = new ThreadLocal<>();
     public static final int frame_queue_id = 1;
     public static final int user_queue_id = 2;

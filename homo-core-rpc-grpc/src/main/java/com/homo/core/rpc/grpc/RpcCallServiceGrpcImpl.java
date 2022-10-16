@@ -124,10 +124,9 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
             params[i] = req.getMsgContent(i).toByteArray();
         }
         try {
-            rpcServer.onCall(req.getSrcService(), req.getMsgId(),
-                    TraceRpcContent.builder().data(params).span(span).build())
+            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new TraceRpcContent<>(params, span))
                     .consumerValue(ret -> {
-                        processMsgResult(responseObserver, req, (byte[][]) ret);
+                        processMsgResult(responseObserver, req,  ret);
                     })
                     .catchError(e -> {
                         processMsgError(responseObserver, req, e);
@@ -144,15 +143,14 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
             @Override
             public void onNext(StreamReq req) {
                 try {
-                    Span span = ZipkinUtil.currentSpan();//todo 处理调用过程的跟踪
+                    Span span = ZipkinUtil.currentSpan();
                     byte[][] params = new byte[req.getMsgContentCount()][];
                     for (int i = 0; i < req.getMsgContentCount(); i++) {
                         params[i] = req.getMsgContent(i).toByteArray();
                     }
-                    rpcServer.onCall(req.getSrcService(), req.getMsgId(),
-                            TraceRpcContent.builder().data(params).span(span).build())
+                    rpcServer.onCall(req.getSrcService(), req.getMsgId(),new TraceRpcContent<>(params,span))
                             .consumerValue(ret -> {
-                                processStreamResult(responseObserver, req, (byte[][]) ret);
+                                processStreamResult(responseObserver, req,  ret);
                             })
                             .catchError(e -> {
                                 processStreamError(responseObserver, req, e);
@@ -181,7 +179,7 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
         String param = req.getMsgContent();
         Span span = ZipkinUtil.currentSpan();
         try {
-            rpcServer.onCall(req.getSrcService(), req.getMsgId(), TraceRpcContent.builder().data(param).span(span).build())
+            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new TraceRpcContent<>(param,span))
                     .consumerValue(ret -> {
                         processJsonResult(responseObserver, req, (String) ret);
                     })

@@ -41,6 +41,7 @@ public class HomoTimerTask<T extends Task> extends AbstractHomoTimerTask {
         if (runTimes != ENDLESS && currentTimes >= runTimes) {
             future.cancel(true);
         }
+        //当开始执行定时任务时，将任务包装成事件塞入指定队列
         addEvent(new TimerTaskEvent<T>(this, task, interrupt, objects));
     }
 }

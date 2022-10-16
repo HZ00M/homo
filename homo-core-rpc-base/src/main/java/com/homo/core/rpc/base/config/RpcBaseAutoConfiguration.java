@@ -1,5 +1,6 @@
 package com.homo.core.rpc.base.config;
 
+import com.homo.core.configurable.rpc.ServerStateProperties;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
@@ -9,9 +10,11 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Import;
 
 @Configuration
 @Log4j2
+@Import(ServerStateProperties.class)
 public class RpcBaseAutoConfiguration {
 
     @Bean("serviceMgr")

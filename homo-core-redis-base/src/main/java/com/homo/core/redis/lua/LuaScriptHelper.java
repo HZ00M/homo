@@ -8,7 +8,7 @@ import org.springframework.util.StreamUtils;
 import java.nio.charset.StandardCharsets;
 
 @Log4j2
-public class LuaScriptHelper implements Module {
+public class LuaScriptHelper  {
 
     public static String lockScript;
 
@@ -50,8 +50,8 @@ public class LuaScriptHelper implements Module {
 
     public static String getServiceState;
 
-    @Override
-    public void init() {
+
+    static  {
         try {
             lockScript = StreamUtils.copyToString(new ClassPathResource("lua/lock.lua").getInputStream(), StandardCharsets.UTF_8);
             unLockScript = StreamUtils.copyToString(new ClassPathResource("lua/unlock.lua").getInputStream(), StandardCharsets.UTF_8);
@@ -75,7 +75,7 @@ public class LuaScriptHelper implements Module {
             getServiceState = StreamUtils.copyToString(new ClassPathResource("lua/getServiceState.lua").getInputStream(), StandardCharsets.UTF_8);
 
         } catch (Exception e) {
-            log.error("LuaScriptHelper init load lua exception_", e);
+            log.error("LuaScriptHelper init load lua exception ", e);
         }
     }
 

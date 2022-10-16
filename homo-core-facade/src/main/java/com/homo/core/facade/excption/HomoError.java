@@ -1,12 +1,17 @@
 package com.homo.core.facade.excption;
 
+import java.util.Arrays;
+
 public enum HomoError {
     defaultError(0, "system error"),
     callAllow(100,"call fun not allow"),
     callEmpty(101,"call empty"),
     callError(102,"not support yet" ),
-    rpcTimeOutException(103, "asyncBytesStreamCall time out"),
+    remoteError(103,"msgId %s error" ),
+    hostNotFound(104,"tagName  %s hostNotFound" ),
+    rpcTimeOutException(105, "asyncBytesStreamCall time out"),
 
+    choicePodNotFound(106,"tagName %s choice pod not found" ),
     ;
     private int code;
     private String message;
@@ -18,6 +23,11 @@ public enum HomoError {
 
     public static HomoException throwError(HomoError type, Object... args) {
         return new HomoException(type.getCode(), type.msgFormat(args));
+    }
+
+    public static HomoException throwError(int errorCode, Object... args) {
+        HomoError homoError = Arrays.stream(values()).filter(item -> item.code == errorCode).findFirst().orElse(HomoError.defaultError);
+        return new HomoException(homoError.code, homoError.msgFormat(args));
     }
 
     public String msgFormat(Object... args) {

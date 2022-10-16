@@ -1,4 +1,4 @@
-package com.homo.core.rpc.base.trace;
+package com.homo.core.utils.trace;
 
 public interface TraceAble<TRACE_INFO> {
     void setTraceInfo(TRACE_INFO traceInfo);

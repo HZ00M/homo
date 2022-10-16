@@ -11,7 +11,7 @@ public interface Service extends Module {
      *
      * @return
      */
-    String getServiceName();
+    String getTagName();
 
     /**
      * 获取服务域名
@@ -41,5 +41,7 @@ public interface Service extends Module {
 
     <RETURN> Homo<RETURN> callFun(String srcService, String funName, RpcContent param) throws Exception;
 
-    public ServiceExport getServiceExport();
+    ServiceExport getServiceExport();
+
+    boolean isLocalService();
 }

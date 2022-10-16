@@ -47,13 +47,14 @@ public class RpcAgentClientImpl implements RpcAgentClient<TraceRpcContent> {
 
     @Override
     public <PARAM> Homo<TraceRpcContent> rpcCall(String funName, RpcContent<PARAM> param) {
-        try (Tracer.SpanInScope ignored = ZipkinUtil.getTracing().tracer().withSpanInScope(ZipkinUtil.currentSpan())) {
+        try (Tracer.SpanInScope ignored = ZipkinUtil.getTracing().tracer().withSpanInScope(ZipkinUtil.newCSSpan())) {
             if (param.getType().equals(RpcContentType.BYTES)) {
                 byte[][] data = (byte[][]) param.getData();
                 if (srcIsStateFul && targetIsStateful) {
                     log.debug("asyncBytesStreamCall {} {}", funName, param);
                     return asyncBytesStreamCall(funName, data);
                 } else {
+                    //无状态客户端访问有状态服务端 或 有状态客户端访问无状态服务端 都不需要建立长连接
                     log.debug("asyncBytesCall {} {}", funName, param);
                     return asyncBytesCall(funName, data);
                 }

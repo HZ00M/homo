@@ -34,7 +34,7 @@ public class ProtoSerializationProcessor implements HomoSerializationProcessor {
                     cacheUnSerialMap.put(clazz, unSerialMethod);
                 }
             } else {
-                cacheUnSerialMap.get(clazz).invoke(null, obj);
+                result = cacheUnSerialMap.get(clazz).invoke(null, obj);
             }
         } catch (Exception e) {
             log.error("ProtoSerializationProcessor obj {} error {}", obj, e);

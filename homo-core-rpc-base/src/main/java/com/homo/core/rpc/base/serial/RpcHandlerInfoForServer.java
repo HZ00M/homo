@@ -1,5 +1,6 @@
 package com.homo.core.rpc.base.serial;
 
+import com.homo.core.facade.serial.RpcContent;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -9,5 +10,15 @@ public class RpcHandlerInfoForServer extends RpcHandleInfo {
         for (Class<?> anInterface : interfaces) {
             exportMethodInfos(anInterface);
         }
+    }
+
+    public byte[][] serializeForReturn(String funName, Object[] param) {
+        MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
+        return methodDispatchInfo.serializeReturn(param);
+    }
+
+    public Object[] unSerializeParamForInvoke(String funName,RpcContent rpcContent) {
+        MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
+        return methodDispatchInfo.unSerializeParam(rpcContent);
     }
 }

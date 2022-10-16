@@ -1,5 +1,7 @@
 package com.homo.core.facade.service;
 
+import com.homo.core.common.module.Module;
+import com.homo.core.common.module.ServiceModule;
 import com.homo.core.utils.rector.Homo;
 
 import java.util.Map;
@@ -7,7 +9,7 @@ import java.util.Map;
 /**
  * 服务器状态信息管理器
  */
-public interface ServiceStateMgr {
+public interface ServiceStateMgr extends ServiceModule {
 
     /**
      * 判断本进程是否是有状态进程
@@ -98,5 +100,5 @@ public interface ServiceStateMgr {
      * @param serviceName
      * @return
      */
-    Homo<Map<Integer,Integer>> getServiceAllStateInfo(String serviceName);
+    Homo<Map<Integer,Integer>> geAllStateInfo(String serviceName);
 }

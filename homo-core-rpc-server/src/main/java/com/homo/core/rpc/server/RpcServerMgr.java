@@ -28,7 +28,7 @@ public class RpcServerMgr implements Module {
         }
         serviceMgr.getServices().forEach(service -> {
             RpcServer rpcServer = RpcServerImpl.doBind(service);
-            rpcServerMap.put(service.getServiceName(),rpcServer);
+            rpcServerMap.put(service.getTagName(),rpcServer);
             rpcServerFactoryMap.get(service.getType()).startServer(
                     rpcServer);
         });

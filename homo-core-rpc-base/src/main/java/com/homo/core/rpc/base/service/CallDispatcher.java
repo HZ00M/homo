@@ -7,6 +7,7 @@ import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.rpc.base.CallData;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.rpc.base.serial.RpcHandleInfo;
+import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,11 +17,11 @@ public class CallDispatcher {
     private final String srcName;
     Object handler;
 
-    RpcHandleInfo rpcHandleInfo;
+    RpcHandlerInfoForServer rpcHandleInfo;
 
     protected RpcInterceptor interceptor;
 
-    public CallDispatcher(String name, Object handler, RpcHandleInfo rpcHandleInfo) {
+    public CallDispatcher(String name, Object handler, RpcHandlerInfoForServer rpcHandleInfo) {
         this.srcName = name;
         this.handler = handler;
         this.rpcHandleInfo = rpcHandleInfo;
@@ -32,7 +33,7 @@ public class CallDispatcher {
             log.error("callFun srcService {} funName {} not allow", srcService, funName);
             throw HomoError.throwError(HomoError.callAllow);
         }
-        Object[] unSerializeParam = methodDispatchInfo.unSerializeParam(rpcContent);
+        Object[] unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName,rpcContent);
         RpcInterceptor callTask;
         if (interceptor != null) {
             callTask = interceptor;

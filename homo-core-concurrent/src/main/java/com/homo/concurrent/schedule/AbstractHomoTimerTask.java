@@ -2,6 +2,7 @@ package com.homo.concurrent.schedule;
 
 import brave.Span;
 import brave.Tracer;
+import com.homo.concurrent.event.BaseEvent;
 import com.homo.concurrent.event.Event;
 import com.homo.concurrent.queue.CallQueue;
 import com.homo.concurrent.queue.CallQueueMgr;
@@ -42,13 +43,16 @@ public abstract class AbstractHomoTimerTask implements Runnable {
         }
     }
 
-
-
     public abstract void doRun();
 
     protected void addEvent(Event event){
+
         Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("timer").tag("CallQueue", String.valueOf(callQueue.getId()));
         try(Tracer.SpanInScope scope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)){
+            if (event instanceof BaseEvent){
+                BaseEvent baseEvent = (BaseEvent) event;
+                baseEvent.setTraceInfo(span);
+            }
             callQueue.addEvent(event);
         }catch (Exception e){
             span.error(e);

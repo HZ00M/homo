@@ -40,7 +40,7 @@ public class HomoTimerMgr<T extends Task> {
         if (timer==null){
             synchronized (HomoTimerMgr.class){
                 if (timer==null){
-                    timer = Executors.newScheduledThreadPool(4, ThreadPoolFactory.newThreadFactory("HomoTimeMgr-Thread"));
+                    timer = Executors.newScheduledThreadPool(4, ThreadPoolFactory.newThreadFactory("timerPool"));
                 }
             }
         }
@@ -50,6 +50,7 @@ public class HomoTimerMgr<T extends Task> {
 
     private void schedule(HomoTimerTask<T> timerTask, long date, long period){
         try {
+
             ScheduledFuture<?> future = getTimer().scheduleAtFixedRate(timerTask, date, period, TimeUnit.SECONDS);
             timerTask.future = future;
         }catch (IllegalStateException cancelled){
@@ -71,9 +72,9 @@ public class HomoTimerMgr<T extends Task> {
         return homoTimerTask;
     }
 
-    public HomoTimerTask<T> once(T taskFun,long delay,Object ...objects){
+    public HomoTimerTask<T> once(T taskFun, long delaySecond, Object ...objects){
         HomoTimerTask<T> homoTimerTask = new HomoTimerTask<T>(taskFun,1,objects);
-        schedule(homoTimerTask,delay,1);
+        schedule(homoTimerTask, delaySecond,1);
         return homoTimerTask;
     }
 
@@ -89,9 +90,9 @@ public class HomoTimerMgr<T extends Task> {
         return homoTimerTask;
     }
 
-    public HomoTimerTask<T> schedule(T taskFun,long delay,long period,int runTimes,Object ...objects)  {
+    public HomoTimerTask<T> schedule(T taskFun, long delaySecond, long period, int runTimes, Object ...objects)  {
         HomoTimerTask<T> homoTimerTask = new HomoTimerTask<T>(taskFun, runTimes,objects);
-        schedule(homoTimerTask,delay,period);
+        schedule(homoTimerTask, delaySecond,period);
         return homoTimerTask;
     }
 

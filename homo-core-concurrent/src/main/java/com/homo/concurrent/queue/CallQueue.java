@@ -10,7 +10,6 @@ import lombok.extern.log4j.Log4j2;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
-;
 
 @Log4j2
 public class CallQueue {
@@ -44,11 +43,11 @@ public class CallQueue {
         }
         if (ZipkinUtil.getTracing() != null && e instanceof BaseEvent) {
             BaseEvent event = (BaseEvent) e;
-            Span span = event.getSpan() != null ? event.getSpan() : ZipkinUtil.getTracing().tracer().currentSpan();
-            event.setSpan(span);
+            Span span = event.getTraceInfo() != null ? event.getTraceInfo() : ZipkinUtil.getTracing().tracer().currentSpan();
+            event.setTraceInfo(span);
             event.annotate("add-event");
-            event.spanTag("RunningEvent", event.getClass().getSimpleName());
-            event.spanTag("waitingTaskNum",String.valueOf( waitingEventNum));
+            event.getTraceInfo().tag("RunningEvent", event.getClass().getSimpleName());
+            event.getTraceInfo().tag("waitingTaskNum",String.valueOf( waitingEventNum));
             eventQueue.add(event);
         }else {
             eventQueue.add(e);
@@ -58,6 +57,7 @@ public class CallQueue {
     public void start(CallQueueMgr callQueueMgr){
         log.info("CallQueue[{}] start!",id);
         callQueueMgr.executorService.submit(()->{
+            //线程运行时，将当前线程的queue设置到threadLocal上
             callQueueMgr.setLocalQueue(this);
             running = true;
             while (!isShutDown){

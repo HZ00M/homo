@@ -4,14 +4,16 @@ import brave.Span;
 import com.homo.concurrent.event.AbstractBaseEvent;
 import com.homo.concurrent.queue.CallQueueProducer;
 import com.homo.core.facade.excption.HomoError;
+import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
+import com.homo.core.utils.trace.TraceAble;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
-
+public class CallEvent extends AbstractBaseEvent implements CallQueueProducer,TraceAble<Span> {
+    private Span span;
     private CallData callData;
     private final HomoSink sink;
 
@@ -41,7 +43,9 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
                 })
                 .consumerValue(ret->{
                     log.debug("CallEvent consumerValue method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start,  handlerClazz, methodName);
-                    sink.success(ret);
+                    Object[] resParam = new Object[]{ret};
+                    byte[][] bytes = callData.getMethodDispatchInfo().serializeReturn(resParam);
+                    sink.success(bytes);
                 })
                 .catchError(throwable -> {
                     log.debug("CallEvent catchError method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start,  handlerClazz, methodName);
@@ -60,5 +64,15 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
     @Override
     public Integer getQueueId() {
         return callData.getQueueId();
+    }
+
+    @Override
+    public void setTraceInfo(Span span) {
+        this.span = span;
+    }
+
+    @Override
+    public Span getTraceInfo() {
+        return span;
     }
 }

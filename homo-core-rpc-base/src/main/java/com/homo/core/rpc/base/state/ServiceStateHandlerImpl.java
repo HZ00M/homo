@@ -5,6 +5,7 @@ import com.homo.concurrent.schedule.HomoTimerMgr;
 import com.homo.concurrent.schedule.TaskFun0;
 import com.homo.core.common.module.Module;
 import com.homo.core.configurable.rpc.ServerStateProperties;
+import com.homo.core.facade.excption.HomoError;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.utils.rector.Homo;
@@ -72,13 +73,13 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, TaskFun0 , 
             return;
         }
         for (String serviceName : goodServiceMap.keySet()) {
-            updateService(serviceName);
+            updateService(serviceName).start();
         }
     }
 
-    private void updateService(String serviceName) {
-        stateMgr.getServiceAllStateInfo(serviceName)
-                .consumerValue(map -> {
+    private Homo<Boolean> updateService(String serviceName) {
+        return stateMgr.geAllStateInfo(serviceName)
+                .nextDo(map -> {
                     if (map == null || map.size() == 0) {
                         goodServiceMap.put(serviceName, new ArrayList<>());
                     } else {
@@ -101,7 +102,12 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, TaskFun0 , 
                         List<Integer> aliveServices = stateList.stream().map(Map.Entry::getKey).collect(Collectors.toList());
                         availableServiceMap.put(serviceName, aliveServices);
                     }
-                }).start();
+                    return Homo.result(true);
+                })
+                .errorContinue(throwable -> {
+                    log.error("updateService error ",throwable);
+                    return Homo.result(false);
+                });
     }
 
 
@@ -132,12 +138,25 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, TaskFun0 , 
 
     @Override
     public Homo<Integer> choiceBestPod(String serviceName) {
-        return Homo.result(choiceFun.apply(serviceName, goodServiceMap.get(serviceName)));
+        if (goodServiceMap.get(serviceName)==null){
+            //从来没有获取过,去storage获取
+            return updateService(serviceName)
+                    .nextDo(ret->{
+                        if (ret){
+                            return Homo.result(choiceFun.apply(serviceName, goodServiceMap.get(serviceName)));
+                        }else {
+                            return Homo.error(HomoError.throwError(HomoError.choicePodNotFound,serviceName));
+                        }
+                    });
+        }else {
+            return Homo.result(choiceFun.apply(serviceName, goodServiceMap.get(serviceName)));
+        }
+
     }
 
     @Override
     public Homo<Map<Integer, Integer>> getServiceAllStateInfo(String serviceName) {
-        return stateMgr.getServiceAllStateInfo(serviceName);
+        return stateMgr.geAllStateInfo(serviceName);
     }
 
     public void setChoiceFun(BiFunction<String, List<Integer>, Integer> choiceFun) {

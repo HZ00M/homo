@@ -9,9 +9,9 @@ import io.homo.proto.rpc.test.TestServerRequest;
 import io.homo.proto.rpc.test.TestServerResponse;
 import reactor.util.function.Tuple2;
 
-@ServiceExport(tagName = "rpc-server-stateless:30012",isMainServer = false,isStateful = false,driverType = RpcType.grpc)
+@ServiceExport(tagName = "rpc-server:30011",isMainServer = true,isStateful = true,driverType = RpcType.grpc)
 @RpcHandler
-public interface RpcServiceFacade {
+public interface RpcStatefulServiceFacade {
     Homo<String> jsonCall(Integer podId, ParameterMsg parameterMsg,String jsonStr);
 
     Homo<Integer> objCall(Integer podId, ParameterMsg parameterMsg,TestObjParam testObjParam);

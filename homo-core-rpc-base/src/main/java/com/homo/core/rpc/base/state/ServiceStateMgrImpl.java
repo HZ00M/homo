@@ -25,7 +25,7 @@ import java.util.function.Supplier;
  * 管理服务器状态实现类
  */
 @Slf4j
-public class ServiceStateMgrImpl implements ServiceStateMgr, Module {
+public class ServiceStateMgrImpl implements ServiceStateMgr {
     @Autowired(required = false)
     private ServerStateProperties serverStateProperties;
     @Autowired(required = false)
@@ -50,7 +50,8 @@ public class ServiceStateMgrImpl implements ServiceStateMgr, Module {
     private  Supplier<Integer> loadFun = new Supplier<Integer>() {
         @Override
         public Integer get() {
-            return new Float(serverStateProperties.getCpuFactor() * CallQueueMgr.getInstance().getAllWaitCount()+(1-serverStateProperties.getCpuFactor()*load)).intValue();
+            Float floatValue = new Float(serverStateProperties.getCpuFactor() * CallQueueMgr.getInstance().getAllWaitCount() + (1 - serverStateProperties.getCpuFactor() * load));
+            return floatValue.intValue();
         }
     };
 
@@ -75,7 +76,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr, Module {
         this.loadFun = loadFun;
     }
 
-    private void scheduleUpdate() {
+    private void scheduleUpdate() {//todo 服务端没有更新
         CallQueueMgr.getInstance().frameTask(new Runnable() {
             @Override
             public void run() {
@@ -88,14 +89,14 @@ public class ServiceStateMgrImpl implements ServiceStateMgr, Module {
                                     serverStateProperties.getServiceStateExpireSeconds(), lastUpdateStateTime,currentTime);
                         }
                         lastUpdateStateTime =currentTime;
-                        String serviceName = serviceMgr.getMainService().getServiceName();
+                        String serviceName = serviceMgr.getMainService().getTagName();
                         int weightLoad = loadFun.get();
                         String appId = rootModule.getServerInfo().appId;
                         String regionId = rootModule.getServerInfo().namespace;
                         statefulDriver.setServiceState(appId,regionId,stateLogicType,serviceName,podIndex,weightLoad)
                                 .consumerValue(ret->{
                                     if(ret) {
-                                        log.trace("set service state success, service_{}, load_{} weightLoad_{}", serviceName, load,weightLoad);
+                                        log.info("set service state success, service_{}, load_{} weightLoad_{}", serviceName, load,weightLoad);
                                     } else {
                                         log.error("set service state fail, service_{}, load_{} weightLoad_{}",serviceName, load,weightLoad);
                                     }
@@ -106,7 +107,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr, Module {
                                 })
                                 .start();
                     }
-                },1000,serverStateProperties.getServiceStateUpdatePeriodSeconds(),HomoTimerMgr.UNLESS_TIMES);
+                },10,serverStateProperties.getServiceStateUpdatePeriodSeconds(),HomoTimerMgr.UNLESS_TIMES);
             }
         });
     }
@@ -135,7 +136,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr, Module {
             podIndex = Integer.parseInt(nameArray[nameArray.length - 1]);
         }
         if (podIndex == null) {
-            log.error("cant get pod index frome podName! please check the POD_NAME env variable!");
+            log.error("can't get pod index from podName! please check the POD_NAME env variable!");
         }
     }
 
@@ -180,7 +181,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr, Module {
         }else {
             expireSecond = serverStateProperties.getRemoteUserServicePodCacheSecond();
         }
-        return statefulDriver.setLinkedPod(appId,regionId,logicType,uid,serviceName,podIndex,expireSecond);
+        return statefulDriver.setLinkedPodIfAbsent(appId,regionId,logicType,uid,serviceName,podIndex,expireSecond);
     }
 
     @Override
@@ -286,11 +287,12 @@ public class ServiceStateMgrImpl implements ServiceStateMgr, Module {
 
 
     @Override
-    public Homo<Map<Integer, Integer>> getServiceAllStateInfo(String serviceName) {
+    public Homo<Map<Integer, Integer>> geAllStateInfo(String serviceName) {
         String appId = rootModule.getServerInfo().appId;
         String regionId = rootModule.getServerInfo().namespace;
         String logicType = stateLogicType;
-        return statefulDriver.getServiceState(appId,regionId,logicType,serviceName,System.currentTimeMillis()-serverStateProperties.getServiceStateExpireSeconds()*1000)
+        long beginTimeMillis = System.currentTimeMillis()-serverStateProperties.getServiceStateExpireSeconds()*1000;
+        return statefulDriver.getServiceState(appId,regionId,logicType,serviceName,beginTimeMillis)
                 .consumerValue(ret->{
                     log.trace("getServiceAllStateInfo serviceName {}  ret {}",serviceName,ret);
                 });

@@ -11,7 +11,6 @@ import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Component;
 
 /**
  * 提供获取服务器信息及服务调用的基本能力
@@ -19,13 +18,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class BaseService implements Service {
     protected ServiceMgr serviceMgr;
-    private String serviceName;
+    private String tagName;
     private int port;
     private String hostName;
     private RpcType driverType;
     private boolean stateful;
     private CallDispatcher callDispatcher;
-    private RpcHandleInfo rpcHandleInfo;
+    private RpcHandlerInfoForServer rpcHandleInfo;
     private ServiceStateHandler serviceStateHandler;
 
     public void init(ServiceMgr serviceMgr, ServiceStateHandler serviceStateHandler){
@@ -33,23 +32,23 @@ public class BaseService implements Service {
         this.serviceMgr = serviceMgr;
         this.serviceStateHandler = serviceStateHandler;
         ServiceExport serviceExport = getServiceExport();
-        serviceName = serviceExport.tagName();
-        String[] split = serviceName.split(":");
+        tagName = serviceExport.tagName();
+        String[] split = tagName.split(":");
         hostName = split[0];
         port = Integer.parseInt(split[1]);
         driverType = serviceExport.driverType();
         stateful = serviceExport.isStateful();
 
-        serviceStateHandler.setServiceNameTag(serviceName,serviceName);//todo 还没有实现
+        serviceStateHandler.setServiceNameTag(tagName, tagName);//todo 还没有实现
         rpcHandleInfo = new RpcHandlerInfoForServer(this.getClass());
-        callDispatcher = new CallDispatcher(serviceName,this,rpcHandleInfo);
+        callDispatcher = new CallDispatcher(tagName,this,rpcHandleInfo);
         postInit();
     }
 
 
     @Override
-    public String getServiceName() {
-        return serviceName;
+    public String getTagName() {
+        return tagName;
     }
 
     @Override
@@ -94,6 +93,11 @@ public class BaseService implements Service {
 
     public ServiceExport getServiceExport(){
         return AnnotationUtils.findAnnotation(getClass(),ServiceExport.class);
+    }
+
+    @Override
+    public boolean isLocalService() {
+        return true;
     }
 
     /**
