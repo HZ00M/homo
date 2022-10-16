@@ -1,5 +1,6 @@
 package com.homo.core.rpc.server.facade;
 
+import com.alibaba.fastjson.JSONObject;
 import com.homo.core.facade.rpc.RpcHandler;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.service.ServiceExport;
@@ -12,7 +13,7 @@ import reactor.util.function.Tuple2;
 @ServiceExport(tagName = "rpc-server:30011",isMainServer = true,isStateful = true,driverType = RpcType.grpc)
 @RpcHandler
 public interface RpcStatefulServiceFacade {
-    Homo<String> jsonCall(Integer podId, ParameterMsg parameterMsg,String jsonStr);
+    Homo<JSONObject> jsonCall(Integer podId, ParameterMsg parameterMsg, JSONObject jsonStr);
 
     Homo<Integer> objCall(Integer podId, ParameterMsg parameterMsg,TestObjParam testObjParam);
 

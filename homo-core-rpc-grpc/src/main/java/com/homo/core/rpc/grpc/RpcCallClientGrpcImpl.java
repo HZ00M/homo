@@ -7,6 +7,7 @@ import com.homo.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.configurable.rpc.RpcClientProperties;
 import com.homo.core.facade.excption.HomoError;
 import com.homo.core.facade.rpc.RpcClient;
+import com.homo.core.facade.serial.RpcContentType;
 import com.homo.core.rpc.base.serial.TraceRpcContent;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.rector.Homo;
@@ -222,7 +223,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                     @Override
                     public void onCompleted() {
                         log.trace("asyncBytesCall onCompleted, serviceName {} msgId {}", host, msgId);
-                        sink.success(Tuples.of(msgId, new TraceRpcContent<>(results, span)));
+                        sink.success(Tuples.of(msgId, new TraceRpcContent<>(results, RpcContentType.BYTES, span)));
                         releaseChannel(callChannel);
                     }
                 };
@@ -261,7 +262,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                     log.info("asyncBytesStreamCall reply msgId {} contentSize {} ReqId {}", msgId, reply.getMsgContentCount(), reply.getReqId());
                     log.info("requestContextMap remove sink timeout reqId {}",reply.getReqId());
                     requestContextMap.remove(reply.getReqId());
-                    sink.success(Tuples.of(msgId, new TraceRpcContent(results,span)));
+                    sink.success(Tuples.of(msgId, new TraceRpcContent(results, RpcContentType.BYTES,span)));
                 }
             }
 
@@ -323,13 +324,16 @@ public class RpcCallClientGrpcImpl implements RpcClient {
             @Override
             public void accept(HomoSink<Tuple2<String, TraceRpcContent>> sink) throws Exception {
                 StreamObserver<JsonRes> observer = new StreamObserver<JsonRes>() {
-                    private String results;
+                    private byte[][] results;
                     private String msgId;
 
                     @Override
                     public void onNext(JsonRes reply) {
                         log.trace("asyncJsonCall onError, serviceName {} msgId {}", host, msgId);
-                        results = reply.getMsgContent();
+                        results = new byte[reply.getMsgContentCount()][];
+                        for (int i = 0; i < reply.getMsgContentCount(); i++) {
+                            results[i] = reply.getMsgContent(i).toByteArray();
+                        }
                         msgId = reply.getMsgId();
                     }
 
@@ -343,7 +347,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                     @Override
                     public void onCompleted() {
                         log.trace("asyncJsonCall onCompleted, serviceName {} msgId {}", host, msgId);
-                        sink.success(Tuples.of(msgId, new TraceRpcContent(results,span)));
+                        sink.success(Tuples.of(msgId, new TraceRpcContent(results, RpcContentType.JSON,span)));
                         releaseChannel(channel);
                     }
                 };

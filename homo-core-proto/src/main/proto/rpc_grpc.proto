@@ -26,12 +26,12 @@ message Res{
 message JsonReq{
   string srcService = 1;
   string msgId = 2;
-  string msgContent = 3;
+  repeated bytes msgContent = 3;
 }
 
 message JsonRes{
   string msgId = 1;
-  string msgContent = 2;
+  repeated bytes msgContent = 2;
 }
 
 message StreamReq{

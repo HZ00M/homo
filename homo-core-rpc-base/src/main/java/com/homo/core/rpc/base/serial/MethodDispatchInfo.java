@@ -1,5 +1,6 @@
 package com.homo.core.rpc.base.serial;
 
+import com.alibaba.fastjson.JSONObject;
 import com.homo.core.facade.security.RpcSecurity;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.facade.serial.RpcContentType;
@@ -56,7 +57,7 @@ public class MethodDispatchInfo implements RpcSecurity {
                 HomoSerializationProcessor serializationProcessor = null;
                 if (com.google.protobuf.GeneratedMessageV3.class.isAssignableFrom(clazz)) {
                     serializationProcessor = new ProtoSerializationProcessor();
-                } else if (rpcContentType.equals(RpcContentType.JSON)) {
+                } else if (JSONObject.class.isAssignableFrom(clazz)) {
                     serializationProcessor = new JacksonSerializationProcessor();
                 } else {
                     serializationProcessor = new FSTSerializationProcessor();
@@ -118,12 +119,16 @@ public class MethodDispatchInfo implements RpcSecurity {
         if (paramSerializeInfos == null || paramSerializeInfos.length <= 0) {
             return new TraceRpcContent();
         }
+        RpcContentType type = RpcContentType.BYTES;
         byte[][] byteParams = new byte[paramSerializeInfos.length][];
         for (int i = 0; i < paramSerializeInfos.length; i++) {
             Object obj = params[i];
             byteParams[i] = paramSerializeInfos[i].processor.writeByte(obj);
+            if (obj instanceof JSONObject){
+                type = RpcContentType.JSON;
+            }
         }
-        return new TraceRpcContent(byteParams,null);
+        return new TraceRpcContent(byteParams,type,null);
     }
 
 

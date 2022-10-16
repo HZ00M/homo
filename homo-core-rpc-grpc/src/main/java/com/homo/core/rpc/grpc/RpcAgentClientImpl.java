@@ -59,7 +59,7 @@ public class RpcAgentClientImpl implements RpcAgentClient<TraceRpcContent> {
                     return asyncBytesCall(funName, data);
                 }
             } else if (param.getType().equals(RpcContentType.JSON)) {
-                String data = (String) param.getData();
+                byte[][] data = (byte[][]) param.getData();
                 return asyncJsonCall(funName, data);
             } else {
                 log.error("asyncCall contentType unknown, targetServiceName {} funName {} contentType_{}", targetServiceName, funName, param.getType());
@@ -111,13 +111,16 @@ public class RpcAgentClientImpl implements RpcAgentClient<TraceRpcContent> {
         return rpcClient.asyncBytesStreamCall(reqId,streamReqWithReqId);
     }
 
-    private <RETURN> Homo<RETURN> asyncJsonCall(String funName, String data) {
+    private <RETURN> Homo<RETURN> asyncJsonCall(String funName, byte[][] data) {
         JsonReq.Builder builder = JsonReq.newBuilder()
                 .setSrcService(srcServiceName)
                 .setMsgId(funName);
-        if (!StringUtils.isEmpty(data)){
-            builder.setMsgContent(data);
+        if (data != null) {
+            for (byte[] datum : data) {
+                builder.addMsgContent(ByteString.copyFrom(datum));
+            }
         }
+
         JsonReq jsonReq = builder.build();
         return rpcClient.asyncJsonCall(jsonReq);
     }

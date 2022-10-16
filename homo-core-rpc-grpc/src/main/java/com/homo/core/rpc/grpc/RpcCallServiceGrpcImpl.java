@@ -3,6 +3,7 @@ package com.homo.core.rpc.grpc;
 import brave.Span;
 import com.google.protobuf.ByteString;
 import com.homo.core.facade.rpc.RpcServer;
+import com.homo.core.facade.serial.RpcContentType;
 import com.homo.core.rpc.base.serial.TraceRpcContent;
 import com.homo.core.rpc.grpc.proccessor.CallErrorProcessor;
 import com.homo.core.rpc.grpc.proccessor.JsonCallErrorProcessor;
@@ -12,6 +13,8 @@ import io.grpc.stub.StreamObserver;
 import io.homo.proto.rpc.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 @Slf4j
 public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImplBase {
@@ -90,10 +93,15 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
         }
     }
 
-    private void processJsonResult(StreamObserver<JsonRes> responseObserver, JsonReq req, String ret) {
-        JsonRes.Builder builder = JsonRes.newBuilder();
-        if (!StringUtils.isEmpty(ret)) {
-            builder.setMsgContent(ret);
+    private void processJsonResult(StreamObserver<JsonRes> responseObserver, JsonReq req,  byte[][] resData) {
+        JsonRes.Builder builder = JsonRes.newBuilder().setMsgId(req.getMsgId());
+        if (resData != null) {
+            for (byte[] resDatum : resData) {
+                if (resDatum == null) {
+                    break;
+                }
+                builder.addMsgContent(ByteString.copyFrom(resDatum));
+            }
         }
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
@@ -124,7 +132,7 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
             params[i] = req.getMsgContent(i).toByteArray();
         }
         try {
-            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new TraceRpcContent<>(params, span))
+            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new TraceRpcContent<>(params, RpcContentType.BYTES, span))
                     .consumerValue(ret -> {
                         processMsgResult(responseObserver, req,  ret);
                     })
@@ -148,7 +156,7 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
                     for (int i = 0; i < req.getMsgContentCount(); i++) {
                         params[i] = req.getMsgContent(i).toByteArray();
                     }
-                    rpcServer.onCall(req.getSrcService(), req.getMsgId(),new TraceRpcContent<>(params,span))
+                    rpcServer.onCall(req.getSrcService(), req.getMsgId(),new TraceRpcContent<>(params, RpcContentType.BYTES,span))
                             .consumerValue(ret -> {
                                 processStreamResult(responseObserver, req,  ret);
                             })
@@ -176,12 +184,16 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
 
     @Override
     public void jsonCall(JsonReq req, StreamObserver<JsonRes> responseObserver) {
-        String param = req.getMsgContent();
+        byte[][] params = new byte[req.getMsgContentCount()][];
+        for (int i = 0; i < req.getMsgContentCount(); i++) {
+            params[i] = req.getMsgContent(i).toByteArray();
+        }
+
         Span span = ZipkinUtil.currentSpan();
         try {
-            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new TraceRpcContent<>(param,span))
+            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new TraceRpcContent<>(params, RpcContentType.BYTES,span))
                     .consumerValue(ret -> {
-                        processJsonResult(responseObserver, req, (String) ret);
+                        processJsonResult(responseObserver, req, ret);
                     })
                     .catchError(e -> {
                         processJsonError(responseObserver, req, e);

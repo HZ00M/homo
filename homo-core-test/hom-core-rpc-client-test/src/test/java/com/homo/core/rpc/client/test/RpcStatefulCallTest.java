@@ -21,7 +21,7 @@ import reactor.test.StepVerifier;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 //@RunWith(SpringJUnit4ClassRunner.class)
 public class RpcStatefulCallTest {
-    @Autowired
+    @Autowired(required = false)
     RpcStatefulServiceFacade rpcService;
 
     @Test
@@ -47,28 +47,22 @@ public class RpcStatefulCallTest {
     @Test
     public void testObjCall() throws InterruptedException {
         TestObjParam testObjParam = new TestObjParam();
-        StepVerifier.create(rpcService.objCall(0, ParameterMsg.newBuilder().build(),testObjParam)
+        rpcService.objCall(0, ParameterMsg.newBuilder().build(),testObjParam)
                 .consumerValue(ret->{
                     log.info("objCall ret {}",ret);
-                })
-        )
+                }).start();
 
-                .expectNext()
-                .verifyComplete();
         Thread.currentThread().join();
     }
 
     @Test
     public void testJsonCall() throws InterruptedException {
-        TestObjParam testObjParam = new TestObjParam();
-        String jsonString = JSONObject.toJSONString(testObjParam);
-        StepVerifier.create(rpcService.jsonCall(0, ParameterMsg.newBuilder().build(),jsonString)
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("1","1");
+        rpcService.jsonCall(0, ParameterMsg.newBuilder().build(),jsonObject)
                 .consumerValue(ret->{
                     log.info("jsonCall ret {}",ret);
-                })
-        )
-                .expectNext()
-                .verifyComplete();
+                }).start();
         Thread.currentThread().join();
     }
 }

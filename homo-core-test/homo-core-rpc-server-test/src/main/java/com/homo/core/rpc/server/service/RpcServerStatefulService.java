@@ -18,9 +18,10 @@ import reactor.util.function.Tuples;
 public class RpcServerStatefulService extends BaseService implements RpcStatefulServiceFacade {
 
     @Override
-    public Homo<String> jsonCall(Integer podId, ParameterMsg parameterMsg,String jsonStr) {
-        TestObjParam testObjParam = new TestObjParam();
-        return Homo.result(JSONObject.toJSONString(testObjParam));
+    public Homo<JSONObject> jsonCall(Integer podId, ParameterMsg parameterMsg,JSONObject jsonStr) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("2","2");
+        return Homo.result(jsonObject);
     }
 
     @Override

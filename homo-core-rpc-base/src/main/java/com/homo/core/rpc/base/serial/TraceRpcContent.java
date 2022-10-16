@@ -14,11 +14,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TraceRpcContent<T> implements RpcContent<T>, TraceAble<Span> {
     T data;
+    RpcContentType type;
     Span span;
+
 
     @Override
     public RpcContentType getType() {
-        return RpcContentType.BYTES;
+        return type;
     }
 
     @Override
@@ -39,5 +41,9 @@ public class TraceRpcContent<T> implements RpcContent<T>, TraceAble<Span> {
     @Override
     public Span getTraceInfo() {
         return span;
+    }
+
+    public void setType(RpcContentType type) {
+        this.type = type;
     }
 }
