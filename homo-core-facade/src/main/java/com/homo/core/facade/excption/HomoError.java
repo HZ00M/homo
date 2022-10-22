@@ -10,9 +10,9 @@ public enum HomoError {
     remoteError(103,"msgId %s error" ),
     hostNotFound(104,"tagName  %s hostNotFound" ),
     rpcTimeOutException(105, "asyncBytesStreamCall time out"),
-
     choicePodNotFound(106,"tagName %s choice pod not found" ),
-    ;
+    httpMaxByteError(107, "bytesLength > bytesLimit size %s limit %s"),
+    rpcAgentTypeNotSupport(108, "RpcAgent no support rpcType %s tagName %s");
     private int code;
     private String message;
 

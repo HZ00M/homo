@@ -10,6 +10,7 @@ import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +26,7 @@ public class ServiceMgr implements ServiceModule {
      private Set<Service> services = new HashSet<>();
      private Map<String,Service> localServiceMap = new HashMap<>();
      @Autowired(required = false)
+     @Lazy
      private ServiceStateMgr serviceStateMgr;
      @Autowired(required = false)
      private ServiceStateHandler serviceStateHandler;
@@ -42,12 +44,13 @@ public class ServiceMgr implements ServiceModule {
                     getServerInfo().setServerName(serviceExport.tagName());
                     mainService = service;
                 }
-
             }
             if (service instanceof BaseService){
                 log.info("service {} init start",service.getTagName());
                 ((BaseService)service).init(this, serviceStateHandler);
                 localServiceMap.put(service.getTagName(),service);
+            }else {
+                log.error("service must extend BaseService yet");
             }
 
         });

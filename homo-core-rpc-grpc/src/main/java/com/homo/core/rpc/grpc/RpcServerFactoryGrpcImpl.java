@@ -1,9 +1,7 @@
 package com.homo.core.rpc.grpc;
 
 import com.homo.concurrent.thread.ThreadPoolFactory;
-import com.homo.core.common.module.DriverModule;
-import com.homo.core.common.module.Module;
-import com.homo.core.configurable.rpc.RpcServerProperties;
+import com.homo.core.configurable.rpc.RpcGrpcServerProperties;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.facade.rpc.RpcServerFactory;
 import com.homo.core.facade.rpc.RpcType;
@@ -33,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class RpcServerFactoryGrpcImpl implements RpcServerFactory {
 
     @Autowired(required = false)
-    private RpcServerProperties rpcServerProperties;
+    private RpcGrpcServerProperties rpcGrpcServerProperties;
 
     private Executor executor ;
     private EventLoopGroup bossGroup ;
@@ -41,9 +39,9 @@ public class RpcServerFactoryGrpcImpl implements RpcServerFactory {
 
     @Override
     public void init(){
-        executor =  ThreadPoolFactory.newThreadPool("RpcServer", rpcServerProperties.getCorePoolSize(), rpcServerProperties.getKeepLive());
-        bossGroup = new NioEventLoopGroup(rpcServerProperties.getBoosThreadSize(), executor);
-        workerGroup = new NioEventLoopGroup(rpcServerProperties.getWorkerThreadSize(), executor);
+        executor =  ThreadPoolFactory.newThreadPool("RpcServer", rpcGrpcServerProperties.getCorePoolSize(), rpcGrpcServerProperties.getKeepLive());
+        bossGroup = new NioEventLoopGroup(rpcGrpcServerProperties.getBoosThreadSize(), executor);
+        workerGroup = new NioEventLoopGroup(rpcGrpcServerProperties.getWorkerThreadSize(), executor);
     }
 
     @Autowired(required = false)
@@ -67,8 +65,8 @@ public class RpcServerFactoryGrpcImpl implements RpcServerFactory {
                             .workerEventLoopGroup(workerGroup)
                             .channelType(NioServerSocketChannel.class)
                             .directExecutor()
-                            .maxInboundMessageSize(rpcServerProperties.getMaxInboundMessageSize())
-                            .permitKeepAliveTime(rpcServerProperties.getPermitKeepAliveTime(), TimeUnit.MILLISECONDS)
+                            .maxInboundMessageSize(rpcGrpcServerProperties.getMaxInboundMessageSize())
+                            .permitKeepAliveTime(rpcGrpcServerProperties.getPermitKeepAliveTime(), TimeUnit.MILLISECONDS)
                             .permitKeepAliveWithoutCalls(true)
                             .intercept(new SpanInterceptor())// 顺序不能反，先添加的拦截器会后执行，需要先添加trace信息才能处理span
                             .intercept(ZipkinUtil.serverInterceptor())

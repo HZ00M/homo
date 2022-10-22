@@ -9,4 +9,8 @@ public enum RpcContentType {
      * json数据
      */
     JSON,
+    /**
+     * 文件
+     */
+    FILE,
 }

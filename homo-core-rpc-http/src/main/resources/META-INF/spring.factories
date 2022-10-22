@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.homo.core.rpc.http.config.HttpServerAutoConfiguration,\
+    com.homo.core.rpc.http.mapping.DeFaultHttpMapping
+

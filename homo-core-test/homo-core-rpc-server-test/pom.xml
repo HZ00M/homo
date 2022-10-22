@@ -29,5 +29,9 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-grpc</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-http</artifactId>
+        </dependency>
     </dependencies>
 </project>

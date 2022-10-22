@@ -1,5 +1,6 @@
 package com.homo.core.rpc.base.serial;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.homo.core.facade.security.RpcSecurity;
 import com.homo.core.facade.serial.RpcContent;
@@ -57,7 +58,7 @@ public class MethodDispatchInfo implements RpcSecurity {
                 HomoSerializationProcessor serializationProcessor = null;
                 if (com.google.protobuf.GeneratedMessageV3.class.isAssignableFrom(clazz)) {
                     serializationProcessor = new ProtoSerializationProcessor();
-                } else if (JSONObject.class.isAssignableFrom(clazz)) {
+                } else if (JSONObject.class.isAssignableFrom(clazz)|| JSONArray.class.isAssignableFrom(clazz)) {
                     serializationProcessor = new JacksonSerializationProcessor();
                 } else {
                     serializationProcessor = new FSTSerializationProcessor();

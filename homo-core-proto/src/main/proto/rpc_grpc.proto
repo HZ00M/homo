@@ -54,3 +54,7 @@ message TraceInfo{
   int64  spanId = 2;
   bool sample = 3;
 }
+
+message HttpHeadInfo{
+  map<string,string> headers = 1;
+}

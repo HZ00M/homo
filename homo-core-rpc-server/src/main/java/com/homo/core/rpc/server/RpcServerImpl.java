@@ -55,7 +55,7 @@ public class RpcServerImpl implements RpcServer {
         }
         if (actualService == null) {
             log.warn("RpcServerImpl onCall service is null, funName_{}", funName);
-            return Homo.result((T) Tuples.of(DriverRpcBack.NO_FUNCTION, null));
+            return Homo.result(null);
 
         }
         return actualService.callFun(srcService, funName, param);

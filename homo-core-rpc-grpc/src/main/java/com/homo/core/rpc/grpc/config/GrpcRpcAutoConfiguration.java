@@ -1,7 +1,7 @@
 package com.homo.core.rpc.grpc.config;
 
-import com.homo.core.configurable.rpc.RpcClientProperties;
-import com.homo.core.configurable.rpc.RpcServerProperties;
+import com.homo.core.configurable.rpc.RpcGrpcClientProperties;
+import com.homo.core.configurable.rpc.RpcGrpcServerProperties;
 import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcServerFactory;
 import com.homo.core.rpc.grpc.RpcClientFactoryGrpcImpl;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @Log4j2
-@Import({RpcClientProperties.class, RpcServerProperties.class})
+@Import({RpcGrpcClientProperties.class, RpcGrpcServerProperties.class})
 public class GrpcRpcAutoConfiguration {
 
     @Bean("grpcRpcClientFactory")

@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Data
 @ToString
 @Configurable
-public class RpcClientProperties {
+public class RpcGrpcClientProperties {
     @Value("${homo.rpc.client.isDirector:true}")
     private boolean isDirector;
     @Value("${homo.rpc.client.checkDelaySecond:0}")

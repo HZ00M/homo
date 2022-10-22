@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>homo-core-test</artifactId>
+        <artifactId>homo-root</artifactId>
         <groupId>com.homo</groupId>
         <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>hom-core-rpc-client-test</artifactId>
+    <artifactId>homo-core-rpc-http</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -19,36 +19,31 @@
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-rpc-client</artifactId>
+            <artifactId>homo-core-concurrent</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-rpc-client-facade-test</artifactId>
+            <artifactId>homo-core-rpc-base</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-rpc-server-facade-test</artifactId>
+            <artifactId>homo-core-facade</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-rpc-grpc</artifactId>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-test</artifactId>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-test</artifactId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-rpc-http</artifactId>
-        </dependency>
-
+<!--        <dependency>-->
+<!--            <groupId>org.synchronoss.cloud</groupId>-->
+<!--            <artifactId>nio-multipart-parser</artifactId>-->
+<!--        </dependency>-->
     </dependencies>
 </project>

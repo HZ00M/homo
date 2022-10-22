@@ -2,11 +2,11 @@ package com.homo.core.rpc.client.proxy;
 
 import com.homo.core.facade.excption.HomoError;
 import com.homo.core.facade.excption.HomoException;
+import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
-import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.rpc.base.serial.TraceRpcContent;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.client.ExportHostName;
@@ -33,13 +33,16 @@ public class RpcProxy implements MethodInterceptor {
     private final RpcClientMgr rpcClientMgr;
     private final Class<?> interfaceType;
     private final String tagName;
+    private final RpcType rpcType;
     private final ServiceStateHandler serviceStateHandler;
     private final RpcHandlerInfoForClient rpcHandlerInfoForClient;
     private MultiFunA<String,Homo<String>> choiceHostFun = ExportHostName.STRATEGY0;
     public RpcProxy(RpcClientMgr rpcClientMgr, Class<?> interfaceType, ServiceStateHandler serviceStateHandler, ServiceMgr serviceMgr, ServiceStateMgr serviceStateMgr) throws Exception {
         this.rpcClientMgr = rpcClientMgr;
         this.interfaceType = interfaceType;
-        this.tagName = interfaceType.getAnnotation(ServiceExport.class).tagName();
+        ServiceExport serviceExport = interfaceType.getAnnotation(ServiceExport.class);
+        this.tagName = serviceExport.tagName();
+        this.rpcType = serviceExport.driverType();
         this.serviceStateHandler = serviceStateHandler;
         this.serviceMgr = serviceMgr;
         this.serviceStateMgr = serviceStateMgr;
@@ -73,10 +76,14 @@ public class RpcProxy implements MethodInterceptor {
                     if (!StringUtils.isEmpty(realHostName)){
                         RpcContent callContent = rpcHandlerInfoForClient.serializeParamForInvoke(methodName,objects);
                         return rpcClientMgr
-                                .getRpcAgentClient(tagName, realHostName)
+                                .getRpcAgentClient(tagName, realHostName,rpcType)
                                 .rpcCall(methodName, callContent)
                                 .nextDo(ret-> {
                                     return processReturn(methodName, (Tuple2<String, TraceRpcContent>) ret);
+                                })
+                                .catchError(throwable -> {
+                                    log.error("rpc client call throwable {}",throwable);
+                                    HomoError.throwError(HomoError.rpcAgentTypeNotSupport);
                                 })
                                 ;
                     }else {

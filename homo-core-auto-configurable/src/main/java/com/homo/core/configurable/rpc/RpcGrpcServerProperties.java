@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Data
 @ToString
 @Configurable
-public class RpcServerProperties {
+public class RpcGrpcServerProperties {
     @Value("${homo.rpc.server.grpc.thread.size:3}")
     private int corePoolSize;
     @Value("${homo.rpc.server.grpc.thread.keepLive:0}")

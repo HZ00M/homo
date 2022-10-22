@@ -4,7 +4,7 @@ import brave.Span;
 import com.homo.concurrent.schedule.HomoTimerMgr;
 import com.homo.concurrent.schedule.TaskFun0;
 import com.homo.concurrent.thread.ThreadPoolFactory;
-import com.homo.core.configurable.rpc.RpcClientProperties;
+import com.homo.core.configurable.rpc.RpcGrpcClientProperties;
 import com.homo.core.facade.excption.HomoError;
 import com.homo.core.facade.rpc.RpcClient;
 import com.homo.core.facade.serial.RpcContentType;
@@ -52,7 +52,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
     private final int channelKeepLiveTimeoutMills ;
     private StreamObserver<StreamReq> reqStreamObserver;
 
-    public RpcCallClientGrpcImpl(String host, int port, List<ClientInterceptor> clientInterceptorList, boolean isStateful, RpcClientProperties clientProperties) {
+    public RpcCallClientGrpcImpl(String host, int port, List<ClientInterceptor> clientInterceptorList, boolean isStateful, RpcGrpcClientProperties clientProperties) {
         this.host = host;
         this.servicePort = port;
         this.isStateful = isStateful;

@@ -24,6 +24,7 @@ public class RpcServerMgr implements Module {
     @Override
     public void init() {
         for (RpcServerFactory rpcServerFactory : rpcServerFactories) {
+            log.info("RpcServer support rpcServerFactory type {} ",rpcServerFactory.getType());
             this.rpcServerFactoryMap.put(rpcServerFactory.getType(), rpcServerFactory);
         }
         serviceMgr.getServices().forEach(service -> {

@@ -8,4 +8,6 @@ public interface RpcClientFactory<T> {
      * @return
      */
     RpcAgentClient<T> newAgent(String hostname, int port ,boolean isStateful);
+
+    RpcType getType();
 }

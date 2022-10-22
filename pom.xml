@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-parent</artifactId>
-        <version>2.3.12.RELEASE</version>
+        <version>2.7.2</version>
         <relativePath/>
     </parent>
 
@@ -33,6 +33,7 @@
         <module>homo-core-rpc-base</module>
         <module>homo-core-rpc-grpc</module>
         <module>homo-service-stateful-driver-redis</module>
+        <module>homo-core-rpc-http</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -270,7 +271,11 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
-
+            <dependency>
+                <artifactId>homo-core-rpc-http</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
 
 
 
