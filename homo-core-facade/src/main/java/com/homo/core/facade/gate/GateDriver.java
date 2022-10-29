@@ -1,43 +1,37 @@
 package com.homo.core.facade.gate;
 
-import com.homo.core.common.facade.Driver;
-import com.homo.core.utils.callback.CallBack;
+import com.homo.core.utils.rector.Homo;
 
 /**
- * tcp服务器驱动
+ * 网关驱动  提供双向连接的能力
  */
-public interface GateDriver extends Driver {
+public interface GateDriver<T> {
     /**
-     * 开启一个服务器
-     * @param gateServer
+     * 开启一个网关驱动
+     *
+     * @param gateServer 网关服务对象
      */
-    void startGateServer(GateServer gateServer);
+    void startGate(GateServer<T> gateServer);
 
     /**
-     * 关闭一个服务器
-     * @param gateServer
+     * 关闭一个网关驱动
      */
-    void closeGateServer(GateServer gateServer);
+    void closeGate() throws Exception;
 
     /**
-     * 关闭一个客户端
-     * @param gateClient
+     * 关闭一个网关客户端
+     *
+     * @param gateClient 网关客户端对象
      */
-    void closeGateClient(GateClient gateClient);
+    void closeGateClient(GateClient<T> gateClient);
 
     /**
      * 发送一条消息到客户端
-     * @param gateClient
-     * @param msgType
-     * @param msg
+     *
+     * @param gateClient 网关客户端对象
+     * @param msg        消息内容
      */
-    void sendToClient(GateClient gateClient,String msgType,byte[] msg);
+    Homo pong(GateClient<T> gateClient, T msg);
 
-    /**
-     * 消息内部寻址转发
-     * @param msgType
-     * @param msg
-     * @param callBack
-     */
-    void dispatcher(String msgType, byte[] msg, CallBack callBack);
+
 }

@@ -1,28 +1,9 @@
 package com.homo.core.facade.gate;
 
-
-import com.homo.core.utils.callback.CallBack2;
-
 /**
- * 客户端连接代理
- * 保持与客户端Channel连接
+ * 网关客户端对象  提供发送消息到指定服务器的能力
  */
-public interface GateClient {
-    /**
-     * 处理客户端消息
-     * @param msgType 消息类型
-     * @param data 消息数据
-     */
-    void onMsg(String msgType, byte[] data) throws Exception;
-
-    /**
-     * 处理客户端消息
-     * @param msgType 消息类型
-     * @param data 消息数据
-     * @param callBack 回调函数
-     * @throws Exception
-     */
-    void onCallMsg(String msgType, byte[] data, CallBack2 callBack) throws Exception;
+public interface GateClient<T> {
 
     /**
      * 连接打开回调函数
@@ -33,11 +14,19 @@ public interface GateClient {
      * 连接关闭回调函数
      * @param reason 关闭原因
      */
-    void opClose(String reason);
+    void onClose(String reason);
 
     /**
      * 获取GateServer实例指针（与GateServer双向绑定）
      * @return GateServer实例指针
      */
-    GateServer getGateServer();
+    GateServer<T> getGateServer();
+
+    /**
+     * 客户端发送消息
+     * @param data 消息
+     * @return
+     */
+    <T> void ping(String targetService, String funName,T data);
+
 }
