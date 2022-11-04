@@ -1,6 +1,6 @@
 package com.homo.core.facade.excption;
 
-public class HomoException extends Exception{
+public class HomoException extends RuntimeException{
     private int code;
     private String msg;
     public HomoException(int code,String msg){

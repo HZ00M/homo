@@ -9,9 +9,9 @@ import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.rpc.base.serial.RpcHandleInfo;
 import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
-@Slf4j
+@Log4j2
 public class CallDispatcher {
 
     private final String srcName;

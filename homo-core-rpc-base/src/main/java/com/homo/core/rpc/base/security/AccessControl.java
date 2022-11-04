@@ -1,14 +1,14 @@
 package com.homo.core.rpc.base.security;
 
 import com.homo.core.facade.security.RpcSecurity;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.lang.reflect.Method;
 
 /**
  * 接口调用权限控制器
  */
-@Slf4j
+@Log4j2
 public class AccessControl implements RpcSecurity {
     private AccessControl(Method method){
 

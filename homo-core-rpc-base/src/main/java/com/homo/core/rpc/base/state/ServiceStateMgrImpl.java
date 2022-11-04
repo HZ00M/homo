@@ -14,7 +14,7 @@ import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.facade.service.StatefulDriver;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 /**
  * 管理服务器状态实现类
  */
-@Slf4j
+@Log4j2
 public class ServiceStateMgrImpl implements ServiceStateMgr {
     @Autowired(required = false)
     private ServerStateProperties serverStateProperties;

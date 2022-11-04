@@ -9,7 +9,7 @@ import com.homo.core.facade.excption.HomoError;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * 缓存服务器状态信息
  */
-@Slf4j
+@Log4j2
 public class ServiceStateHandlerImpl implements ServiceStateHandler, TaskFun0 , Module {
     private Map<String, List<Integer>> goodServiceMap = new ConcurrentHashMap<>();
     private Map<String, List<Integer>> availableServiceMap = new ConcurrentHashMap<>();

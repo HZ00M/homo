@@ -9,13 +9,13 @@ import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.rpc.base.serial.RpcHandleInfo;
 import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.core.annotation.AnnotationUtils;
 
 /**
  * 提供获取服务器信息及服务调用的基本能力
  */
-@Slf4j
+@Log4j2
 public class BaseService implements Service {
     protected ServiceMgr serviceMgr;
     private String tagName;

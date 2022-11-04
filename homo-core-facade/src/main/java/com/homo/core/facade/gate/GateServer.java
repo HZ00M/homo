@@ -15,6 +15,12 @@ public interface GateServer<T> {
     GateClient<T> newClient(String addr,int port);
 
     /**
+     * 获取服务名
+     * @return  服务名
+     */
+    String getName();
+
+    /**
      * 获取监听端口
      * @return  监听端口
      */
@@ -23,18 +29,17 @@ public interface GateServer<T> {
     /**
      * 服务器通知客户端
      * @param gateClient 网关客户端对象
-     * @param msgType  消息类型
      * @param data 消息内容
      * @return
      */
-    <T,R> Homo<R> pong(GateClient<T> gateClient,String msgType,T data);
+    void pong(GateClient<T> gateClient,byte[] data);
 
     /**
-     * 服务器广播消息到网关客户端
+     * 服务器广播消息到客户端
      * @param data 消息内容
      * @return
      */
-    <T,R> Homo<R> broadcast(T data);
+    void broadcast(String msgType,byte[] data);
 
     /**
      * 获取驱动

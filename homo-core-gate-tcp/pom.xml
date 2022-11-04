@@ -5,7 +5,7 @@
     <parent>
         <artifactId>homo-root</artifactId>
         <groupId>com.homo</groupId>
-        <version>1.0</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -24,10 +24,6 @@
         <dependency>
             <groupId>com.homo</groupId>
             <artifactId>homo-core-concurrent</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-proto</artifactId>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>

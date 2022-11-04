@@ -13,9 +13,10 @@
         <module>homo-core-storage-test</module>
         <module>homo-core-persistent-test</module>
         <module>homo-core-rpc-server-test</module>
-        <module>hom-core-rpc-client-test</module>
+        <module>homo-core-rpc-client-test</module>
         <module>homo-core-rpc-server-facade-test</module>
         <module>homo-core-rpc-client-facade-test</module>
+        <module>homo-core-tcp-gate-test</module>
     </modules>
     <artifactId>homo-core-test</artifactId>
 
@@ -116,7 +117,7 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>hom-core-rpc-client-test</artifactId>
+                <artifactId>homo-core-rpc-client-test</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
@@ -125,7 +126,11 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
-
+            <dependency>
+                <artifactId>homo-core-tcp-gate-test</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

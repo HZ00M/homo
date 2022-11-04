@@ -35,6 +35,7 @@
         <module>homo-service-stateful-driver-redis</module>
         <module>homo-core-rpc-http</module>
         <module>homo-core-gate-tcp</module>
+        <module>homo-core-gate</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -183,6 +184,11 @@
             </dependency>
             <dependency>
                 <artifactId>homo-core-gate-tcp</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-gate</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

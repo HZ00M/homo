@@ -23,10 +23,10 @@ public interface GateClient<T> {
     GateServer<T> getGateServer();
 
     /**
-     * 客户端发送消息
+     * 给客户端发送消息
      * @param data 消息
      * @return
      */
-    <T> void ping(String targetService, String funName,T data);
+    void pong(byte[] data);
 
 }

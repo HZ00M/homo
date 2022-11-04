@@ -7,7 +7,7 @@ import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -20,7 +20,7 @@ import java.util.Map;
  * 不落地
  * 保证一些步骤的原子性
  */
-@Slf4j
+@Log4j2
 public class StatefulDriverRedisImpl implements StatefulDriver {
 
     @Autowired(required = false)

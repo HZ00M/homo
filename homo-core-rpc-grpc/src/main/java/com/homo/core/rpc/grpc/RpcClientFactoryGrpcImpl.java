@@ -7,12 +7,12 @@ import com.homo.core.facade.rpc.RpcClient;
 import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcType;
 import io.grpc.ClientInterceptor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-@Slf4j
+@Log4j2
 public class RpcClientFactoryGrpcImpl implements RpcClientFactory,Module {
 
     @Autowired(required = false)

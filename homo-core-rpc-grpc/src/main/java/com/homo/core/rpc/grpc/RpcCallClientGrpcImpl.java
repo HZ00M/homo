@@ -21,7 +21,7 @@ import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.stub.StreamObserver;
 import io.homo.proto.rpc.*;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
@@ -30,7 +30,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
+@Log4j2
 public class RpcCallClientGrpcImpl implements RpcClient {
     private final String host;
     private final Integer servicePort;

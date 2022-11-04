@@ -9,9 +9,9 @@ import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import com.homo.core.utils.trace.TraceAble;
 import com.homo.core.utils.trace.ZipkinUtil;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
-@Slf4j
+@Log4j2
 public class CallEvent extends AbstractBaseEvent implements CallQueueProducer,TraceAble<Span> {
     private Span span;
     private CallData callData;

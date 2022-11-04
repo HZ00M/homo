@@ -1,7 +1,7 @@
 package com.homo.core.utils.serial;
 
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.nustaq.serialization.FSTClazzNameRegistry;
 import org.nustaq.serialization.FSTConfiguration;
 import org.nustaq.serialization.FSTDecoder;
@@ -84,7 +84,7 @@ public class FSTSerializationProcessor implements HomoSerializationProcessor{
         }
     }
 
-    @Slf4j
+    @Log4j2
     private static class  HomoStreamEncoder extends FSTStreamEncoder{
         //读取父类clnames属性 ，提供其修改能力
         private Field clnames;

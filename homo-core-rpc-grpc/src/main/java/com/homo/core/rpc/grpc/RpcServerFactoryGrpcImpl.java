@@ -15,7 +15,7 @@ import io.grpc.netty.shaded.io.netty.channel.EventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.grpc.protobuf.services.ProtoReflectionService;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * rpc的GRPC实现
  */
-@Slf4j
+@Log4j2
 public class RpcServerFactoryGrpcImpl implements RpcServerFactory {
 
     @Autowired(required = false)

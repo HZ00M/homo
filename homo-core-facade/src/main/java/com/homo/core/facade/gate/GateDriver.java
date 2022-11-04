@@ -31,7 +31,12 @@ public interface GateDriver<T> {
      * @param gateClient 网关客户端对象
      * @param msg        消息内容
      */
-    Homo pong(GateClient<T> gateClient, T msg);
+    Homo<Boolean> pong(GateClient<T> gateClient, T msg);
 
-
+    /**
+     * 广播一条消息到所有客户端
+     *
+     * @param msg        消息内容
+     */
+    Homo<Boolean> broadcast( T msg);
 }

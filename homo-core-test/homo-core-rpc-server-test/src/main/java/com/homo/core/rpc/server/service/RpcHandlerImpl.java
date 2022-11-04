@@ -10,12 +10,12 @@
 //import io.homo.proto.client.ParameterMsg;
 //import io.homo.proto.rpc.test.TestServerRequest;
 //import io.homo.proto.rpc.test.TestServerResponse;
-//import lombok.extern.slf4j.Slf4j;
+//import lombok.extern.log4j.Log4j2;
 //import org.springframework.stereotype.Component;
 //import reactor.util.function.Tuple2;
 //import reactor.util.function.Tuples;
 //
-//@Slf4j
+//@Log4j2
 //@Component
 //public class RpcHandlerImpl implements RpcHandlerFacade {
 //

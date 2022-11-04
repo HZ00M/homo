@@ -1,7 +1,7 @@
 package com.homo.core.utils.reflect;
 
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Log4j2
 @UtilityClass
 public class HomoInterfaceUtil {
     private final static Map<Class<?>,Set<Class<?>>> interfaceCaches = new ConcurrentHashMap<>();

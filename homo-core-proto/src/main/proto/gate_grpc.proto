@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.homo.proto.gate";
+option java_outer_classname = "HomoGateProto";
+
+package gate;
+
+message GateMsg{
+  string msgId = 1;     //消息类型
+  bytes msgContent = 2;   //消息字节数组
+}

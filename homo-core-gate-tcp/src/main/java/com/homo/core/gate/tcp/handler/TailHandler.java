@@ -2,8 +2,10 @@ package com.homo.core.gate.tcp.handler;
 
 import com.homo.core.gate.tcp.TcpGateDriver;
 import com.homo.core.utils.trace.ZipkinUtil;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.log4j.Log4j2;
 
@@ -15,12 +17,12 @@ import java.net.InetSocketAddress;
  * @param <T>
  */
 @Log4j2
+@ChannelHandler.Sharable
 public class TailHandler<T> extends ChannelInboundHandlerAdapter {
     private final TcpGateDriver<T> tcpGateDriver;
 
     public TailHandler(TcpGateDriver<T> tcpGateDriver){
         this.tcpGateDriver = tcpGateDriver;
-        tcpGateDriver.registerAfterHandler(this);//将节点注册到后处理器
     }
 
     /**
@@ -34,6 +36,9 @@ public class TailHandler<T> extends ChannelInboundHandlerAdapter {
         String hostAddress = socketAddress.getAddress().getHostAddress();
         int port = socketAddress.getPort();
         ZipkinUtil.startScope(ZipkinUtil.newSRSpan().name("channelActive"), span -> {
+            ctx.channel().attr(TcpGateDriver.sessionIdKey).setIfAbsent(Short.MIN_VALUE);//todo 暂时使用默认值
+            short initSeq = 0;
+            ctx.channel().attr(TcpGateDriver.serverSeqKey).setIfAbsent(initSeq);
             tcpGateDriver.createConnection(ctx,hostAddress,port);
         }, null);
     }
@@ -60,10 +65,17 @@ public class TailHandler<T> extends ChannelInboundHandlerAdapter {
     public void userEventTriggered(ChannelHandlerContext ctx,Object evt){
         log.debug("on userEventTriggered");
         if(evt instanceof IdleStateEvent){
+            IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
+            IdleState state = idleStateEvent.state();
             //心跳超时
-            log.warn("idle state event, close the connect!");
-            tcpGateDriver.closeConnection(ctx,"userEventTriggered idleStateEvent");
-            ctx.close();
+            switch (state){
+                case ALL_IDLE:
+                case READER_IDLE:
+                case WRITER_IDLE:
+                    log.warn("idle state event {}, close the connect!",state);
+//                    tcpGateDriver.closeConnection(ctx,"userEventTriggered idleStateEvent");
+                    ctx.close();
+            }
         }
     }
 

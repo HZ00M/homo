@@ -15,11 +15,11 @@ import io.homo.proto.rpc.JsonReq;
 import io.homo.proto.rpc.Req;
 import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.TraceInfo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
-@Slf4j
+@Log4j2
 public class RpcAgentClientImpl implements RpcAgentClient<TraceRpcContent> {
 
     private final RpcClient rpcClient;

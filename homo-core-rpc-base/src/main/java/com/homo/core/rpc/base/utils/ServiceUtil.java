@@ -1,9 +1,9 @@
 package com.homo.core.rpc.base.utils;
 
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
-@Slf4j
+@Log4j2
 @UtilityClass
 public class ServiceUtil {
     /**
