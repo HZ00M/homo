@@ -97,6 +97,16 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(mono.doOnError(onError));
     }
 
+    public final Homo<T> onErrorContinue(Function<Throwable, Mono<? extends T>> fallback){
+        Function<? super Throwable, ? extends Mono<? extends
+                T>> warp = new Function<Throwable, Mono<? extends T>>() {
+            @Override
+            public Mono<? extends T> apply(Throwable throwable) {
+                return fallback.apply(throwable);
+            }
+        };
+        return Homo.warp(mono.onErrorResume(warp));
+    }
 
     public static <T> Homo<T> error(Throwable error) {
         return Homo.warp(Mono.error(error));
