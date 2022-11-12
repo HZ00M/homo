@@ -1,4 +1,4 @@
-package com.homo.core.facade.excption;
+package com.homo.core.utils.exception;
 
 public class HomoException extends RuntimeException{
     private int code;

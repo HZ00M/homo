@@ -1,8 +1,8 @@
 package com.homo.core.rpc.client;
 
 import com.homo.core.common.module.ServiceModule;
-import com.homo.core.facade.excption.HomoError;
-import com.homo.core.facade.excption.HomoException;
+import com.homo.core.utils.exception.HomoError;
+import com.homo.core.utils.exception.HomoException;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcType;

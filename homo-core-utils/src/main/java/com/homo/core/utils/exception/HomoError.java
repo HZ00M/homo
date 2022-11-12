@@ -1,4 +1,4 @@
-package com.homo.core.facade.excption;
+package com.homo.core.utils.exception;
 
 import java.util.Arrays;
 
@@ -13,7 +13,10 @@ public enum HomoError {
     choicePodNotFound(106,"tagName %s choice pod not found" ),
     httpMaxByteError(107, "bytesLength > bytesLimit size %s limit %s"),
     rpcAgentTypeNotSupport(108, "RpcAgent no support rpcType %s tagName %s"),
-    gateError(109, "gateError %s");
+    gateError(109, "gateError %s"),
+    broadcastError(110,"broadcastError")
+    ;
+
     private int code;
     private String message;
 

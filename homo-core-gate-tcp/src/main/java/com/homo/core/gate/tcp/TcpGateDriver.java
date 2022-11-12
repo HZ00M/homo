@@ -4,7 +4,7 @@ import com.homo.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.common.module.DriverModule;
 import com.homo.core.configurable.gate.GateCommonProperties;
 import com.homo.core.configurable.gate.GateTcpProperties;
-import com.homo.core.facade.excption.HomoError;
+import com.homo.core.utils.exception.HomoError;
 import com.homo.core.facade.gate.GateClient;
 import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.facade.gate.GateServer;

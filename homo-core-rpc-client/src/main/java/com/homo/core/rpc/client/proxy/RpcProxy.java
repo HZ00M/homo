@@ -1,7 +1,7 @@
 package com.homo.core.rpc.client.proxy;
 
-import com.homo.core.facade.excption.HomoError;
-import com.homo.core.facade.excption.HomoException;
+import com.homo.core.utils.exception.HomoError;
+import com.homo.core.utils.exception.HomoException;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.facade.service.ServiceExport;

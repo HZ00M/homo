@@ -5,7 +5,7 @@ import com.homo.concurrent.schedule.HomoTimerMgr;
 import com.homo.concurrent.schedule.TaskFun0;
 import com.homo.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.configurable.rpc.RpcGrpcClientProperties;
-import com.homo.core.facade.excption.HomoError;
+import com.homo.core.utils.exception.HomoError;
 import com.homo.core.facade.rpc.RpcClient;
 import com.homo.core.facade.serial.RpcContentType;
 import com.homo.core.rpc.base.serial.TraceRpcContent;
