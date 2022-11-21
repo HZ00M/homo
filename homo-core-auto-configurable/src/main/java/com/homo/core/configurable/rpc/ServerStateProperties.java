@@ -29,12 +29,21 @@ public class ServerStateProperties {
     @Value("${homo.service.state.cache.delay.remove.second:60}")
     private int remoteUserServicePodDelayRemoveSecond;
 
+    /**
+     * 服务器状态超时时间，默认60秒
+     */
     @Value("${homo.service.state.expire.seconds:60}")
     private long serviceStateExpireSeconds;
 
+    /**
+     * 服务器状态更新间隔
+     */
     @Value("${homo.service.state.update.seconds:30}")
     private int serviceStateUpdatePeriodSeconds;
 
+    /**
+     * 负载均衡因子 （0~1）0.5表示负载均衡0.5参考cpu，0.5参考内存值
+     */
     @Value("${homo.service.state.cpu.factor:0.5}")
     private float cpuFactor;
 
@@ -51,6 +60,4 @@ public class ServerStateProperties {
      */
     @Value("${homo.service.state.range.default:500}")
     private int defaultRange;
-
-
 }

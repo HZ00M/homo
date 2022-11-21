@@ -6,6 +6,7 @@ import com.homo.core.mongo.util.BsonUtil;
 import com.homo.core.mongo.util.Key;
 import com.homo.core.mongo.util.MongoHelper;
 import com.homo.core.utils.callback.CallBack;
+import com.homo.core.utils.rector.Homo;
 import com.mongodb.client.model.*;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import lombok.extern.log4j.Log4j2;
@@ -22,6 +23,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 ;
@@ -371,6 +373,31 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
         } catch (Exception e) {
             log.error("asyncRemoveKeys catch Exception ", e);
             callBack.onError(e);
+        }
+    }
+
+    @Override
+    public <T> void getCount(Bson filter, int limit, int skip,String hint, Class<T> clazz, CallBack<Long> rel) {
+        try {
+            Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
+            String collectionName = document == null ? clazz.getSimpleName() : document.collectionName();
+            mongoHelper.checkIndex(clazz);
+            Bson filterExpr;
+            if (filter != null) {
+                filterExpr = Filters.and(filter, Filters.eq(Key.DELETE_KEY, Key.DELETED_FALSE));
+            } else {
+                filterExpr = Filters.and(Filters.eq(Key.DELETE_KEY, Key.DELETED_FALSE));
+            }
+            CountOptions options = new CountOptions().limit(limit).skip(skip).hintString(hint).maxTime(10, TimeUnit.SECONDS);
+            Homo.warp(
+                    Mono.from(mongoHelper.getMongoDatabase().getCollection(collectionName)
+                            .countDocuments(filterExpr,options)))
+                    .consumerValue(rel::onBack)
+                    .catchError(rel::onError)
+                    .start();
+        } catch (Exception e) {
+            log.error("getCount catch Exception ", e);
+            rel.onError(e);
         }
     }
 }

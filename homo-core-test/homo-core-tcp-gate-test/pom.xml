@@ -21,6 +21,7 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-gate</artifactId>
         </dependency>
+        <!--        使用tcp网关-->
         <dependency>
             <groupId>com.homo</groupId>
             <artifactId>homo-core-gate-tcp</artifactId>

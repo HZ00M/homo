@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 @Data
 @ToString
 public class GateCommonProperties {
+    /**
+     * 消息版本号
+     */
     @Value("${homo.gate.message.version:1}")
     public  Integer version;
 

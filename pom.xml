@@ -11,7 +11,7 @@
     </parent>
 
     <modules>
-        <module>homo-core</module>
+        <module>homo-core-system</module>
         <module>homo-core-utils</module>
         <module>homo-core-proto</module>
         <module>homo-core-test</module>
@@ -39,7 +39,7 @@
     </modules>
 
     <groupId>com.homo</groupId>
-    <artifactId>homo-root</artifactId>
+    <artifactId>homo-core</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
 
@@ -158,7 +158,7 @@
         <dependencies>
             <!--            工程依赖  子类主动引入           -->
             <dependency>
-                <artifactId>homo-root</artifactId>
+                <artifactId>homo-core-system</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

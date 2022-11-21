@@ -10,13 +10,16 @@ import io.homo.proto.rpc.HttpHeadInfo;
 import io.homo.proto.rpc.test.TestServerRequest;
 import io.homo.proto.rpc.test.TestServerResponse;
 
+/**
+ * 声明一个http无状态服务
+ */
 @ServiceExport(tagName = "http-server:30013",isMainServer = false,isStateful = false,driverType = RpcType.http)
 @RpcHandler
 public interface RpcHttpServiceFacade {
 
     Homo<JSONObject> jsonGetJson(JSONObject header);
 
-    public Homo<String> jsonGetStr(JSONObject header);
+    Homo<String> jsonGetStr(JSONObject header);
 
     Homo<String> jsonPost(JSONObject header, JSONObject req);
 

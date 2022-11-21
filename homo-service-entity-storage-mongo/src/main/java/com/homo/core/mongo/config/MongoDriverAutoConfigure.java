@@ -6,6 +6,8 @@ import com.homo.core.mongo.storage.MongoEntityStorageDriverImpl;
 import com.homo.core.mongo.util.MongoHelper;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.ReadPreference;
+import com.mongodb.WriteConcern;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import lombok.extern.log4j.Log4j2;
@@ -31,6 +33,42 @@ public class MongoDriverAutoConfigure {
     @Lazy
     private MongoClient mongoClient;
 
+    public WriteConcern getWriteConcern() {
+        if (mongoDriverProperties.getWriteConcern().equalsIgnoreCase("UNACKNOWLEDGED")) {
+            return WriteConcern.UNACKNOWLEDGED;
+        } else if (mongoDriverProperties.getWriteConcern().equalsIgnoreCase("ACKNOWLEDGED")) {
+            return WriteConcern.ACKNOWLEDGED;
+        } else if (mongoDriverProperties.getWriteConcern().equalsIgnoreCase("JOURNALED")) {
+            return WriteConcern.JOURNALED;
+        } else if (mongoDriverProperties.getWriteConcern().equalsIgnoreCase("MAJORITY")) {
+            return WriteConcern.MAJORITY;
+        } else if (mongoDriverProperties.getWriteConcern().equalsIgnoreCase("W1")) {
+            return WriteConcern.W1;
+        } else if (mongoDriverProperties.getWriteConcern().equalsIgnoreCase("W2")) {
+            return WriteConcern.W2;
+        } else if (mongoDriverProperties.getWriteConcern().equalsIgnoreCase("W3")) {
+            return WriteConcern.W3;
+        } else {
+            return WriteConcern.ACKNOWLEDGED;
+        }
+    }
+
+    public ReadPreference getReadPreference() {
+        if (mongoDriverProperties.getReadPreference().equalsIgnoreCase(ReadPreference.primary().getName())) {
+            return ReadPreference.primary();
+        } else if (mongoDriverProperties.getReadPreference().equalsIgnoreCase(ReadPreference.secondary().getName())) {
+            return ReadPreference.secondary();
+        } else if (mongoDriverProperties.getReadPreference().equalsIgnoreCase(ReadPreference.primaryPreferred().getName())) {
+            return ReadPreference.primaryPreferred();
+        } else if (mongoDriverProperties.getReadPreference().equalsIgnoreCase(ReadPreference.secondaryPreferred().getName())) {
+            return ReadPreference.secondaryPreferred();
+        } else if (mongoDriverProperties.getReadPreference().equalsIgnoreCase(ReadPreference.nearest().getName())) {
+            return ReadPreference.nearest();
+        }else {
+            return ReadPreference.primary();
+        }
+    }
+
     @Bean("mongoClient")
     public MongoClient mongoClient() {
         log.info("register bean mongoClient");
@@ -38,12 +76,15 @@ public class MongoDriverAutoConfigure {
 
         MongoClientSettings settings = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(mongoDriverProperties.getConnString()))
+                .retryWrites(mongoDriverProperties.getRetryWrites())
+                .writeConcern(getWriteConcern())
+                .readPreference(getReadPreference())
                 .applyToConnectionPoolSettings(builder -> {
                     builder.minSize(mongoDriverProperties.getMinSize())
                             .maxSize(mongoDriverProperties.getMaxSize())
                             .maxWaitTime(mongoDriverProperties.getMaxWaitTime(), TimeUnit.MILLISECONDS)
-                            .maxConnectionIdleTime(mongoDriverProperties.getMaxConnectionIdleTime(), TimeUnit.MILLISECONDS)
-                            .maxConnectionLifeTime(mongoDriverProperties.getMaxConnectionLifeTime(), TimeUnit.MILLISECONDS);
+                            .maxConnectionIdleTime(mongoDriverProperties.getMaxConnectionIdleTime(),TimeUnit.MILLISECONDS)
+                            .maxConnectionLifeTime(mongoDriverProperties.getMaxConnectionLifeTime(),TimeUnit.MILLISECONDS);
                 })
                 .build();
         MongoClient mongoClient = MongoClients.create(settings);

@@ -20,8 +20,10 @@ import reactor.test.StepVerifier;
 @SpringBootTest(classes = TestRpcClientApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-//@RunWith(SpringJUnit4ClassRunner.class)
 public class RpcStatefulCallTest {
+    /**
+     * 使用目标服务器接口发起远程调用
+     */
     @Autowired(required = false)
     RpcStatefulServiceFacade rpcService;
 

@@ -1,9 +1,17 @@
-package com.homo.core.configurable.zipkin;
+# zipkin工具使用说明文档
+## 简介
+```text
+    homo框架链路追踪支持
+```
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.annotation.Value;
-
+## 目的
+- 提供链路追踪功能，框架所有模块都加入了链路追踪功能，进行简单配置即可使用链路追踪能力
+## 前提
+- 使用homo-core的框架
+## 版本
+- homo-core >= 1.0
+###链路追踪配置
+```java
 @Configurable
 @Data
 public class ZipKinProperties {
@@ -35,3 +43,5 @@ public class ZipKinProperties {
     @Value(value = "${homo.zipkin.client.trace.open:false}")
     public boolean isOpen  = false;
 }
+```
+ 

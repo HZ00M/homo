@@ -16,7 +16,7 @@ public @interface ServiceExport {
     String tagName() default ""; //服务名（格式：serviceName:port）
     RpcType driverType() default RpcType.grpc;    //服务类型
     boolean isStateful() default true; //是否是有状态服务器
-    boolean isMainServer(); //是否是主服务
+    boolean isMainServer(); //是否是主服务，一个进程可能有多个服务，主服务用来向外部发起调用
 }
 
 

@@ -25,6 +25,7 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-client-facade-test</artifactId>
         </dependency>
+        <!--        目标服务器的接口-->
         <dependency>
             <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-server-facade-test</artifactId>

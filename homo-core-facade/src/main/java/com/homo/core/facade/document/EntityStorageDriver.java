@@ -130,4 +130,12 @@ public interface EntityStorageDriver<F, S, U, P> extends Driver {
      * @param callBack       回调返回是否删除成功
      */
     <T> void asyncRemoveKeys(String appId, String regionId, String logicType, String ownerId, List<String> remKeys, Class<T> clazz, CallBack<Boolean> callBack);
+
+    /**
+     * 查询集合数量
+     *
+     * @param clazz 文档对象类型
+     * @param rel   回调返回结果
+     */
+    <T> void getCount(F filter, int limit, int skip, String hint, Class<T> clazz, CallBack<Long> rel);
 }

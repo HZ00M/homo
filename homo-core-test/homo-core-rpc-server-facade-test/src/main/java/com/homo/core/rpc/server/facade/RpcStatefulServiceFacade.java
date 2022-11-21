@@ -10,6 +10,9 @@ import io.homo.proto.rpc.test.TestServerRequest;
 import io.homo.proto.rpc.test.TestServerResponse;
 import reactor.util.function.Tuple2;
 
+/**
+ * 声明一个grpc有状态服务
+ */
 @ServiceExport(tagName = "rpc-server:30011",isMainServer = true,isStateful = true,driverType = RpcType.grpc)
 @RpcHandler
 public interface RpcStatefulServiceFacade {

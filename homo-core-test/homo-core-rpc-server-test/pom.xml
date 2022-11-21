@@ -25,10 +25,12 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-server-facade-test</artifactId>
         </dependency>
+        <!--        使用grpc-->
         <dependency>
             <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-grpc</artifactId>
         </dependency>
+        <!--        使用http-->
         <dependency>
             <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-http</artifactId>

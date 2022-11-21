@@ -20,7 +20,6 @@ import reactor.test.StepVerifier;
 @SpringBootTest(classes = TestRpcClientApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-//@RunWith(SpringJUnit4ClassRunner.class)
 public class RpcHttpCallTest {
     @Autowired(required = false)
     RpcHttpServiceFacade rpcService;
@@ -59,6 +58,4 @@ public class RpcHttpCallTest {
                 }))
                 .verifyComplete();
     }
-
-
 }
