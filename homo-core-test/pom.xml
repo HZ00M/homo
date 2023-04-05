@@ -17,6 +17,7 @@
         <module>homo-core-rpc-server-facade-test</module>
         <module>homo-core-rpc-client-facade-test</module>
         <module>homo-core-tcp-gate-test</module>
+        <module>homo-core-tread-test</module>
     </modules>
     <artifactId>homo-core-test</artifactId>
 
@@ -87,6 +88,11 @@
             </dependency>
             <dependency>
                 <artifactId>homo-core</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-tread-test</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

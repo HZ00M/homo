@@ -13,7 +13,7 @@ import java.util.Optional;
 @Log4j2
 public abstract class BroadCasterCall<Target> extends BroadCaster<Target> {
 
-    private final ThreadLocal<Optional<Object>> relThreadLocal = new ThreadLocal<>();
+    private final ThreadLocal<Optional<Object>> relThreadLocal = new ThreadLocal<>(); //todo 有bug需要优化
 
     protected abstract Object execute(Target target, Object... objects) throws Exception;
 

@@ -36,6 +36,7 @@
         <module>homo-core-rpc-http</module>
         <module>homo-core-gate-tcp</module>
         <module>homo-core-gate</module>
+        <module>homo-core-tread</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -169,6 +170,11 @@
             </dependency>
             <dependency>
                 <artifactId>homo-core-facade</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-tread</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
