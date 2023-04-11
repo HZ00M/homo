@@ -36,7 +36,8 @@
         <module>homo-core-rpc-http</module>
         <module>homo-core-gate-tcp</module>
         <module>homo-core-gate</module>
-        <module>homo-core-tread</module>
+        <module>homo-service-tread</module>
+        <module>homo-core-ability-base</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -164,6 +165,11 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
+                <artifactId>homo-core-ability-base</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
                 <artifactId>homo-core-utils</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
@@ -174,7 +180,7 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-tread</artifactId>
+                <artifactId>homo-service-tread</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

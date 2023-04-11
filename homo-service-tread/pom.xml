@@ -9,36 +9,21 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>homo-core-rpc-base</artifactId>
+    <artifactId>homo-service-tread</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
+
     <dependencies>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-utils</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.homo</groupId>
             <artifactId>homo-core-facade</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-service-stateful-driver-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-concurrent</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-proto</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
         </dependency>
     </dependencies>
 </project>
