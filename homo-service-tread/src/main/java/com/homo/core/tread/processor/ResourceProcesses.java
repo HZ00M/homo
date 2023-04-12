@@ -3,7 +3,7 @@ package com.homo.core.tread.processor;
 import com.homo.core.facade.tread.processor.OpPoint;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.spring.GetBeanUtil;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * 资源操作管理器
  */
-@Slf4j
+@Log4j2
 public class ResourceProcesses extends OpQueue {
 
     boolean executed = false;
@@ -113,7 +113,7 @@ public class ResourceProcesses extends OpQueue {
         });
     }
 
-    @Slf4j
+    @Log4j2
     static class Record {
         ResourceMgr resourceMgr = GetBeanUtil.getBean(ResourceMgr.class);
         public static String leftQuote = "(";

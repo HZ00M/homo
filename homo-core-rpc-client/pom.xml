@@ -22,10 +22,6 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-concurrent</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-base</artifactId>
         </dependency>
     </dependencies>

@@ -7,7 +7,7 @@
 //import com.homo.core.tread.tread.objTread.ObjTread;
 //import com.homo.core.tread.tread.stringTread.StringTread;
 //import com.homo.core.utils.rector.Homo;
-//import lombok.extern.slf4j.Slf4j;
+//import lombok.extern.log4j.Log4j2;
 //import org.junit.jupiter.api.*;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.boot.test.context.SpringBootTest;
@@ -17,7 +17,7 @@
 //import reactor.util.function.Tuples;
 //import test.*;
 //
-//@Slf4j
+//@Log4j2
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 //@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 //@SpringBootTest(classes = TreadTestApplication.class)

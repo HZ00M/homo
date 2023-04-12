@@ -2,7 +2,7 @@
 import com.homo.core.tread.processor.Processes;
 import com.homo.core.tread.processor.ResourceMgr;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,7 +14,7 @@ import test.TreadTestApplication;
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
+@Log4j2
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(classes = TreadTestApplication.class)

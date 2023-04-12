@@ -1,6 +1,6 @@
 package com.homo.core.redis.factory;
 
-import com.homo.concurrent.thread.ThreadPoolFactory;
+import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.impl.HomoLettucePool;
 import com.homo.core.utils.spring.GetBeanUtil;

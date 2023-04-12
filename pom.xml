@@ -19,7 +19,6 @@
         <module>homo-core-module</module>
         <module>homo-core-auto-configurable</module>
         <module>homo-core-common</module>
-        <module>homo-core-concurrent</module>
         <module>homo-service-entity-storage-mongo</module>
         <module>homo-service-lock-redis</module>
         <module>homo-core-redis-base</module>
@@ -231,11 +230,6 @@
             </dependency>
             <dependency>
                 <artifactId>homo-service-entity-storage-mongo</artifactId>
-                <groupId>com.homo</groupId>
-                <version>${revision}</version>
-            </dependency>
-            <dependency>
-                <artifactId>homo-core-concurrent</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

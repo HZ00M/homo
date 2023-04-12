@@ -170,7 +170,7 @@ public @interface Document {
 ##用例
 - 定义文档实体
 ```java
-@Slf4j
+@Log4j2
 @BsonDiscriminator
 @Data
 @Builder
@@ -221,7 +221,7 @@ public class User implements Serializable {
 - 定义服务类
 ```java
 @Component
-@Slf4j
+@Log4j2
 public class AppUserServiceImpl implements AppUserService {
     /**
      * 使用响应式Mongo文档存储组件

@@ -6,12 +6,12 @@ package com.homo.core.facade.ability;
 public interface Ability {
     /**
      * 关联对象
-     * @param abilityObject
+     * @param abilityEntity
      */
-    void attach(String abilityName, AbilityObject abilityObject);
+    void attach(String abilityName, AbilityEntity abilityEntity);
 
-    default void attach(AbilityObject abilityObject) {
-        attach(abilityObject.getClass().getSimpleName(), abilityObject);
+    default void attach(AbilityEntity abilityEntity) {
+        attach(abilityEntity.getClass().getSimpleName(), abilityEntity);
     }
 
     /**
@@ -23,6 +23,6 @@ public interface Ability {
      * 获取关联的对象
      * @return
      */
-    AbilityObject getOwner();
+    AbilityEntity getOwner();
 
 }

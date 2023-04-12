@@ -26,5 +26,9 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-facade</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-system</artifactId>
+        </dependency>
     </dependencies>
 </project>

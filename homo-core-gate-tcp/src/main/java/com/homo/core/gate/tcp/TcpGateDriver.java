@@ -1,6 +1,6 @@
 package com.homo.core.gate.tcp;
 
-import com.homo.concurrent.thread.ThreadPoolFactory;
+import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.common.module.DriverModule;
 import com.homo.core.configurable.gate.GateCommonProperties;
 import com.homo.core.configurable.gate.GateTcpProperties;

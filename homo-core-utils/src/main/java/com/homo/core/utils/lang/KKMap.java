@@ -67,8 +67,16 @@ public class KKMap<K1,K2,T> {
         data.computeIfAbsent(k1,key1->new ConcurrentHashMap<>(16)).putAll(map);
     }
 
+    public Set<K1> getK1Set(){
+        return data.keySet();
+    }
+
     public boolean containsFirstKey(K1 k1){
         Map<K2,T> keyData =  data.get(k1);
         return keyData != null && keyData.size() > 0 ;
+    }
+
+    public  void removeAll(){
+        data.clear();
     }
 }

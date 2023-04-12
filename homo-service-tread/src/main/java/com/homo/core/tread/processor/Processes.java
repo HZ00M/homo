@@ -3,9 +3,9 @@ package com.homo.core.tread.processor;
 import com.homo.core.tread.processor.exception.ProcessOpException;
 import com.homo.core.tread.processor.op.Int_Resource_Sub_Allow_Zero;
 import com.homo.core.tread.processor.op.Long_Resource_Sub_Allow_Zero;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
-@Slf4j
+@Log4j2
 public class Processes extends ResourceProcesses {
 
     public static Processes create(Object... resourceOwners) {

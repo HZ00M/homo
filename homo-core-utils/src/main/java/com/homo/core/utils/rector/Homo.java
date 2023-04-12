@@ -1,5 +1,9 @@
 package com.homo.core.utils.rector;
 
+import com.homo.core.utils.concurrent.event.AbstractBaseEvent;
+import com.homo.core.utils.concurrent.queue.CallQueue;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
+import com.homo.core.utils.concurrent.queue.IdCallQueue;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.fun.FuncEx;
 import lombok.extern.log4j.Log4j2;
@@ -16,6 +20,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.function.*;
 
 @Log4j2
@@ -26,6 +31,33 @@ public class Homo<T> extends Mono<T> {
         this.mono = mono;
     }
 
+    public static <T> Homo<T> queue(IdCallQueue idCallQueue, Callable<Homo<T>> callable,Runnable errCb){
+        return Homo.warp(new ConsumerEx<HomoSink<T>>() {
+            @Override
+            public void accept(HomoSink<T> tHomoSink) throws Exception {
+                idCallQueue.addIdTask(callable,errCb,tHomoSink);
+            }
+        });
+    }
+
+    public final Homo<T> switchThread(int callQueueId){
+        CallQueue callQueue = CallQueueMgr.getInstance().getQueue(callQueueId);
+        return nextDo(ret->{
+            CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+            if (localQueue != callQueue){
+                return Homo.warp(tHomoSink -> {
+                    callQueue.addEvent(new AbstractBaseEvent() {
+                        @Override
+                        public void process() {
+                            tHomoSink.success(ret);
+                        }
+                    });
+                });
+            }else {
+                return Homo.result(ret);
+            }
+        });
+    }
 
     @Override
     public void subscribe(CoreSubscriber<? super T> actual) {
@@ -55,6 +87,14 @@ public class Homo<T> extends Mono<T> {
                     }
                 };
         return Homo.warp(Mono.create(consumer));
+    }
+
+    public <V> Homo<V> then(Homo<V> other) {
+        return Homo.warp(mono.then(other));
+    }
+
+    public final Homo<T> ifEmptyThen(Homo<? extends T> alternate) {
+        return Homo.warp(mono.switchIfEmpty(alternate));
     }
 
     public final <R> Homo<R> nextDo(FuncEx<? super T, ? extends Mono<? extends R>> transformer) {
@@ -97,9 +137,8 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(mono.doOnError(onError));
     }
 
-    public final Homo<T> onErrorContinue(Function<Throwable, Mono<? extends T>> fallback){
-        Function<? super Throwable, ? extends Mono<? extends
-                T>> warp = new Function<Throwable, Mono<? extends T>>() {
+    public final Homo<T> onErrorContinue(Function<? super Throwable, ? extends Mono<? extends T>> fallback){
+        Function<? super Throwable, ? extends Mono<? extends T>> warp = new Function<Throwable, Mono<? extends T>>() {
             @Override
             public Mono<? extends T> apply(Throwable throwable) {
                 return fallback.apply(throwable);

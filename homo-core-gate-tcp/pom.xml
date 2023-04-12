@@ -23,7 +23,7 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-concurrent</artifactId>
+            <artifactId>homo-core-utils</artifactId>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>

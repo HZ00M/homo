@@ -4,13 +4,13 @@ import com.homo.core.utils.fun.Func3Ex;
 import com.homo.core.tread.tread.intTread.IntTreadMgr;
 import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
-@Slf4j
+@Log4j2
 @Component
 public class TreadServiceImpl  implements TreadService{
  

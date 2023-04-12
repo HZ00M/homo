@@ -1,6 +1,6 @@
 package com.homo.core.landing;
 
-import com.homo.concurrent.thread.ThreadPoolFactory;
+import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.facade.storege.landing.DBDataHolder;
 import com.homo.core.facade.storege.landing.DataObjHelper;
 import com.homo.core.landing.mapper.DataObjMapper;

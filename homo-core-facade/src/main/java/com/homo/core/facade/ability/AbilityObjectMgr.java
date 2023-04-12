@@ -16,15 +16,23 @@ public interface AbilityObjectMgr {
      * @return
      * @param <T>
      */
-    <T extends AbilityObject> boolean add(T abilityEntity);
+    <T extends AbilityEntity> boolean add(T abilityEntity);
 
     /**
      * 获取entity
-     * @param abilityEntity entity派生类
+     * @param type entityType
      * @return
      * @param <T>
      */
-    <T extends AbilityObject> T get(T abilityEntity);
+    <T extends AbilityEntity> T get(String type, String id);
+
+    /**
+     * 获取entity
+     * @param abilityClazz abilityClazz
+     * @return
+     * @param <T>
+     */
+   <T extends AbilityEntity> T get(Class<T> abilityClazz, String id);
 
     /**
      * 获取指定type的所有entity
@@ -32,7 +40,7 @@ public interface AbilityObjectMgr {
      * @return
      * @param <T>
      */
-    <T extends AbilityObject> Set<T> getAll(String type);
+    <T extends AbilityEntity> Set<T> getAll(String type);
 
     /**
      * 删除entity
@@ -41,7 +49,9 @@ public interface AbilityObjectMgr {
      * @return
      * @param <T>
      */
-    <T extends AbilityObject> T remove(T abilityEntity);
+    default <T extends AbilityEntity> T remove(T abilityEntity) {
+        return remove(abilityEntity.getType(),abilityEntity.getId());
+    }
 
     /**
      * 删除entity
@@ -51,7 +61,7 @@ public interface AbilityObjectMgr {
      * @return
      * @param <T>
      */
-    <T extends AbilityObject> T remove(String type,String id);
+    <T extends AbilityEntity> T remove(String type, String id);
 
     /**
      * 删除entity
@@ -61,9 +71,7 @@ public interface AbilityObjectMgr {
      * @return
      * @param <T>
      */
-    default <T extends AbilityObject> T remove(Class<T> abilityClazz, String id) {
-        return remove(abilityClazz.getSimpleName(),id);
-    }
+    <T extends AbilityEntity> T remove(Class<T> abilityClazz, String id);
 
     /**
      * Destroy所有type指定id的entity，
@@ -80,7 +88,7 @@ public interface AbilityObjectMgr {
      * @return
      * @param <T>
      */
-    <T extends AbilityObject> Homo<T> getOrCreateEntityPromise(String id, Class<T> abilityClazz, Object... params);
+    <T extends AbilityEntity> Homo<T> getOrCreateEntityPromise(String id, Class<T> abilityClazz, Object... params);
 
     /**
      * 创建一个对象
@@ -91,7 +99,7 @@ public interface AbilityObjectMgr {
      * @param <T> entity类型
      * @return 被创建的对象
      */
-    <T extends AbilityObject> Homo<T> createEntityPromise(String id, Class<T> abilityClazz, Object...params);
+    <T extends AbilityEntity> Homo<T> createEntityPromise(String id, Class<T> abilityClazz, Object...params);
     /**
      * 获取或创建对象
      * @param id entityId
@@ -99,7 +107,7 @@ public interface AbilityObjectMgr {
      * @return
      * @param <T>
      */
-    <T extends AbilityObject> Homo<T> getEntityPromise(String id, String type);
+    <T extends AbilityEntity> Homo<T> getEntityPromise(String type, String id);
     /**
      * 获取对象
      * @param id entityId
@@ -107,9 +115,7 @@ public interface AbilityObjectMgr {
      * @return
      * @param <T>
      */
-    default <T extends AbilityObject> Homo<T> getEntityPromise(String id, Class<T> abilityClazz){
-        return getEntityPromise(id,abilityClazz.getSimpleName());
-    }
+    <T extends AbilityEntity> Homo<T> getEntityPromise(String id, Class<T> abilityClazz);
 
     void removeAllEntity();
 
@@ -118,25 +124,25 @@ public interface AbilityObjectMgr {
      * @param clazz 注册key
      * @param consumer 消费函数
      */
-    void registerCreateProcess(Class<?> clazz, Consumer<AbilityObject> consumer);
+    void registerCreateProcess(Class<?> clazz, Consumer<AbilityEntity> consumer);
 
     /**
      * 注册一个OBJ添加消费函数
      * @param clazz 注册key
      * @param consumer 消费函数
      */
-    void registerAddProcess(Class<?> clazz, Consumer<AbilityObject> consumer);
+    void registerAddProcess(Class<?> clazz, Consumer<AbilityEntity> consumer);
     /**
      * 注册一个OBJ获取消费函数
      * @param clazz 注册key
      * @param consumer 消费函数
      */
-    void registerGetProcess(Class<?> clazz, Consumer<AbilityObject> consumer);
+    void registerGetProcess(Class<?> clazz, Consumer<AbilityEntity> consumer);
     /**
      * 注册一个OBJ删除消费函数
      * @param clazz 注册key
      * @param consumer 消费函数
      */
-    void registerRemoveProcess(Class<?> clazz, Consumer<AbilityObject> consumer);
+    void registerRemoveProcess(Class<?> clazz, Consumer<AbilityEntity> consumer);
 
 }

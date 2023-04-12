@@ -1,18 +1,16 @@
 package com.homo.core.rpc.base;
 
 import brave.Span;
-import com.homo.concurrent.event.AbstractBaseEvent;
-import com.homo.concurrent.queue.CallQueueProducer;
+import com.homo.core.utils.concurrent.event.AbstractBaseEvent;
+import com.homo.core.utils.concurrent.queue.CallQueueProducer;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
-import com.homo.core.utils.trace.TraceAble;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class CallEvent extends AbstractBaseEvent implements CallQueueProducer,TraceAble<Span> {
-    private Span span;
+public class CallEvent extends AbstractBaseEvent implements CallQueueProducer{
     private CallData callData;
     private final HomoSink sink;
 
@@ -65,13 +63,5 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer,Tr
         return callData.getQueueId();
     }
 
-    @Override
-    public void setTraceInfo(Span span) {
-        this.span = span;
-    }
 
-    @Override
-    public Span getTraceInfo() {
-        return span;
-    }
 }

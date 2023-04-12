@@ -2,7 +2,7 @@ package com.homo.core.tread.processor;
 
 import com.homo.core.facade.tread.processor.OpPoint;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 操作队列
  */
-@Slf4j
+@Log4j2
 public abstract class OpQueue implements OpPoint {
     private List<OpPoint> opList;
 

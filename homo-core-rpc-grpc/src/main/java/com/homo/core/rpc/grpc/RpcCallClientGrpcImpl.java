@@ -1,9 +1,9 @@
 package com.homo.core.rpc.grpc;
 
 import brave.Span;
-import com.homo.concurrent.schedule.HomoTimerMgr;
-import com.homo.concurrent.schedule.TaskFun0;
-import com.homo.concurrent.thread.ThreadPoolFactory;
+import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
+import com.homo.core.utils.concurrent.schedule.TaskFun0;
+import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.configurable.rpc.RpcGrpcClientProperties;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.facade.rpc.RpcClient;

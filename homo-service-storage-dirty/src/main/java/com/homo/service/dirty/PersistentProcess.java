@@ -1,7 +1,7 @@
 package com.homo.service.dirty;
 
-import com.homo.concurrent.schedule.HomoTimerMgr;
-import com.homo.concurrent.schedule.TaskFun0;
+import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
+import com.homo.core.utils.concurrent.schedule.TaskFun0;
 import com.homo.core.common.module.Module;
 import com.homo.core.configurable.dirty.DirtyProperties;
 import com.homo.core.facade.storege.dirty.DirtyDriver;

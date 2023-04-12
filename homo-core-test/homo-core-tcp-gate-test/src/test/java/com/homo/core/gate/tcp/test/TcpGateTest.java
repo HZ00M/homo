@@ -12,7 +12,7 @@ import io.homo.proto.gate.test.TcpMsg;
 import io.homo.proto.gate.test.TcpResp;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.PreferHeapByteBufAllocator;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -25,7 +25,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-@Slf4j
+@Log4j2
 @SpringBootTest(classes = TcpGateServerApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

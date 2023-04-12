@@ -1,6 +1,6 @@
 package com.homo.core.rpc.grpc;
 
-import com.homo.concurrent.thread.ThreadPoolFactory;
+import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.configurable.rpc.RpcGrpcServerProperties;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.facade.rpc.RpcServerFactory;

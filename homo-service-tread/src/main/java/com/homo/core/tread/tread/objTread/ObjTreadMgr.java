@@ -12,7 +12,7 @@ import com.homo.core.tread.tread.config.TreadProperties;
 import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.fun.FuncEx;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.util.function.Tuple2;
@@ -27,7 +27,7 @@ import java.util.Iterator;
  * @author dubian
  */
 @Component
-@Slf4j
+@Log4j2
 public class ObjTreadMgr  implements TreadMgr<Object>, Module {
     @Autowired
     private TreadProperties treadProperties;

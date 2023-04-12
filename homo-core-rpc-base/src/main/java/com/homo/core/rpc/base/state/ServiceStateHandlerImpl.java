@@ -1,8 +1,8 @@
 package com.homo.core.rpc.base.state;
 
-import com.homo.concurrent.queue.CallQueueMgr;
-import com.homo.concurrent.schedule.HomoTimerMgr;
-import com.homo.concurrent.schedule.TaskFun0;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
+import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
+import com.homo.core.utils.concurrent.schedule.TaskFun0;
 import com.homo.core.common.module.Module;
 import com.homo.core.configurable.rpc.ServerStateProperties;
 import com.homo.core.utils.exception.HomoError;

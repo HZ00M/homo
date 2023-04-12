@@ -12,7 +12,7 @@ import com.homo.core.tread.tread.exception.*;
 import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.fun.FuncEx;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -36,7 +36,7 @@ import java.util.function.Supplier;
  *
  * @author dubian
  */
-@Slf4j
+@Log4j2
 public abstract class AbstractTreadMgr<T>  implements TreadMgr<T>,Module {
 
     protected Map<String, Func2Ex<Object, T, Homo<T>>> setFuncMap = new HashMap<>();

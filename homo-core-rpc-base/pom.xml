@@ -30,10 +30,6 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-concurrent</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
             <artifactId>homo-core-proto</artifactId>
         </dependency>
         <dependency>

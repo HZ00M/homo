@@ -3,7 +3,7 @@ package com.homo.core.rpc.grpc;
 import brave.Span;
 import brave.Tracer;
 import com.google.protobuf.ByteString;
-import com.homo.concurrent.schedule.HomoTimerMgr;
+import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcClient;
 import com.homo.core.facade.serial.RpcContent;
@@ -17,7 +17,6 @@ import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.TraceInfo;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.StringUtils;
 
 @Log4j2
 public class RpcAgentClientImpl implements RpcAgentClient<TraceRpcContent> {
