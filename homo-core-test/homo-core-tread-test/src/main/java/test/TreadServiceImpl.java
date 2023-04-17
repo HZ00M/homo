@@ -1,8 +1,8 @@
 package test;
 
-import com.homo.core.utils.fun.Func3Ex;
 import com.homo.core.tread.tread.intTread.IntTreadMgr;
 import com.homo.core.utils.fun.Func2Ex;
+import com.homo.core.utils.fun.Func3Ex;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;

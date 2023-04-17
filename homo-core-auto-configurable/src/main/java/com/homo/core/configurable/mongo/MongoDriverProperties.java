@@ -1,10 +1,8 @@
 package com.homo.core.configurable.mongo;
 
-import com.homo.core.configurable.NameSpaceConstant;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Configurable
 @Data

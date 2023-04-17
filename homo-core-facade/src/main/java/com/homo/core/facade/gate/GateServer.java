@@ -1,7 +1,5 @@
 package com.homo.core.facade.gate;
 
-import com.homo.core.utils.rector.Homo;
-
 /**
  *网关服务接口 提供通知客户端能力
  */

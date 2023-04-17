@@ -5,7 +5,6 @@ import com.homo.core.configurable.gate.GateTcpProperties;
 import com.homo.core.gate.tcp.handler.AbstractLogicHandler;
 import com.homo.core.gate.tcp.handler.DecoderHandler;
 import com.homo.core.gate.tcp.handler.EncoderHandler;
-import com.homo.core.gate.tcp.handler.TailHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;

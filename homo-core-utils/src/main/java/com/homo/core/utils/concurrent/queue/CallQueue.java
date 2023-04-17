@@ -6,7 +6,6 @@ import com.homo.core.utils.concurrent.event.Event;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.log4j.Log4j2;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;

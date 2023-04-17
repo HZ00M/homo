@@ -1,13 +1,12 @@
 package com.homo.core.rpc.base.state;
 
-import com.homo.core.utils.concurrent.queue.CallQueueMgr;
-import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
-import com.homo.core.utils.concurrent.schedule.TaskFun0;
 import com.homo.core.common.module.Module;
 import com.homo.core.configurable.rpc.ServerStateProperties;
-import com.homo.core.utils.exception.HomoError;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
+import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
+import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
  * 缓存服务器状态信息
  */
 @Log4j2
-public class ServiceStateHandlerImpl implements ServiceStateHandler, TaskFun0 , Module {
+public class ServiceStateHandlerImpl implements ServiceStateHandler,Runnable, Module {
     private Map<String, List<Integer>> goodServiceMap = new ConcurrentHashMap<>();
     private Map<String, List<Integer>> availableServiceMap = new ConcurrentHashMap<>();
     @Autowired(required = false)

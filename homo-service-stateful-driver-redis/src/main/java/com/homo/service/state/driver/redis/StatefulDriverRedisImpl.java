@@ -2,7 +2,6 @@ package com.homo.service.state.driver.redis;
 
 import com.homo.core.facade.service.StatefulDriver;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
-import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.rector.Homo;

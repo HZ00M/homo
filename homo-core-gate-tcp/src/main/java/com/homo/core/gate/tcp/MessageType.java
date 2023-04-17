@@ -1,7 +1,5 @@
 package com.homo.core.gate.tcp;
 
-import com.homo.core.facade.gate.GateMessage;
-
 import java.util.Arrays;
 
 public enum MessageType {

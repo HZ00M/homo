@@ -1,8 +1,8 @@
 package com.homo.core.gate.tcp;
 
 import com.google.protobuf.GeneratedMessageV3;
-import com.homo.core.utils.exception.HomoError;
 import com.homo.core.facade.gate.GateMessage;
+import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.serial.ProtoSerializationProcessor;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

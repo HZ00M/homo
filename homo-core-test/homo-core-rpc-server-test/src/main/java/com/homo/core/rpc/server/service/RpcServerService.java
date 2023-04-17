@@ -3,7 +3,6 @@ package com.homo.core.rpc.server.service;
 import com.alibaba.fastjson.JSONObject;
 import com.homo.core.rpc.base.service.BaseService;
 import com.homo.core.rpc.server.facade.RpcServiceFacade;
-import com.homo.core.rpc.server.facade.RpcStatefulServiceFacade;
 import com.homo.core.rpc.server.facade.TestObjParam;
 import com.homo.core.utils.rector.Homo;
 import io.homo.proto.client.ParameterMsg;

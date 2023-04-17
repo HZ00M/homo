@@ -1,8 +1,8 @@
 package com.homo.core.rpc.base;
 
-import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.facade.rpc.RpcInterceptor;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;

@@ -3,7 +3,6 @@ package com.core.ability.base.storage;
 import com.core.ability.base.AbstractAbility;
 import com.core.ability.base.notify.WatchAbility;
 import com.core.ability.base.timer.TimeAbility;
-import com.homo.core.facade.ability.Ability;
 import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;

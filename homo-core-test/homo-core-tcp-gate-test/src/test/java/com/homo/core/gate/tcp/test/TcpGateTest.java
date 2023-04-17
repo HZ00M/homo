@@ -1,6 +1,5 @@
 package com.homo.core.gate.tcp.test;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.homo.core.facade.gate.GateMessage;
 import com.homo.core.gate.tcp.GateMessagePackage;

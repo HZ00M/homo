@@ -2,8 +2,6 @@ package com.homo.core.facade.gate;
 
 import lombok.Data;
 
-import java.util.Arrays;
-
 public interface GateMessage<T> {
 
     Header getHeader();

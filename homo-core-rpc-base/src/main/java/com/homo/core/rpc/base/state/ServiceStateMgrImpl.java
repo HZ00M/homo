@@ -3,15 +3,14 @@ package com.homo.core.rpc.base.state;
 import com.alibaba.fastjson.JSON;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.homo.core.utils.concurrent.queue.CallQueueMgr;
-import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
-import com.homo.core.utils.concurrent.schedule.TaskFun0;
 import com.homo.core.common.module.RootModule;
 import com.homo.core.configurable.rpc.ServerStateProperties;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.facade.service.StatefulDriver;
 import com.homo.core.rpc.base.service.ServiceMgr;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
+import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +78,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         CallQueueMgr.getInstance().frameTask(new Runnable() {
             @Override
             public void run() {
-                HomoTimerMgr.getInstance().schedule(new TaskFun0() {
+                HomoTimerMgr.getInstance().schedule(new Runnable() {
                     @Override
                     public void run() {
                         long currentTime = System.currentTimeMillis();

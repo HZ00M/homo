@@ -2,7 +2,6 @@ package com.homo.core.tread.tread.objTread;
 
 
 import com.homo.core.common.module.Module;
-import com.homo.core.utils.fun.Func3Ex;
 import com.homo.core.facade.tread.tread.TreadContext;
 import com.homo.core.facade.tread.tread.TreadMgr;
 import com.homo.core.facade.tread.tread.enums.ExecRet;
@@ -10,6 +9,7 @@ import com.homo.core.facade.tread.tread.enums.SeqType;
 import com.homo.core.facade.tread.tread.op.SeqPoint;
 import com.homo.core.tread.tread.config.TreadProperties;
 import com.homo.core.utils.fun.Func2Ex;
+import com.homo.core.utils.fun.Func3Ex;
 import com.homo.core.utils.fun.FuncEx;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.log4j.Log4j2;

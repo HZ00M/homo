@@ -1,10 +1,9 @@
 package com.homo.service.dirty;
 
-import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
-import com.homo.core.utils.concurrent.schedule.TaskFun0;
 import com.homo.core.common.module.Module;
 import com.homo.core.configurable.dirty.DirtyProperties;
 import com.homo.core.facade.storege.dirty.DirtyDriver;
+import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 

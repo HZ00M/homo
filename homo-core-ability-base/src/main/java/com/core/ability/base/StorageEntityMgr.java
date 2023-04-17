@@ -9,7 +9,6 @@ import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.utils.concurrent.lock.Locker;
-import com.homo.core.utils.concurrent.queue.CallQueueProducer;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.log4j.Log4j2;
@@ -70,8 +69,8 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
             } else {
                 ret = asyncLoad(clazz, id);
             }
-            if (entity instanceof CallQueueProducer) {
-                ret.switchThread(((CallQueueProducer) entity).getQueueId());
+            if (entity != null) {
+                ret.switchThread(entity.getQueueId());
             }
             return ret;
         }, () -> log.error("asyncGet error clazz {} id {}", clazz, id));

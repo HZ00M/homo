@@ -1,6 +1,9 @@
 package com.homo.core.util.delegate;
 
-import com.homo.core.utils.delegate.*;
+import com.homo.core.utils.delegate.Delegate1PR;
+import com.homo.core.utils.delegate.Delegate1PVoid;
+import com.homo.core.utils.delegate.DelegateInterface;
+import com.homo.core.utils.delegate.DelegateVoid;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;

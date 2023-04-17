@@ -1,9 +1,9 @@
 package com.homo.core.utils.concurrent.queue;
 
 import brave.internal.Nullable;
+import com.homo.core.common.module.Module;
 import com.homo.core.utils.concurrent.event.Event;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
-import com.homo.core.common.module.Module;
 import com.homo.core.utils.rector.Homo;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;

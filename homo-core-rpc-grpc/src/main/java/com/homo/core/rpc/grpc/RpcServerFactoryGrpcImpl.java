@@ -1,11 +1,11 @@
 package com.homo.core.rpc.grpc;
 
-import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.configurable.rpc.RpcGrpcServerProperties;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.facade.rpc.RpcServerFactory;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.rpc.base.trace.SpanInterceptor;
+import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.grpc.Server;
 import io.grpc.ServerInterceptor;
