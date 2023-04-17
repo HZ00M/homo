@@ -9,17 +9,19 @@ import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.log4j.Log4j2;
 
+import java.util.TimerTask;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 
 ;
 
 @Log4j2
-public abstract class AbstractHomoTimerTask implements Runnable {
+public abstract class AbstractHomoTimerTask<T extends AbstractHomoTimerTask> extends TimerTask {
+    Consumer<AbstractHomoTimerTask> onCancelConsumer;
     public static int ENDLESS = 0;
-    private final CallQueue callQueue;
+    public  CallQueue callQueue;
     public ScheduledFuture future;
-    private final Consumer<AbstractHomoTimerTask> onErrorConsumer;
+    Consumer<AbstractHomoTimerTask> onErrorConsumer;
     public AbstractHomoTimerTask(){
         this(CallQueueMgr.getInstance().getLocalQueue());
     }
@@ -27,8 +29,28 @@ public abstract class AbstractHomoTimerTask implements Runnable {
         this(callQueue,null);
     }
     public AbstractHomoTimerTask(CallQueue callQueue,  Consumer<AbstractHomoTimerTask> onErrorConsumer){
+        this(callQueue,onErrorConsumer,null);
+    }
+
+    public AbstractHomoTimerTask(CallQueue callQueue,  Consumer<AbstractHomoTimerTask> onErrorConsumer,Consumer<AbstractHomoTimerTask> onCancelConsumer){
         this.callQueue = callQueue;
         this.onErrorConsumer = onErrorConsumer;
+        this.onCancelConsumer = onCancelConsumer;
+    }
+
+    public T  setOnCancelConsumer(Consumer<AbstractHomoTimerTask> onCancelConsumer) {
+        this.onCancelConsumer = onCancelConsumer;
+        return (T) this;
+    }
+
+    public T setOnErrorConsumer(Consumer<AbstractHomoTimerTask> onErrorConsumer) {
+        this.onErrorConsumer = onErrorConsumer;
+        return (T) this;
+    }
+
+    public T setCallQueue(CallQueue callQueue){
+        this.callQueue = callQueue;
+        return (T) this;
     }
 
     @Override
@@ -42,6 +64,23 @@ public abstract class AbstractHomoTimerTask implements Runnable {
             }
         }
     }
+
+    public boolean justCancel(){
+        return super.cancel();
+    }
+
+    /**
+     * 取消定时任务
+     */
+    @Override
+    public boolean cancel() {
+        boolean rel = super.cancel();
+        if (onCancelConsumer != null) {
+            onCancelConsumer.accept(this);
+        }
+        return rel;
+    }
+
 
     public abstract void doRun();
 

@@ -64,7 +64,7 @@ public class ModuleMgrImpl implements ModuleMgr, SmartLifecycle {
     @Override
     public void stop() {
         for (Module module : moduleMap.values()) {
-            module.onStop();
+            module.close();
             log.warn("module {} had been stop",module.getClass().getName());
         }
         isRunning = false;

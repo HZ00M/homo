@@ -14,6 +14,7 @@ import java.util.Map;
 
 @Log4j2
 public class ByteStorage implements Module {
+    public static final String DEFAULT_DATA_KEY = "data";
     @Autowired(required = false)
     StorageDriver storage;
 
@@ -25,21 +26,15 @@ public class ByteStorage implements Module {
         return storage.asyncUpdate(appId,regionId,logicType,ownerId,keyList).errorContinue(Homo::error);
     }
 
-    public Homo<byte[]> save(String logicType, String ownerId, String key, byte[] data) {
+    public Homo<Boolean> save(String logicType, String ownerId, String key, byte[] data) {
         return save(getServerInfo().getAppId(),getServerInfo().getRegionId(),logicType,ownerId,key,data);
     }
 
-    public Homo<byte[]> save(String appId, String regionId, String logicType, String ownerId, String key, byte[] data) {
+    public Homo<Boolean> save(String appId, String regionId, String logicType, String ownerId, String key, byte[] data) {
         Map<String,byte[]> map = new HashMap<>();
         map.put(key,data);
         return storage.asyncUpdate(appId,regionId,logicType,ownerId,map)
-                .nextDo(ret->{
-                    if (ret.getKey()){
-                        return Homo.result(data);
-                    }else {
-                        return Homo.error(new Exception(String.format("save error, logicType_%s, ownerId_%s, key_%s", logicType, ownerId, key)));
-                    }
-                })
+                .nextDo(ret-> Homo.result(ret.getKey()))
                 .errorContinue(throwable -> Homo.error(new Exception(String.format("save error, logicType_%s, ownerId_%s, key_%s", logicType, ownerId, key))));
     }
 

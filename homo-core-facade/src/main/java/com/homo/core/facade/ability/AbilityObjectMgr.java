@@ -88,7 +88,7 @@ public interface AbilityObjectMgr {
      * @return
      * @param <T>
      */
-    <T extends AbilityEntity> Homo<T> getOrCreateEntityPromise(String id, Class<T> abilityClazz, Object... params);
+    <T extends AbilityEntity> Homo<T> getOrCreateEntityPromise(Class<T> abilityClazz, String id, Object... params);
 
     /**
      * 创建一个对象
@@ -99,7 +99,7 @@ public interface AbilityObjectMgr {
      * @param <T> entity类型
      * @return 被创建的对象
      */
-    <T extends AbilityEntity> Homo<T> createEntityPromise(String id, Class<T> abilityClazz, Object...params);
+    <T extends AbilityEntity> Homo<T> createEntityPromise(Class<T> abilityClazz, String id, Object...params);
     /**
      * 获取或创建对象
      * @param id entityId

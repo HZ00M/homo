@@ -2,7 +2,6 @@ package com.homo.core.rpc.grpc;
 
 import brave.Span;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
-import com.homo.core.utils.concurrent.schedule.TaskFun0;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.configurable.rpc.RpcGrpcClientProperties;
 import com.homo.core.utils.exception.HomoError;
@@ -78,7 +77,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
     private void lookupCheckAddress() {
         if (!isStateful) {
             //无状态服务器才需要动态负载，有状态服务器都是发送到指定的pod
-            HomoTimerMgr.getInstance().schedule(new TaskFun0() {
+            HomoTimerMgr.getInstance().schedule(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -291,7 +290,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
             }
         });
         //请求将在10秒后过期
-        HomoTimerMgr.getInstance().once(new TaskFun0() {
+        HomoTimerMgr.getInstance().once(new Runnable() {
             @Override
             public void run() {
                 log.info("asyncBytesStreamCall reqId {} timer run ",reqId);

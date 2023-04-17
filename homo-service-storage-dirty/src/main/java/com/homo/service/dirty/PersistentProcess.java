@@ -17,7 +17,7 @@ public class PersistentProcess implements Module {
     @Autowired(required = false)
     DirtyProperties dirtyProperties;
 
-    HomoTimerMgr<TaskFun0> homoTimerMgr = HomoTimerMgr.getInstance();
+    HomoTimerMgr homoTimerMgr = HomoTimerMgr.getInstance();
 
     @Override
     public void init() {

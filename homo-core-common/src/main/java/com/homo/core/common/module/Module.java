@@ -72,6 +72,6 @@ public interface Module {
     /**
      * 服务关闭时调用
      */
-    default void onStop() {
+    default void close() {
     }
 }

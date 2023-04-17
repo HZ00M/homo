@@ -7,6 +7,7 @@ import com.homo.core.utils.concurrent.queue.IdCallQueue;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.fun.FuncEx;
 import lombok.extern.log4j.Log4j2;
+import org.reactivestreams.Publisher;
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
@@ -59,6 +60,10 @@ public class Homo<T> extends Mono<T> {
         });
     }
 
+    public static Homo<Void> resultVoid() {
+        return Homo.warp(Mono.empty());
+    }
+
     @Override
     public void subscribe(CoreSubscriber<? super T> actual) {
         mono.subscribe(actual);
@@ -69,6 +74,10 @@ public class Homo<T> extends Mono<T> {
             return (Homo<T>) mono;
         }
         return new Homo<T>(mono);
+    }
+
+    public static  Homo<Void> when(final Iterable<? extends Publisher<?>> sources) {
+        return Homo.warp(Mono.when(sources));
     }
 
     public static <T> Homo<T> warp(Supplier<Mono<T>> supplier) {
