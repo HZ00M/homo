@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 /**
  *  ability对象管理器
  */
-public interface AbilityObjectMgr {
+public interface AbilityEntityMgr {
 
     /**
      * 添加entity

@@ -1,7 +1,7 @@
 package com.core.ability.base;
 
 import com.homo.core.facade.ability.AbilityEntity;
-import com.homo.core.facade.ability.AbilityObjectMgr;
+import com.homo.core.facade.ability.AbilityEntityMgr;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
@@ -23,8 +23,8 @@ import java.util.function.Consumer;
 
 @Component
 @Log4j2
-public class CacheEntityMgr implements AbilityObjectMgr {
-    static Map<Class<?>, Class<?>[]> abilityClazz2ParamsMap = new ConcurrentHashMap<>();
+public class CacheEntityMgr implements AbilityEntityMgr {
+    static Map<Class<?>, Class<?>[]> entityClazz2ParamsMap = new ConcurrentHashMap<>();
     IdCallQueue idCallQueue = new IdCallQueue("AbilityObjEntityImpl");
     @Getter
     AtomicInteger entityCount = new AtomicInteger(0);
@@ -63,17 +63,17 @@ public class CacheEntityMgr implements AbilityObjectMgr {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends AbilityEntity> T get(String type, String id) {
-        T abilityObject = (T) type2Id2ObjMap.get(type, id);
-        if (abilityObject == null) {
+        T abilityEntity = (T) type2Id2ObjMap.get(type, id);
+        if (abilityEntity == null) {
             return null;
         }
-        processConsumer(getProcess, abilityObject);
-        return abilityObject;
+        processConsumer(getProcess, abilityEntity);
+        return abilityEntity;
     }
 
     @Override
-    public <T extends AbilityEntity> T get(Class<T> abilityClazz, String id) {
-        EntityType entityType = HomoAnnotationUtil.findAnnotation(abilityClazz, EntityType.class);
+    public <T extends AbilityEntity> T get(Class<T> entityClazz, String id) {
+        EntityType entityType = HomoAnnotationUtil.findAnnotation(entityClazz, EntityType.class);
         if (entityType == null) {
             return null;
         }
@@ -96,20 +96,20 @@ public class CacheEntityMgr implements AbilityObjectMgr {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends AbilityEntity> T remove(String type, String id) {
-        T abilityObject = (T) type2Id2ObjMap.get(type, id);
-        if (abilityObject == null) {
+        T abilityEntity = (T) type2Id2ObjMap.get(type, id);
+        if (abilityEntity == null) {
             log.warn("remove entity but not found, type_{}, id_{}", type, id);
         } else {
-            processConsumer(removeProcess, abilityObject);
+            processConsumer(removeProcess, abilityEntity);
             type2Id2ObjMap.remove(type, id);
             GetBeanUtil.getBean(ServiceStateMgr.class).setLoad(entityCount.decrementAndGet());
         }
-        return abilityObject;
+        return abilityEntity;
     }
 
     @Override
-    public <T extends AbilityEntity> T remove(Class<T> abilityClazz, String id) {
-        EntityType entityType = HomoAnnotationUtil.findAnnotation(abilityClazz, EntityType.class);
+    public <T extends AbilityEntity> T remove(Class<T> entityClazz, String id) {
+        EntityType entityType = HomoAnnotationUtil.findAnnotation(entityClazz, EntityType.class);
         if (entityType == null) {
             return null;
         }
@@ -138,24 +138,24 @@ public class CacheEntityMgr implements AbilityObjectMgr {
     }
 
     @Override
-    public <T extends AbilityEntity> Homo<T> getOrCreateEntityPromise(Class<T> abilityClazz, String id, Object... params) {
-        return getEntityPromise(id, abilityClazz)
+    public <T extends AbilityEntity> Homo<T> getOrCreateEntityPromise(Class<T> entityClazz, String id, Object... params) {
+        return getEntityPromise(id, entityClazz)
                 .nextDo(getEntity -> {
                     if (getEntity == null) {
-                        return createEntityPromise(abilityClazz, id, params);
+                        return createEntityPromise(entityClazz, id, params);
                     }
                     return Homo.result(getEntity);
                 });
     }
 
     @Override
-    public <T extends AbilityEntity> Homo<T> createEntityPromise(Class<T> abilityClazz, String id, Object... params) {
+    public <T extends AbilityEntity> Homo<T> createEntityPromise(Class<T> entityClazz, String id, Object... params) {
         return Homo.queue(idCallQueue, () -> {
-            T entity = get(abilityClazz, id);//创建前再次判断是否存在
+            T entity = get(entityClazz, id);//创建前再次判断是否存在
             if (entity == null) {
-                entity = newEntity(id, abilityClazz, params);
+                entity = newEntity(id, entityClazz, params);
                 if (entity == null) {
-                    return Homo.error(new Exception("createEntityPromise error id " + id + " abilityClazz " + abilityClazz));
+                    return Homo.error(new Exception("createEntityPromise error id " + id + " entityClazz " + entityClazz));
                 }
             }
             T finalEntity = entity;
@@ -163,26 +163,26 @@ public class CacheEntityMgr implements AbilityObjectMgr {
                 processConsumer(createProcess, finalEntity);
                 return finalEntity;
             });
-        }, () -> log.error("createEntityPromise fail id {} abilityClazz {} params {}", id, abilityClazz, params));
+        }, () -> log.error("createEntityPromise fail id {} entityClazz {} params {}", id, entityClazz, params));
     }
 
-    private <T extends AbilityEntity> T newEntity(String id, Class<T> abilityClazz, Object... params) {
+    private <T extends AbilityEntity> T newEntity(String id, Class<T> entityClazz, Object... params) {
         try {
-            Class<?>[] paramsClasses = abilityClazz2ParamsMap.get(abilityClazz);
+            Class<?>[] paramsClasses = entityClazz2ParamsMap.get(entityClazz);
             if (paramsClasses == null) {
                 paramsClasses = new Class<?>[params.length];
                 for (int i = 0; i < params.length; i++) {
                     paramsClasses[i] = params[i].getClass();
                 }
             }
-            Constructor<T> constructor = abilityClazz.getConstructor(paramsClasses);
+            Constructor<T> constructor = entityClazz.getConstructor(paramsClasses);
             T newInstance = constructor.newInstance(params);
             if (id != null) {
                 newInstance.setId(id);
             }
             return newInstance;
         } catch (Exception e) {
-            log.error("newEntity fail, id {} abilityClazz {} params {}", id, abilityClazz, params, e);
+            log.error("newEntity fail, id {} entityClazz {} params {}", id, entityClazz, params, e);
             return null;
         }
     }
@@ -193,8 +193,8 @@ public class CacheEntityMgr implements AbilityObjectMgr {
     }
 
     @Override
-    public <T extends AbilityEntity> Homo<T> getEntityPromise(String id, Class<T> abilityClazz) {
-        EntityType entityType = HomoAnnotationUtil.findAnnotation(abilityClazz, EntityType.class);
+    public <T extends AbilityEntity> Homo<T> getEntityPromise(String id, Class<T> entityClazz) {
+        EntityType entityType = HomoAnnotationUtil.findAnnotation(entityClazz, EntityType.class);
         if (entityType == null) {
             return null;
         }

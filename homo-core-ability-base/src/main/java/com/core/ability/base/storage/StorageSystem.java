@@ -4,7 +4,7 @@ import brave.Span;
 import com.homo.core.common.module.ServiceModule;
 import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.AbilityEntity;
-import com.homo.core.facade.ability.AbilityObjectMgr;
+import com.homo.core.facade.ability.AbilityEntityMgr;
 import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.facade.storege.SaveObject;
@@ -39,10 +39,10 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
     HomoSerializationProcessor serializationProcessor;
     HomoTimerMgr timerMgr = HomoTimerMgr.getInstance();
     @Override
-    public void init(AbilityObjectMgr abilityObjectMgr) {
-        abilityObjectMgr.registerAddProcess(SaveAble.class, StorageAbility::new);
+    public void init(AbilityEntityMgr abilityEntityMgr) {
+        abilityEntityMgr.registerAddProcess(SaveAble.class, StorageAbility::new);
 
-        abilityObjectMgr.registerCreateProcess(SaveAble.class, abilityEntity -> abilityEntity.getAbility(StorageAbility.class).save());
+        abilityEntityMgr.registerCreateProcess(SaveAble.class, abilityEntity -> abilityEntity.getAbility(StorageAbility.class).save());
     }
 
     @Data

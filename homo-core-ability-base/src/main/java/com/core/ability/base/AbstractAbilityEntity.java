@@ -3,7 +3,7 @@ package com.core.ability.base;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.homo.core.facade.ability.Ability;
 import com.homo.core.facade.ability.AbilityEntity;
-import com.homo.core.facade.ability.AbilityObjectMgr;
+import com.homo.core.facade.ability.AbilityEntityMgr;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.rector.Homo;
@@ -51,7 +51,7 @@ public class AbstractAbilityEntity implements AbilityEntity{
         queueId = CallQueueMgr.getInstance().choiceQueueIdBySeed(id.hashCode());
         return Homo.result(this)
                 .nextDo(entity -> {
-                    if (!GetBeanUtil.getBean(AbilityObjectMgr.class).add(entity)) {
+                    if (!GetBeanUtil.getBean(AbilityEntityMgr.class).add(entity)) {
                         return Homo.error(
                                 new Exception(String.format("entity create error! type_%s id_%s already exist!", getType(), getId())));
                     }
@@ -85,7 +85,7 @@ public class AbstractAbilityEntity implements AbilityEntity{
                     return Homo.when(beforeAfterDestroyAbility)
                             .nextDo(ret -> {
                                 this.abilityMap.clear();
-                                AbstractAbilityEntity remove = GetBeanUtil.getBean(AbilityObjectMgr.class).remove(entity);
+                                AbstractAbilityEntity remove = GetBeanUtil.getBean(AbilityEntityMgr.class).remove(entity);
                                 log.info("promiseDestroy done remove entity {} {}",remove.getType(),remove.getId());
                                 return afterPromiseDestroy();
                             });
