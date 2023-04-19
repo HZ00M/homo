@@ -60,20 +60,24 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
         }
     }
 
-    <T extends AbilityEntity> Homo<T> asyncGet(Class<T> clazz, String id) {
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends AbilityEntity> Homo<T> getEntityPromise(String type, String id) {
         return Homo.queue(idCallQueue, () -> {
             Homo<T> ret;
-            T entity = get(clazz, id);
+            T entity = get(type, id);
             if (entity != null) {
                 ret = Homo.result(entity);
             } else {
-                ret = asyncLoad(clazz, id);
+                Class<AbilityEntity> entityClazz = typeToAbilityObjectClazzMap.get(type);
+                ret = asyncLoad((Class<T>) entityClazz, id);
             }
             if (entity != null) {
                 ret.switchThread(entity.getQueueId());
             }
             return ret;
-        }, () -> log.error("asyncGet error clazz {} id {}", clazz, id));
+        }, () -> log.error("asyncGet error clazz {} id {}", type, id));
     }
 
     <T extends AbilityEntity> Homo<T> asyncLoad(Class<T> clazz, String id) {
@@ -100,7 +104,7 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
                                     return Homo.result(inMenEntity);
                                 }
                                 if (entity != null) {
-                                    return entity.promiseInit().nextDo(ret-> Homo.result(entity));
+                                    return entity.promiseInit().nextDo(ret -> Homo.result(entity));
                                 }
                                 return Homo.result(null);
                             }))
@@ -112,13 +116,15 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
         }
     }
 
-    public <T extends AbilityEntity> Homo<T> asyncGetOrCreate(Class<T> clazz, String id, Object... params) {
-        return asyncGet(clazz, id)
+    @SuppressWarnings("unchecked")
+    public <T extends AbilityEntity> Homo<T> asyncGetOrCreate(String type, String id, Object... params) {
+        return (Homo<T>) getEntityPromise(type, id)
                 .nextDo(entity -> {
                     if (entity != null) {
                         return Homo.result(entity);
                     } else {
-                        return createEntityPromise(clazz, id, params);
+                        Class<AbilityEntity> entityClass = typeToAbilityObjectClazzMap.get(type);
+                        return createEntityPromise(entityClass, id, params);
                     }
                 });
     }

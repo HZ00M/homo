@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.homo.proto.entity";
+option java_outer_classname = "EntityProto";
+
+message EntityRequest{
+  int64 session = 1;
+
+  string type = 2;
+  string id = 3;
+  string funName = 4;
+  repeated bytes content = 5;
+}

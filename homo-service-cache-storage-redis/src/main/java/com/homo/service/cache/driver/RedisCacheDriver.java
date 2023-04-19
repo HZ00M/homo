@@ -4,8 +4,8 @@ import com.google.common.base.Charsets;
 import com.homo.core.facade.cache.CacheDriver;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
-import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.lang.Pair;
+import com.homo.core.utils.rector.Homo;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.RedisFuture;
 import lombok.extern.log4j.Log4j2;
@@ -25,14 +25,11 @@ import java.util.Map;
 @Component
 public class RedisCacheDriver implements CacheDriver {
     private static String REDIS_KEY_TMPL = "slug:{%s:%s:%s:%s}";  //slug:{appId:regionId:logicType:ownerId}
-
     @Autowired
     HomoAsyncRedisPool asyncRedisPool;
-    @Autowired
-    LuaScriptHelper luaScriptHelper;
 
     @Override
-    public void asyncGetByFields(String appId, String regionId, String logicType, String ownerId, List<String> fieldList, CallBack<Map<String, byte[]>> callBack) {
+    public Homo<Map<String, byte[]>> asyncGetByFields(String appId, String regionId, String logicType, String ownerId, List<String> fieldList) {
         log.trace("asyncGet start, appId_{} regionId_{} logicType_{} ownerId_{}, keyList_{}", appId, regionId, logicType, ownerId, fieldList);
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         byte[][] fields = new byte[fieldList.size()][];
@@ -41,54 +38,58 @@ public class RedisCacheDriver implements CacheDriver {
             fields[index++] = key.getBytes(StandardCharsets.UTF_8);
         }
         RedisFuture<List<KeyValue<byte[], byte[]>>> listRedisFuture = asyncRedisPool.hmgetAsync(redisKey.getBytes(StandardCharsets.UTF_8), fields);
-        listRedisFuture.whenCompleteAsync((result, throwable) -> {
-            try {
-                if (throwable != null) {
-                    callBack.onError(throwable);
-                    return;
-                }
-                Map<String, byte[]> resultMap = new HashMap<>(result.size());
-                for (KeyValue<byte[], byte[]> keyValue : result) {
-                    if (!keyValue.hasValue()) {
-                        continue;
+        return Homo.warp(homoSink -> {
+            listRedisFuture.whenCompleteAsync((result, throwable) -> {
+                try {
+                    if (throwable != null) {
+                        homoSink.error(throwable);
+                        return;
                     }
-                    resultMap.put(new String(keyValue.getKey(), StandardCharsets.UTF_8), keyValue.getValue());
+                    Map<String, byte[]> resultMap = new HashMap<>(result.size());
+                    for (KeyValue<byte[], byte[]> keyValue : result) {
+                        if (!keyValue.hasValue()) {
+                            continue;
+                        }
+                        resultMap.put(new String(keyValue.getKey(), StandardCharsets.UTF_8), keyValue.getValue());
+                    }
+                    homoSink.success(resultMap);
+                    log.info("asyncGet end, appId_{} regionId_{} logicType_{} ownerId_{}, keyList_{}", appId, regionId, logicType, ownerId, fieldList);
+                } catch (Exception e) {
+                    homoSink.error(e);
                 }
-                callBack.onBack(resultMap);
-                log.info("asyncGet end, appId_{} regionId_{} logicType_{} ownerId_{}, keyList_{}", appId, regionId, logicType, ownerId, fieldList);
-            } catch (Exception e) {
-                callBack.onError(e);
-            }
+            });
         });
     }
 
     @Override
-    public void asyncGetAll(String appId, String regionId, String logicType, String ownerId, CallBack<Map<String, byte[]>> callBack) {
+    public Homo<Map<String, byte[]>> asyncGetAll(String appId, String regionId, String logicType, String ownerId) {
         log.trace("asyncGet start,appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         RedisFuture<Map<byte[], byte[]>> mapRedisFuture = asyncRedisPool.hgetallAsync(redisKey.getBytes(StandardCharsets.UTF_8));
-        mapRedisFuture.whenCompleteAsync((result, throwable) -> {
-                    try {
-                        if (throwable != null) {
-                            callBack.onError(throwable);
-                            return;
+        return Homo.warp(mapHomoSink -> {
+            mapRedisFuture.whenCompleteAsync((result, throwable) -> {
+                        try {
+                            if (throwable != null) {
+                                mapHomoSink.error(throwable);
+                                return;
+                            }
+                            Map<String, byte[]> resultMap = new HashMap<>(result.size());
+                            for (byte[] keyBytes : result.keySet()) {
+                                String key = new String(keyBytes, StandardCharsets.UTF_8);
+                                resultMap.put(key, result.get(keyBytes));
+                            }
+                            mapHomoSink.success(resultMap);
+                            log.trace("asyncGet end,appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
+                        } catch (Exception e) {
+                            mapHomoSink.error(e);
                         }
-                        Map<String, byte[]> resultMap = new HashMap<>(result.size());
-                        for (byte[] keyBytes : result.keySet()) {
-                            String key = new String(keyBytes, StandardCharsets.UTF_8);
-                            resultMap.put(key, result.get(keyBytes));
-                        }
-                        callBack.onBack(resultMap);
-                        log.trace("asyncGet end,appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
-                    } catch (Exception e) {
-                        callBack.onError(e);
                     }
-                }
-        );
+            );
+        });
     }
 
     @Override
-    public void asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data, CallBack<Boolean> callBack) {
+    public Homo<Boolean> asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data) {
         log.trace("asyncUpdate start, appId_{} regionId_{} logicType_{} ownerId_{}, keys_{}", appId, regionId, logicType, ownerId, data.keySet());
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         Map<byte[], byte[]> dataMap = new HashMap<>(data.size());
@@ -97,27 +98,29 @@ public class RedisCacheDriver implements CacheDriver {
             dataMap.put(keyBytes, data.get(key));
         }
         RedisFuture<Long> longRedisFuture = asyncRedisPool.hsetAsync(redisKey.getBytes(StandardCharsets.UTF_8), dataMap);
-        longRedisFuture.whenCompleteAsync((result, throwable) -> {
-            try {
-                if (throwable != null) {
-                    callBack.onError(throwable);
-                    return;
+        return Homo.warp(homoSink -> {
+            longRedisFuture.whenCompleteAsync((result, throwable) -> {
+                try {
+                    if (throwable != null) {
+                        homoSink.error(throwable);
+                        return;
+                    }
+                    //hset方法如果原来没这个field返回 1，如果存在，则是覆盖旧值，返回 0
+                    homoSink.success(Boolean.TRUE);
+                    log.trace("asyncUpdate end, appId_{} regionId_{} logicType_{} ownerId_{}, keys_{}", appId, regionId, logicType, ownerId, data.keySet());
+                } catch (Exception e) {
+                    homoSink.error(e);
                 }
-                //hset方法如果原来没这个field返回 1，如果存在，则是覆盖旧值，返回 0
-                callBack.onBack(Boolean.TRUE);
-                log.trace("asyncUpdate end, appId_{} regionId_{} logicType_{} ownerId_{}, keys_{}", appId, regionId, logicType, ownerId, data.keySet());
-            } catch (Exception e) {
-                callBack.onError(e);
-            }
+            });
         });
     }
 
     @Override
-    public void asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data, long expireSeconds, CallBack<Boolean> callBack) {
+    public Homo<Boolean> asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> data, long expireSeconds) {
         log.trace("asyncUpdate start, appId_{} regionId_{} logicType_{} ownerId_{} expireSeconds_{}", appId, regionId, logicType, ownerId, expireSeconds);
         if (expireSeconds <= 0) {
             //没有超时时间
-            asyncUpdate(appId, regionId, logicType, ownerId, data, callBack);
+            return asyncUpdate(appId, regionId, logicType, ownerId, data);
         } else {
             String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
             String[] keys = {redisKey};
@@ -131,22 +134,24 @@ public class RedisCacheDriver implements CacheDriver {
             }
             String updateKeysExpireScript = LuaScriptHelper.updateKeysExpireScript;
             Flux<Object> resultFlux = asyncRedisPool.evalAsyncReactive(updateKeysExpireScript, keys, args);
-            resultFlux.subscribe(
-                    result -> {
-                        try {
-                            callBack.onBack(Boolean.TRUE);
-                            log.trace("asyncUpdate end, appId_{} regionId_{} logicType_{} ownerId_{} expireSeconds_{}", appId, regionId, logicType, ownerId, expireSeconds);
-                        } catch (Exception e) {
-                            callBack.onError(e);
-                        }
-                    },
-                    callBack::onError
-            );
+            return Homo.warp(homoSink -> {
+                resultFlux.subscribe(
+                        result -> {
+                            try {
+                                homoSink.success(Boolean.TRUE);
+                                log.trace("asyncUpdate end, appId_{} regionId_{} logicType_{} ownerId_{} expireSeconds_{}", appId, regionId, logicType, ownerId, expireSeconds);
+                            } catch (Exception e) {
+                                homoSink.error(e);
+                            }
+                        },
+                        homoSink::error
+                );
+            });
         }
     }
 
     @Override
-    public void asyncIncr(String appId, String regionId, String logicType, String ownerId, Map<String, Long> incrData, CallBack<Pair<Boolean, Map<String, Long>>> callBack) {
+    public Homo<Pair<Boolean, Map<String, Long>>> asyncIncr(String appId, String regionId, String logicType, String ownerId, Map<String, Long> incrData) {
         log.trace("asyncIncr start, appId_{} regionId_{} logicType_{} ownerId_{} incrKeys_{}", appId, regionId, logicType, ownerId, incrData.keySet());
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         String incrScript = LuaScriptHelper.incrScript;
@@ -160,28 +165,30 @@ public class RedisCacheDriver implements CacheDriver {
             index += 2;
         }
         RedisFuture<Object> objectRedisFuture = asyncRedisPool.evalAsync(incrScript, keys, args);
-        objectRedisFuture.whenCompleteAsync((result, throwable) -> {
-            try {
-                if (throwable != null) {
-                    callBack.onError(throwable);
-                    return;
+        return Homo.warp(homoSink->{
+            objectRedisFuture.whenCompleteAsync((result, throwable) -> {
+                try {
+                    if (throwable != null) {
+                        homoSink.error(throwable);
+                        return;
+                    }
+                    ArrayList resultList = (ArrayList) result;
+                    Map<String, Long> resultMap = new HashMap<>(resultList.size() / 2);
+                    for (int i = 0; i < resultList.size(); i += 2) {
+                        resultMap.put((String) resultList.get(i), (Long) resultList.get(i + 1));
+                    }
+                    Pair<Boolean, Map<String, Long>> pair = new Pair<>(true, resultMap);
+                    homoSink.success(pair);
+                    log.info("asyncIncr end, appId_{} regionId_{} logicType_{} ownerId_{} incrKeys_{}", appId, regionId, logicType, ownerId, incrData.keySet());
+                } catch (Exception e) {
+                    homoSink.error(e);
                 }
-                ArrayList resultList = (ArrayList) result;
-                Map<String, Long> resultMap = new HashMap<>(resultList.size() / 2);
-                for (int i = 0; i < resultList.size(); i += 2) {
-                    resultMap.put((String) resultList.get(i), (Long) resultList.get(i + 1));
-                }
-                Pair<Boolean, Map<String, Long>> pair = new Pair<>(true, resultMap);
-                callBack.onBack(pair);
-                log.info("asyncIncr end, appId_{} regionId_{} logicType_{} ownerId_{} incrKeys_{}", appId, regionId, logicType, ownerId, incrData.keySet());
-            } catch (Exception e) {
-                callBack.onError(e);
-            }
+            });
         });
     }
 
     @Override
-    public void asyncRemoveKeys(String appId, String regionId, String logicType, String ownerId, List<String> remKeys, CallBack<Boolean> callBack) {
+    public Homo<Boolean> asyncRemoveKeys(String appId, String regionId, String logicType, String ownerId, List<String> remKeys) {
         log.trace("asyncRemoveKeys start, appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         byte[][] keys = new byte[remKeys.size()][];
@@ -190,18 +197,20 @@ public class RedisCacheDriver implements CacheDriver {
             keys[index++] = key.getBytes(StandardCharsets.UTF_8);
         }
         RedisFuture<Long> longRedisFuture = asyncRedisPool.hdelAsync(redisKey.getBytes(StandardCharsets.UTF_8), keys);
-        longRedisFuture.whenCompleteAsync((result,throwable)->{
-            try {
-                if (throwable!=null){
-                    callBack.onError(throwable);
-                    return;
+        return Homo.warp(homoSink->{
+            longRedisFuture.whenCompleteAsync((result,throwable)->{
+                try {
+                    if (throwable!=null){
+                        homoSink.error(throwable);
+                        return;
+                    }
+                    //返回值:被成功移除的域的数量，不包括被忽略的域。
+                    homoSink.success(true);
+                    log.trace("asyncRemoveKeys end, appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
+                }catch (Exception e){
+                    homoSink.error(e);
                 }
-                //返回值:被成功移除的域的数量，不包括被忽略的域。
-                callBack.onBack(true);
-                log.trace("asyncRemoveKeys end, appId_{} regionId_{} logicType_{} ownerId_{} keys_{}", appId, regionId, logicType, ownerId, remKeys);
-            }catch (Exception e){
-                callBack.onError(e);
-            }
+            });
         });
     }
 }

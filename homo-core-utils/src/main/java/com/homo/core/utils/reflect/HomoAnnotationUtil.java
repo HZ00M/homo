@@ -1,5 +1,6 @@
 package com.homo.core.utils.reflect;
 
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 
@@ -66,5 +67,31 @@ public class HomoAnnotationUtil {
         }
         log.info("findAnnotations typeClass {} annotationSet{} !", typeClazz, annotationClassMap.values());
         return (Set<Annotation>) annotationClassMap.values();
+    }
+
+    /**
+     * 获取指定类型的注解
+     * @param annotationClazz 注解类型
+     * @return 注解实例
+     */
+    public static Class<?> findAnnotationInterface(Class<?> typeClass, Class<? extends Annotation> annotationClazz){
+        if (typeClass == null){
+            return null;
+        }
+        if (typeClass.isAnnotationPresent(annotationClazz)){
+            return typeClass;
+        }
+        Class<?>[] interfaces = typeClass.getInterfaces();
+        for (Class<?> anInterface : interfaces) {
+            Class<?> rel = findAnnotationInterface(anInterface, annotationClazz);
+            if (rel != null){
+                return rel;
+            }
+        }
+        Class<?> superclass = typeClass.getSuperclass();
+        if (superclass != null){
+            return findAnnotationInterface(superclass, annotationClazz);
+        }
+        return null;
     }
 }

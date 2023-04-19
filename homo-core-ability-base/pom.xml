@@ -30,5 +30,9 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-system</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-base</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -1,6 +1,6 @@
 package com.homo.core.rpc.base.service;
 
-import com.homo.core.facade.rpc.RpcInterceptor;
+import com.homo.core.rpc.base.RpcInterceptor;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.facade.service.Service;
@@ -40,7 +40,7 @@ public class BaseService implements Service {
 
         serviceStateHandler.setServiceNameTag(tagName, tagName);//todo 还没有实现
         rpcHandleInfo = new RpcHandlerInfoForServer(this.getClass());
-        callDispatcher = new CallDispatcher(tagName,this,rpcHandleInfo);
+        callDispatcher = new CallDispatcher(rpcHandleInfo);
         postInit();
     }
 
@@ -79,7 +79,7 @@ public class BaseService implements Service {
      */
     @Override
     public Homo callFun(String srcService, String funName, RpcContent param) throws Exception {
-        return callDispatcher.callFun(srcService,funName,param);
+        return callDispatcher.callFun(this,srcService,funName,param);
     }
 
     /**

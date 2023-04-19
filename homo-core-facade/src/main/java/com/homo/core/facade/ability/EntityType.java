@@ -9,4 +9,10 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EntityType {
     String type();
+
+    /**
+     * 是否只能本地调用
+     * @return
+     */
+    boolean isLocalService() default false;
 }
