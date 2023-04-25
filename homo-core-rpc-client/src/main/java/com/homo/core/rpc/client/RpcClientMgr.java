@@ -4,7 +4,6 @@ import com.homo.core.common.module.ServiceModule;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcType;
-import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.utils.exception.HomoError;
@@ -21,8 +20,6 @@ import java.util.Map;
 @Log4j2
 public class RpcClientMgr<T> implements ServiceModule, ApplicationContextAware {
     private Map<RpcType,RpcClientFactory<T>> rpcClientFactoryMap = new HashMap<>();
-    @Autowired(required = false)
-    private ServiceStateHandler serviceStateHandler;
     @Autowired(required = false)
     private ServiceMgr serviceMgr;
     private final Map<String, RpcAgentClient<T>> rpcAgentClientMap = new HashMap();

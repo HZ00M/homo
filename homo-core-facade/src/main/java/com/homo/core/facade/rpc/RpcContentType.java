@@ -1,4 +1,4 @@
-package com.homo.core.facade.serial;
+package com.homo.core.facade.rpc;
 
 public enum RpcContentType {
     /**

@@ -1,6 +1,5 @@
 package com.homo.core.facade.rpc;
 
-import com.homo.core.facade.serial.RpcContent;
 import com.homo.core.utils.rector.Homo;
 
 /**
@@ -35,6 +34,6 @@ public interface RpcServer {
      * @param funName 函数名
      * @param param 参数
      */
-    <RETURN> Homo<RETURN> onCall(String srcService, String funName, RpcContent<RETURN> param) throws Exception;
+     Homo onCall(String srcService, String funName, RpcContent param) throws Exception;
 
 }

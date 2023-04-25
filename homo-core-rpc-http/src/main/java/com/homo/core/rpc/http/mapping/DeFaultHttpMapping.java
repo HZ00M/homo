@@ -6,8 +6,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
 import com.homo.core.common.module.Module;
-import com.homo.core.facade.serial.RpcContentType;
-import com.homo.core.rpc.base.serial.TraceRpcContent;
+import com.homo.core.facade.rpc.RpcContentType;
+import com.homo.core.rpc.http.FileRpcContent;
 import com.homo.core.rpc.http.HttpServer;
 import com.homo.core.rpc.http.upload.DefaultUploadFile;
 import com.homo.core.rpc.http.upload.UploadFile;
@@ -215,11 +215,11 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module {
             Map<String, String> headers = request.getHeaders().toSingleValueMap();
             String filename = filePart.filename();
             Flux<DataBuffer> content = filePart.content();
-            UploadFile uploadFile = new DefaultUploadFile(filename,headers,queryParams,finalFormData,content);
             Span span = ZipkinUtil.nextOrCreateSRSpan();
-            TraceRpcContent traceRpcContent = new TraceRpcContent(uploadFile, RpcContentType.FILE, span);
+            UploadFile uploadFile = new DefaultUploadFile(filename,headers,queryParams,finalFormData,content);
+            FileRpcContent byteRpcContent = new FileRpcContent(uploadFile, RpcContentType.FILE, span);
             try {
-                Mono<DataBuffer> dataBufferMono = routerHttpServerMap.get(port).onCall(msgId, traceRpcContent, response);//todo 处理文件类型请求
+                Mono<DataBuffer> dataBufferMono = routerHttpServerMap.get(port).onFileUpload(msgId, byteRpcContent, response);//todo 处理文件类型请求
                 monoMonoSink.success(dataBufferMono);
             } catch (Exception e) {
                 monoMonoSink.error(e);

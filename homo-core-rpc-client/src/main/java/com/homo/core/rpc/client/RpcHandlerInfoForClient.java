@@ -1,6 +1,6 @@
 package com.homo.core.rpc.client;
 
-import com.homo.core.facade.serial.RpcContent;
+import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.rpc.base.serial.RpcHandleInfo;
 import lombok.extern.log4j.Log4j2;

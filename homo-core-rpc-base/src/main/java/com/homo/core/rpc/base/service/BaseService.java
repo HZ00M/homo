@@ -1,13 +1,14 @@
 package com.homo.core.rpc.base.service;
 
+import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.RpcInterceptor;
 import com.homo.core.facade.rpc.RpcType;
-import com.homo.core.facade.serial.RpcContent;
+import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
-import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
 import com.homo.core.utils.rector.Homo;
+import com.homo.core.utils.spring.GetBeanUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.annotation.AnnotationUtils;
 
@@ -24,12 +25,10 @@ public class BaseService implements Service {
     private boolean stateful;
     private CallDispatcher callDispatcher;
     private RpcHandlerInfoForServer rpcHandleInfo;
-    private ServiceStateHandler serviceStateHandler;
 
-    public void init(ServiceMgr serviceMgr, ServiceStateHandler serviceStateHandler){
+    public void init(ServiceMgr serviceMgr){
         preInit();
         this.serviceMgr = serviceMgr;
-        this.serviceStateHandler = serviceStateHandler;
         ServiceExport serviceExport = getServiceExport();
         tagName = serviceExport.tagName();
         String[] split = tagName.split(":");
@@ -37,8 +36,7 @@ public class BaseService implements Service {
         port = Integer.parseInt(split[1]);
         driverType = serviceExport.driverType();
         stateful = serviceExport.isStateful();
-
-        serviceStateHandler.setServiceNameTag(tagName, tagName);//todo 还没有实现
+        GetBeanUtil.getBean(ServiceStateMgr.class).setServiceNameTag(tagName, tagName);
         rpcHandleInfo = new RpcHandlerInfoForServer(this.getClass());
         callDispatcher = new CallDispatcher(rpcHandleInfo);
         postInit();

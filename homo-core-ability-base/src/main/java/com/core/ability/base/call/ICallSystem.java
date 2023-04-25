@@ -10,4 +10,10 @@ public interface ICallSystem extends AbilitySystem {
     Homo call(String srcName, EntityRequest entityRequest, Integer podId, Object parameterMsg) throws Exception;
 
     Homo callLocalMethod(String type, String id, Method method,Object[] objects);
+
+    Homo<Boolean> add(CallAbility callAbility);
+
+    Homo<CallAbility> remove(CallAbility callAbility);
+
+    CallAbility get(String type,String id);
 }

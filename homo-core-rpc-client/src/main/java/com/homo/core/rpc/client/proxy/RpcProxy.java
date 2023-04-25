@@ -1,11 +1,10 @@
 package com.homo.core.rpc.client.proxy;
 
 import com.homo.core.facade.rpc.RpcType;
-import com.homo.core.facade.serial.RpcContent;
+import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.service.ServiceExport;
-import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
-import com.homo.core.rpc.base.serial.TraceRpcContent;
+import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.client.ExportHostName;
 import com.homo.core.rpc.client.RpcClientMgr;
@@ -34,16 +33,14 @@ public class RpcProxy implements MethodInterceptor {
     private final Class<?> interfaceType;
     private final String tagName;
     private final RpcType rpcType;
-    private final ServiceStateHandler serviceStateHandler;
     private final RpcHandlerInfoForClient rpcHandlerInfoForClient;
     private MultiFunA<String,Homo<String>> choiceHostFun = ExportHostName.STRATEGY0;
-    public RpcProxy(RpcClientMgr rpcClientMgr, Class<?> interfaceType, ServiceStateHandler serviceStateHandler, ServiceMgr serviceMgr, ServiceStateMgr serviceStateMgr) throws Exception {
+    public RpcProxy(RpcClientMgr rpcClientMgr, Class<?> interfaceType, ServiceMgr serviceMgr, ServiceStateMgr serviceStateMgr) throws Exception {
         this.rpcClientMgr = rpcClientMgr;
         this.interfaceType = interfaceType;
         ServiceExport serviceExport = interfaceType.getAnnotation(ServiceExport.class);
         this.tagName = serviceExport.tagName();
         this.rpcType = serviceExport.driverType();
-        this.serviceStateHandler = serviceStateHandler;
         this.serviceMgr = serviceMgr;
         this.serviceStateMgr = serviceStateMgr;
         this.rpcHandlerInfoForClient = new RpcHandlerInfoForClient(interfaceType);
@@ -54,7 +51,7 @@ public class RpcProxy implements MethodInterceptor {
         ServiceExport export = interfaceType.getAnnotation(ServiceExport.class);
         if (export != null){
             String tag = export.tagName();
-            serviceStateHandler.setLocalServiceNameTag(tag, tagName);
+            serviceStateMgr.setLocalServiceNameTag(tag, tagName);
         }
     }
 
@@ -79,7 +76,7 @@ public class RpcProxy implements MethodInterceptor {
                                 .getRpcAgentClient(tagName, realHostName,rpcType)
                                 .rpcCall(methodName, callContent)
                                 .nextDo(ret-> {
-                                    return processReturn(methodName, (Tuple2<String, TraceRpcContent>) ret);
+                                    return processReturn(methodName, (Tuple2<String, ByteRpcContent>) ret);
                                 })
                                 .catchError(throwable -> {
                                     log.error("rpc client call throwable {}",throwable);
@@ -94,10 +91,10 @@ public class RpcProxy implements MethodInterceptor {
     }
 
     @NotNull
-    private Homo processReturn(String methodName, Tuple2<String, TraceRpcContent> ret) throws HomoException {
-        Tuple2<String, TraceRpcContent> retTuple = ret;
+    private Homo processReturn(String methodName, Tuple2<String, ByteRpcContent> ret) throws HomoException {
+        Tuple2<String, ByteRpcContent> retTuple = ret;
         String msgId = retTuple.getT1();
-        TraceRpcContent rpcContent = retTuple.getT2();
+        ByteRpcContent rpcContent = retTuple.getT2();
         if (!msgId.equals(methodName)){//返回的msgId不等于方法名  抛出异常
             throw HomoError.throwError(Integer.parseInt(msgId),msgId);
         }

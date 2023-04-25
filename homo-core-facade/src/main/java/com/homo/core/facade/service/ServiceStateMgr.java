@@ -3,6 +3,7 @@ package com.homo.core.facade.service;
 import com.homo.core.common.module.ServiceModule;
 import com.homo.core.utils.rector.Homo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -100,4 +101,18 @@ public interface ServiceStateMgr extends ServiceModule {
      * @return
      */
     Homo<Map<Integer,Integer>> geAllStateInfo(String serviceName);
+
+    Homo<String> getServiceNameByTag(String tag) ;
+
+    Homo<Boolean> setServiceNameTag(String tag, String serviceName);
+
+    void setLocalServiceNameTag(String tag, String serviceName);
+
+    boolean isPodAvailable(String serviceName, Integer userPodIndex);
+
+    List<Integer> alivePods(String serviceName);
+
+    Homo<Integer> choiceBestPod(String serviceName);
+
+    Homo<Map<Integer, Integer>> getServiceAllStateInfo(String serviceName);
 }

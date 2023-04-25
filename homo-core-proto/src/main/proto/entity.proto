@@ -6,9 +6,17 @@ option java_outer_classname = "EntityProto";
 
 message EntityRequest{
   int64 session = 1;
-
   string type = 2;
   string id = 3;
   string funName = 4;
-  repeated bytes content = 5;
+  string srcName = 5; //需要再考虑下
+  repeated bytes content = 6;
+}
+
+message PingRequest{
+  int64 time = 1;
+}
+
+message PongRequest{
+  int64 time = 1;
 }

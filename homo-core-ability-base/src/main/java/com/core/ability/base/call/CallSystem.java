@@ -5,14 +5,16 @@ import brave.Tracer;
 import com.google.protobuf.ByteString;
 import com.homo.core.common.module.ServiceModule;
 import com.homo.core.configurable.ability.AbilityProperties;
+import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.facade.ability.AbilityEntityMgr;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.facade.ability.InvokeByQueue;
 import com.homo.core.facade.service.Service;
-import com.homo.core.facade.service.ServiceStateHandler;
+import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
+import com.homo.core.utils.lang.KKMap;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
@@ -36,10 +38,12 @@ public class CallSystem implements ICallSystem, ServiceModule {
     @Autowired
     ServiceMgr serviceMgr;
     @Autowired
-    ServiceStateHandler serviceStateHandler;
+    ServiceStateMgr serviceStateMgr;
     @Autowired
     AbilityProperties abilityProperties;
     Map<String, Boolean> methodInvokeByQueueMap = new ConcurrentHashMap<>();
+    KKMap<String, String, CallAbility> type2id2callAbilityMap = new KKMap<>();
+    KKMap<String, String, Boolean> id2type2callLinkMap = new KKMap<>();
 
     @Override
     public void init() {
@@ -61,10 +65,10 @@ public class CallSystem implements ICallSystem, ServiceModule {
                 //本地服务跳过
                 continue;
             }
-            for(Method method : entityClazz.getMethods()){
+            for (Method method : entityClazz.getMethods()) {
                 methodInvokeByQueueMap.put(getMethodInvokeByQueueMapKey(entityType.type(), method.getName()), method.getAnnotation(InvokeByQueue.class) != null);
             }
-            serviceStateHandler.setServiceNameTag(entityType.type(), mainService.getHostName())
+            serviceStateMgr.setServiceNameTag(entityType.type(), mainService.getHostName())
                     .catchError(throwable -> {
                         log.error("setServiceNameTag error entity {}", entityType.type(), throwable);
                     })
@@ -173,6 +177,51 @@ public class CallSystem implements ICallSystem, ServiceModule {
                         }
                     }
                 });
+    }
+
+    @Override
+    public Homo<Boolean> add(CallAbility callAbility) {
+        String type = callAbility.getOwner().getType();
+        String id = callAbility.getOwner().getId();
+        //保存callAbility引用
+        type2id2callAbilityMap.set(type, id, callAbility);
+        //设置连接信息
+        boolean linked = id2type2callLinkMap.get(id, type);
+        if (linked) {
+            log.debug("no need to link when add entity type_{}, id_{}", type, id);
+            return Homo.result(true);
+        } else {
+            log.info("link entity type_{}, id_{}", type, id);
+            return serviceStateMgr.setUserLinkedPod(id, getServerInfo().serverName, serviceStateMgr.getPodIndex(), false)
+                    .nextValue(prePodIndex -> {
+                        //如果之前的podIndex不为空，且不等于当前podIndex，则添加失败
+                        if (prePodIndex != null && !prePodIndex.equals(serviceStateMgr.getPodIndex())) {
+                            log.error("prePodIndex not equals current podIndex prePodIndex_{} currentPodIndex_{}", prePodIndex, serviceStateMgr.getPodIndex());
+                            return false;
+                        }
+                        return true;
+                    });
+        }
+    }
+
+    @Override
+    public Homo<CallAbility> remove(CallAbility callAbility) {
+        AbilityEntity owner = callAbility.getOwner();
+        String type = owner.getType();
+        String id = owner.getId();
+        type2id2callAbilityMap.remove(type, id);
+        //去除连接信息
+        id2type2callLinkMap.remove(id, type);
+        if (!id2type2callLinkMap.containsFirstKey(id)) {
+            return serviceStateMgr.removeUserLinkedPod(id, getServerInfo().serverName, false).nextValue(ret -> callAbility);
+        }else {
+            return Homo.result(callAbility);
+        }
+    }
+
+    @Override
+    public CallAbility get(String type, String id) {
+        return type2id2callAbilityMap.get(type,id);
     }
 
 }

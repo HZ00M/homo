@@ -29,8 +29,6 @@ public class ServiceMgr implements ServiceModule {
      @Autowired(required = false)
      @Lazy
      private ServiceStateMgr serviceStateMgr;
-     @Autowired(required = false)
-     private ServiceStateHandler serviceStateHandler;
      private Map<String,ServiceExport> serviceExportMap = new HashMap<>();
      private Service mainService;
     public void init() {
@@ -48,7 +46,7 @@ public class ServiceMgr implements ServiceModule {
             }
             if (service instanceof BaseService){
                 log.info("service {} init start",service.getTagName());
-                ((BaseService)service).init(this, serviceStateHandler);
+                ((BaseService)service).init(this);
                 localServiceMap.put(service.getTagName(),service);
             }else {
                 log.error("service must extend BaseService yet");

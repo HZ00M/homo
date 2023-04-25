@@ -3,8 +3,8 @@ package com.homo.core.rpc.grpc;
 import brave.Span;
 import com.google.protobuf.ByteString;
 import com.homo.core.facade.rpc.RpcServer;
-import com.homo.core.facade.serial.RpcContentType;
-import com.homo.core.rpc.base.serial.TraceRpcContent;
+import com.homo.core.facade.rpc.RpcContentType;
+import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.grpc.proccessor.CallErrorProcessor;
 import com.homo.core.rpc.grpc.proccessor.JsonCallErrorProcessor;
 import com.homo.core.rpc.grpc.proccessor.StreamCallErrorProcessor;
@@ -129,12 +129,12 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
             params[i] = req.getMsgContent(i).toByteArray();
         }
         try {
-            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new TraceRpcContent<>(params, RpcContentType.BYTES, span))
+            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new ByteRpcContent(params, RpcContentType.BYTES, span))
                     .consumerValue(ret -> {
-                        processMsgResult(responseObserver, req,  ret);
+                        processMsgResult(responseObserver, req, (byte[][]) ret);
                     })
                     .catchError(e -> {
-                        processMsgError(responseObserver, req, e);
+                        processMsgError(responseObserver, req, (Throwable) e);
                     }).start();
         } catch (Exception e) {
             log.error("rpcCall SrcService {} MsgId {} error e",req.getSrcService(), req.getMsgId(), e);
@@ -153,12 +153,12 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
                     for (int i = 0; i < req.getMsgContentCount(); i++) {
                         params[i] = req.getMsgContent(i).toByteArray();
                     }
-                    rpcServer.onCall(req.getSrcService(), req.getMsgId(),new TraceRpcContent<>(params, RpcContentType.BYTES,span))
+                    rpcServer.onCall(req.getSrcService(), req.getMsgId(),new ByteRpcContent(params, RpcContentType.BYTES,span))
                             .consumerValue(ret -> {
-                                processStreamResult(responseObserver, req,  ret);
+                                processStreamResult(responseObserver, req, (byte[][]) ret);
                             })
                             .catchError(e -> {
-                                processStreamError(responseObserver, req, e);
+                                processStreamError(responseObserver, req, (Throwable) e);
                             }).start();
                 } catch (Exception e) {
                     log.error("streamCall SrcService {} MsgId {} error e",req.getSrcService(), req.getMsgId(), e);
@@ -188,12 +188,12 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
 
         Span span = ZipkinUtil.currentSpan();
         try {
-            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new TraceRpcContent<>(params, RpcContentType.BYTES,span))
+            rpcServer.onCall(req.getSrcService(), req.getMsgId(), new ByteRpcContent(params, RpcContentType.BYTES,span))
                     .consumerValue(ret -> {
-                        processJsonResult(responseObserver, req, ret);
+                        processJsonResult(responseObserver, req, (byte[][]) ret);
                     })
                     .catchError(e -> {
-                        processJsonError(responseObserver, req, e);
+                        processJsonError(responseObserver, req, (Throwable) e);
                     }).start();
         } catch (Exception e) {
             log.error("jsonCall SrcService {} MsgId {} error e",req.getSrcService(), req.getMsgId(), e);

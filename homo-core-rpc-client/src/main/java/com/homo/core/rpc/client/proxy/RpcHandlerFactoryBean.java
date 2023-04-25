@@ -1,6 +1,5 @@
 package com.homo.core.rpc.client.proxy;
 
-import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.client.RpcClientMgr;
@@ -14,8 +13,7 @@ public class RpcHandlerFactoryBean<T> extends AbstractFactoryBean<T> {
     private final Class<T> interfaceType;
     @Autowired
     private RpcClientMgr rpcClientMgr;
-    @Autowired
-    private ServiceStateHandler serviceStateHandler;
+
     @Autowired
     private ServiceMgr serviceMgr;
     @Autowired
@@ -33,6 +31,6 @@ public class RpcHandlerFactoryBean<T> extends AbstractFactoryBean<T> {
     @Override
     protected @NotNull T createInstance() throws Exception {
         log.info("get RpcProxy from  RpcHandlerFactoryBean, interfaceType_{}", interfaceType.getName());
-        return RpcProxyMgr.createProxy(rpcClientMgr,interfaceType, serviceStateHandler,serviceMgr, serviceStateMgr);
+        return RpcProxyMgr.createProxy(rpcClientMgr,interfaceType, serviceMgr, serviceStateMgr);
     }
 }

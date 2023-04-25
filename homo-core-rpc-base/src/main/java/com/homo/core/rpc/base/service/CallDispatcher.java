@@ -1,7 +1,7 @@
 package com.homo.core.rpc.base.service;
 
 import com.homo.core.rpc.base.RpcInterceptor;
-import com.homo.core.facade.serial.RpcContent;
+import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.rpc.base.CallData;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
@@ -13,7 +13,7 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 public class CallDispatcher {
-    RpcHandlerInfoForServer rpcHandleInfo;
+    public RpcHandlerInfoForServer rpcHandleInfo;
     protected RpcInterceptor interceptor;
 
     public Homo callFun(Object handler, String srcService, String funName, RpcContent rpcContent) throws HomoException {

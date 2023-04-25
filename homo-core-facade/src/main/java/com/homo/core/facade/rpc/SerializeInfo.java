@@ -1,4 +1,4 @@
-package com.homo.core.rpc.base.serial;
+package com.homo.core.facade.rpc;
 
 import com.homo.core.utils.serial.FSTSerializationProcessor;
 import com.homo.core.utils.serial.HomoSerializationProcessor;

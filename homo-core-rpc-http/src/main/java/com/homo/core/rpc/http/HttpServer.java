@@ -2,8 +2,8 @@ package com.homo.core.rpc.http;
 
 import brave.Span;
 import com.homo.core.facade.rpc.RpcServer;
-import com.homo.core.facade.serial.RpcContentType;
-import com.homo.core.rpc.base.serial.TraceRpcContent;
+import com.homo.core.facade.rpc.RpcContentType;
+import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationContext;
@@ -16,6 +16,8 @@ import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.HttpProtocol;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * RPC Http服务器实现
@@ -54,26 +56,26 @@ public class HttpServer {
         return rpcServer.getPort();
     }
 
-    public <T> Mono<DataBuffer> onCall(String msgId, T data,ServerHttpResponse response) throws Exception {
+    public <T> Mono<DataBuffer> onCall(String msgId, byte[][] data,ServerHttpResponse response) throws Exception {
         Span span = ZipkinUtil.currentSpan();
-        TraceRpcContent rpcContent = new TraceRpcContent(data, RpcContentType.BYTES,span);
-//        if (data instanceof byte[][]){
-//            rpcContent = new TraceRpcContent(data, RpcContentType.BYTES,span);
-//        }
-//        if (data instanceof String){
-//            //如果是字符串，就解析成json
-//            rpcContent.setType(RpcContentType.JSON);
-//        }
+        ByteRpcContent rpcContent = new ByteRpcContent(data, RpcContentType.BYTES,span);
         return rpcServer.onCall("HttpServer",msgId,rpcContent)
                 .nextDo(ret->{
+                    //todo 待验证优化
                     byte[][] res = (byte[][]) ret;
-//                    List<String> repList = new ArrayList<>();
-//                    for (byte[] datum : res) {
-//                        String v = Arrays.toString(datum);
-//                        repList.add(v);
-//                    }
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
                     DataBuffer buffer = dataBufferFactory.wrap(res[0]);
+                    return Mono.just(buffer);
+                });
+    }
+
+    public Mono<DataBuffer> onFileUpload(String msgId, FileRpcContent rpcContent,ServerHttpResponse response ) throws Exception {
+        return rpcServer.onCall("HttpServer",msgId,rpcContent)
+                .nextDo(ret->{
+                    //todo 待验证优化
+                    String res = (String) ret;
+                    NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
+                    DataBuffer buffer = dataBufferFactory.wrap(res.getBytes(StandardCharsets.UTF_8));
                     return Mono.just(buffer);
                 });
     }
