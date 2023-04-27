@@ -9,6 +9,9 @@ import org.apache.logging.log4j.core.util.UuidUtil;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 对象添加定时器能力实现
+ */
 public class TimeAbility extends AbstractAbility {
     Map<String, HomoTimerTask> timeTaskMap = new HashMap<>();
     public TimeAbility(AbilityEntity abilityEntity) {

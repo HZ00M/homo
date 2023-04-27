@@ -4,6 +4,9 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.homo.core.facade.ability.Ability;
 import com.homo.core.facade.ability.AbilityEntity;
 
+/**
+ * 抽象能力
+ */
 public abstract class AbstractAbility implements Ability {
     protected AbilityEntity abilityEntity;
     @Override

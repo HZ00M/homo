@@ -10,6 +10,9 @@ import lombok.extern.log4j.Log4j2;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 远程代理工厂
+ */
 @Log4j2
 public class EntityProxyFactory {
 

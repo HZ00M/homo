@@ -18,6 +18,9 @@ import org.springframework.util.Assert;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 远程调用能力实现
+ */
 public class CallAbility extends AbstractAbility implements ICallAbility {
     public static Map<Class<?>, CallDispatcher> entityDispatcherMap = new ConcurrentHashMap<>();
 

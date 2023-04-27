@@ -12,6 +12,10 @@ import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.spring.GetBeanUtil;
 
+/**
+ * 对象保存能力实现
+ */
+
 public class StorageAbility extends AbstractAbility {
     StorageSystem storageSystem;
     Long saveTime;

@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 对象监听事件能力
+ */
 public class WatchAbility extends AbstractAbility {
     Map<String, List<ListenerAble>> listenerMap = new HashMap<>();
 

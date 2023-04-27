@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 对象自动保存系统
+ */
 @Log4j2
 public class StorageSystem implements AbilitySystem, ServiceModule {
     final Locker locker = new Locker();

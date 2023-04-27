@@ -22,6 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+/**
+ * 具备缓存能力的对象实体管理器
+ */
 @Log4j2
 public class CacheEntityMgr implements AbilityEntityMgr {
     static Map<Class<?>, Class<?>[]> entityClazz2ParamsMap = new ConcurrentHashMap<>();

@@ -21,6 +21,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 具备存储能力的实体管理器
+ */
 @Log4j2
 public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
     static Map<String, Class<AbilityEntity>> typeToAbilityObjectClazzMap = new ConcurrentHashMap<>();

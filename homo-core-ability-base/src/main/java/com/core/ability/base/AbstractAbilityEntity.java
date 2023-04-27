@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 抽象能力实体
+ */
 @Log4j2
 @ToString
 public class AbstractAbilityEntity implements AbilityEntity, SaveAble, TimeAble, CallAble {

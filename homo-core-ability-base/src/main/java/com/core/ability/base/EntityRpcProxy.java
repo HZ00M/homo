@@ -25,6 +25,9 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 远程调用代理，提供实体远程调用能力
+ */
 @Log4j2
 public class EntityRpcProxy implements MethodInterceptor {
     private String serviceName;

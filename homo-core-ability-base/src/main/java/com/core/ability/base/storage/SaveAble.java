@@ -4,7 +4,9 @@ import com.homo.core.facade.ability.AbilityAble;
 import com.homo.core.facade.ability.Entity;
 import com.homo.core.facade.storege.SaveObject;
 
-
+/**
+ * 为对象添加自动保存能力
+ */
 public interface SaveAble extends AbilityAble, SaveObject, Entity {
 
     /**

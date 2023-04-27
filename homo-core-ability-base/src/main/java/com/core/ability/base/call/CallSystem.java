@@ -28,6 +28,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 远程调用系统
+ */
+
 @Log4j2
 public class CallSystem implements ICallSystem, ServiceModule {
     IdCallQueue idCallQueue = new IdCallQueue("CallSystem", 5000, IdCallQueue.DropStrategy.DROP_CURRENT_TASK);
