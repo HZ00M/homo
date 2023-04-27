@@ -32,30 +32,11 @@ public class Homo<T> extends Mono<T> {
         this.mono = mono;
     }
 
-    public static <T> Homo<T> queue(IdCallQueue idCallQueue, Callable<Homo<T>> callable,Runnable errCb){
+    public static <T> Homo<T> queue(IdCallQueue idCallQueue, Callable<Homo<T>> callable, Runnable errCb) {
         return Homo.warp(new ConsumerEx<HomoSink<T>>() {
             @Override
             public void accept(HomoSink<T> tHomoSink) throws Exception {
-                idCallQueue.addIdTask(callable,errCb,tHomoSink);
-            }
-        });
-    }
-
-    public final Homo<T> switchThread(int callQueueId){
-        CallQueue callQueue = CallQueueMgr.getInstance().getQueue(callQueueId);
-        return nextDo(ret->{
-            CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
-            if (localQueue != callQueue){
-                return Homo.warp(tHomoSink -> {
-                    callQueue.addEvent(new AbstractBaseEvent() {
-                        @Override
-                        public void process() {
-                            tHomoSink.success(ret);
-                        }
-                    });
-                });
-            }else {
-                return Homo.result(ret);
+                idCallQueue.addIdTask(callable, errCb, tHomoSink);
             }
         });
     }
@@ -64,19 +45,39 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(Mono.empty());
     }
 
+    public final Homo<T> switchThread(int callQueueId) {
+        CallQueue callQueue = CallQueueMgr.getInstance().getQueue(callQueueId);
+        return nextDo(ret -> {
+            CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+            if (localQueue == null || localQueue != callQueue) {
+                return Homo.warp(tHomoSink -> {
+                    callQueue.addEvent(new AbstractBaseEvent() {
+                        @Override
+                        public void process() {
+                            log.info("switchThread process queueId {}", callQueueId);
+                            tHomoSink.success(ret);
+                        }
+                    });
+                });
+            } else {
+                return Homo.result(ret);
+            }
+        });
+    }
+
     @Override
     public void subscribe(CoreSubscriber<? super T> actual) {
         mono.subscribe(actual);
     }
 
     public static <T> Homo<T> warp(Mono<T> mono) {
-        if (mono instanceof Homo){
+        if (mono instanceof Homo) {
             return (Homo<T>) mono;
         }
         return new Homo<T>(mono);
     }
 
-    public static  Homo<Void> when(final Iterable<? extends Publisher<?>> sources) {
+    public static Homo<Void> when(final Iterable<? extends Publisher<?>> sources) {
         return Homo.warp(Mono.when(sources));
     }
 
@@ -146,7 +147,7 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(mono.doOnError(onError));
     }
 
-    public final Homo<T> onErrorContinue(Function<? super Throwable, ? extends Mono<? extends T>> fallback){
+    public final Homo<T> onErrorContinue(Function<? super Throwable, ? extends Mono<? extends T>> fallback) {
         Function<? super Throwable, ? extends Mono<? extends T>> warp = new Function<Throwable, Mono<? extends T>>() {
             @Override
             public Mono<? extends T> apply(Throwable throwable) {
@@ -173,8 +174,8 @@ public class Homo<T> extends Mono<T> {
     }
 
     public static <T> Homo<T> result(T data) {
-        if (data == null){
-            data = (T)Optional.empty();
+        if (data == null) {
+            data = (T) Optional.empty();
         }
         return Homo.warp(Mono.just(data));
     }
@@ -318,7 +319,7 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(mono.doOnSuccess(new Consumer<T>() {
             @Override
             public void accept(T t) {
-                if (t == null){
+                if (t == null) {
                     onEmpty.run();
                 }
             }
