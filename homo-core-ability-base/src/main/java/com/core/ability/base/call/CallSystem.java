@@ -5,10 +5,7 @@ import brave.Tracer;
 import com.google.protobuf.ByteString;
 import com.homo.core.common.module.ServiceModule;
 import com.homo.core.configurable.ability.AbilityProperties;
-import com.homo.core.facade.ability.AbilityEntity;
-import com.homo.core.facade.ability.AbilityEntityMgr;
-import com.homo.core.facade.ability.EntityType;
-import com.homo.core.facade.ability.InvokeByQueue;
+import com.homo.core.facade.ability.*;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
@@ -22,7 +19,7 @@ import io.homo.proto.entity.EntityRequest;
 import lombok.extern.log4j.Log4j2;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Lazy;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,7 +29,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
-@Component
 public class CallSystem implements ICallSystem, ServiceModule {
     IdCallQueue idCallQueue = new IdCallQueue("CallSystem", 5000, IdCallQueue.DropStrategy.DROP_CURRENT_TASK);
     @Autowired
@@ -42,7 +38,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
     @Autowired
     AbilityProperties abilityProperties;
     Map<String, Boolean> methodInvokeByQueueMap = new ConcurrentHashMap<>();
-    KKMap<String, String, CallAbility> type2id2callAbilityMap = new KKMap<>();
+    KKMap<String, String, ICallAbility> type2id2callAbilityMap = new KKMap<>();
     KKMap<String, String, Boolean> id2type2callLinkMap = new KKMap<>();
 
     @Override
@@ -97,7 +93,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
 
     @Override
     public void init(AbilityEntityMgr abilityEntityMgr) {
-        abilityEntityMgr.registerAddProcess(CallAbility.class, CallAbility::new);
+        abilityEntityMgr.registerAddProcess(CallAble.class, CallAbility::new);
     }
 
     @Override
@@ -180,7 +176,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
     }
 
     @Override
-    public Homo<Boolean> add(CallAbility callAbility) {
+    public Homo<Boolean> add(ICallAbility callAbility) {
         String type = callAbility.getOwner().getType();
         String id = callAbility.getOwner().getId();
         //保存callAbility引用
@@ -205,7 +201,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
     }
 
     @Override
-    public Homo<CallAbility> remove(CallAbility callAbility) {
+    public Homo<ICallAbility> remove(ICallAbility callAbility) {
         AbilityEntity owner = callAbility.getOwner();
         String type = owner.getType();
         String id = owner.getId();
@@ -220,7 +216,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
     }
 
     @Override
-    public CallAbility get(String type, String id) {
+    public ICallAbility get(String type, String id) {
         return type2id2callAbilityMap.get(type,id);
     }
 

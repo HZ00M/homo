@@ -1,5 +1,6 @@
 package com.homo.core.utils.concurrent.queue;
 
+import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +20,7 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
     private AtomicLong finishCounter = new AtomicLong(0);
 
     public IdCallQueue(String id) {
-        this(id, 0, DropStrategy.NONE);
+        this(id, 5000, DropStrategy.NONE);
     }
 
     public IdCallQueue(String id, long timeOutMills, DropStrategy dropStrategy) {
@@ -40,48 +41,59 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
     }
 
     public <T> void addIdTask(Callable callable, Runnable errorCallBack, HomoSink sink) {
+        log.info("IdCallQueue addIdTask id {} ", id);
         IdTask task = new IdTask(this, callable, errorCallBack, sink);
         add(task);
         IdTask headTask = peek();
         if (headTask == task) {//如果是队首,就直接执行
+            log.info("IdCallQueue headTask == task run !id {} task {}", id, task);
             task.run();
+            return;
         }
-        //检查超时
-        if (headTask != null //队列不为空
-                && timeOutMills > 0 //超时时间大于0
-                && (System.currentTimeMillis() - headTask.getStartTime()) > timeOutMills) {//超时了
-            log.error("IdCallQueue task timeOut! id:{} headTask.startTime:{}, currentTime:{} strategy:{}",
-                    id, headTask.getStartTime(), System.currentTimeMillis(), dropStrategy);
-            //不丢弃策略,就不用cancel当前task,只需返回errCallBack即可
-            if (dropStrategy == DropStrategy.NONE) {
-                headTask.errorCallBack.run();
-                poll();
-                IdTask nextTask = peek();
-                if (nextTask != null) {
-                    nextTask.run();
-                    return;
+        //检查head
+        if (headTask != null) {
+            if (timeOutMills > 0 && (System.currentTimeMillis() - headTask.getStartTime()) > timeOutMills) {
+                //超时了
+                log.error("IdCallQueue task timeOut! id:{} headTask.startTime:{}, currentTime:{} strategy:{}",
+                        id, headTask.getStartTime(), System.currentTimeMillis(), dropStrategy);
+                //不丢弃策略,就不用cancel当前task,只需返回errCallBack即可
+                if (dropStrategy == DropStrategy.NONE) {
+                    headTask.callback();
+                    log.info("IdCallQueue headTask.errorCallBack.run() run !id {} task {}", id, task);
+//                    poll();
+//                    IdTask nextTask = peek();
+//                    if (nextTask != null) {
+//                        nextTask.run();
+//                        log.info("IdCallQueue dropStrategy == DropStrategy.NONE run !id {} task {}", id, task);
+//                        return;
+//                    }
                 }
-            }
-            //丢弃策略,就需要cancel当前task
-            if (headTask.tryCancel()) {
-                if (dropStrategy == DropStrategy.DROP_ALL_TASK) {
-                    clear();
-                    return;
-                }
-                if (dropStrategy == DropStrategy.DROP_CURRENT_TASK) {
-                    poll();
-                    IdTask nextTask = peek();
-                    if (nextTask != null) {
-                        nextTask.run();
+                //丢弃策略,就需要cancel当前task
+                if (headTask.tryCancel()) {
+                    if (dropStrategy == DropStrategy.DROP_ALL_TASK) {
+                        clear();
+                        return;
                     }
+                    if (dropStrategy == DropStrategy.DROP_CURRENT_TASK) {
+                        poll();
+//                        IdTask nextTask = peek();
+//                        if (nextTask != null) {
+//                            log.info("IdCallQueue dropStrategy == DropStrategy.DROP_CURRENT_TASK run !id {} task {}", id, task);
+//                            nextTask.run();
+//                        }
+                    }
+                } else {
+                    //取消失败,说明task已经在执行或者已完成了,当做没有超时处理
+                    log.info("IdCallQueue task cancel fail! id {} maybe is done!", id);
                 }
             }
-            //取消失败,说明task已经在执行或者已完成了,当做没有超时处理
+
+
         }
     }
 
 
-    public static class IdTask implements Runnable {
+    public class IdTask implements Runnable {
         IdCallQueue ownerQueue;
         Callable callable;
         Runnable errorCallBack;
@@ -106,30 +118,49 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
 
         @Override
         public void run() {
+            log.info("IdCallQueue task star  id {} state {}", id,state);
             if (state == State.CANCEL) {
                 if (homoSink != null) {
                     homoSink.error(new RuntimeException("IdCallQueue task cancel"));
                 }
+                IdTask nextTask = peek();
+                if (nextTask != null) {
+                    nextTask.run();
+                }
                 return;
             }
             state = State.PROCESS;
+            log.info("IdCallQueue task run! id {} state {}", id,state);
             startTime = System.currentTimeMillis();
             try {
                 Object call = callable.call();
-                if (homoSink != null){
-                    homoSink.success(call);
+                if (homoSink != null) {
+//                    homoSink.success(call);
+                    if (call instanceof Homo) {
+                        ((Homo) call).consumerValue(ret -> {
+                            homoSink.success(ret);
+                        }).start();
+                    } else {
+                        homoSink.success(call);
+                    }
                 }
             } catch (Exception e) {
                 log.error("IdCallQueue run error", e);
                 if (errorCallBack != null) {
                     errorCallBack.run();
                 }
-                if (homoSink != null){
+                if (homoSink != null) {
                     homoSink.error(e);
                 }
             } finally {
+                log.info("IdCallQueue task end  id {} state {}", id,state);
                 state = State.FINISH;
                 ownerQueue.finishCounter.incrementAndGet();
+                poll();
+                IdTask nextTask = peek();
+                if (nextTask != null) {
+                    nextTask.run();
+                }
             }
         }
 
@@ -141,13 +172,20 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
             return false;
         }
 
-
-        public enum State {
-            NEW,
-            PROCESS,
-            FINISH,
-            CANCEL;
+        public void callback() {
+            errorCallBack.run();
+            if (homoSink != null) {
+                homoSink.error(new RuntimeException("IdCallQueue task callback"));
+            }
+            state = State.CANCEL;
         }
+    }
+
+    public enum State {
+        NEW,
+        PROCESS,
+        FINISH,
+        CANCEL;
     }
 
     public enum DropStrategy {

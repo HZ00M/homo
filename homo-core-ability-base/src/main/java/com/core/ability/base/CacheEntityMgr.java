@@ -8,6 +8,7 @@ import com.homo.core.utils.concurrent.queue.IdCallQueue;
 import com.homo.core.utils.lang.KKMap;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
+import com.homo.core.utils.reflect.HomoInterfaceUtil;
 import com.homo.core.utils.spring.GetBeanUtil;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -21,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-@Component
 @Log4j2
 public class CacheEntityMgr implements AbilityEntityMgr {
     static Map<Class<?>, Class<?>[]> entityClazz2ParamsMap = new ConcurrentHashMap<>();
@@ -35,9 +35,9 @@ public class CacheEntityMgr implements AbilityEntityMgr {
     Map<Class<?>, Consumer<AbilityEntity>> removeProcess = new HashMap<>();
 
     private <T extends AbilityEntity> void processConsumer(Map<Class<?>, Consumer<AbilityEntity>> consumerMap, T abilityEntity) {
-        Set<Annotation> annotationSet = HomoAnnotationUtil.findAnnotations(abilityEntity.getClass());
-        for (Annotation annotation : annotationSet) {
-            consumerMap.computeIfPresent(annotation.annotationType(), (k, v) -> {
+        Set<Class<?>> allInterfaces = HomoInterfaceUtil.getAllInterfaces(abilityEntity.getClass());
+        for (Class<?> interfaceClazz : allInterfaces) {
+            consumerMap.computeIfPresent(interfaceClazz, (k, v) -> {
                 v.accept(abilityEntity);
                 return v;
             });
@@ -46,6 +46,7 @@ public class CacheEntityMgr implements AbilityEntityMgr {
 
     @Override
     public <T extends AbilityEntity> boolean add(T abilityEntity) {
+        log.info("add entity start, type_{} id_{}", abilityEntity.getType(), abilityEntity.getId());
         AbilityEntity objEntity = type2Id2ObjMap.get(abilityEntity.getType(), abilityEntity.getId());
         if (objEntity != null) {
             log.error(
@@ -139,7 +140,7 @@ public class CacheEntityMgr implements AbilityEntityMgr {
 
     @Override
     public <T extends AbilityEntity> Homo<T> getOrCreateEntityPromise(Class<T> entityClazz, String id, Object... params) {
-        return getEntityPromise(id, entityClazz)
+        return getEntityPromise(entityClazz, id)
                 .nextDo(getEntity -> {
                     if (getEntity == null) {
                         return createEntityPromise(entityClazz, id, params);
@@ -167,6 +168,7 @@ public class CacheEntityMgr implements AbilityEntityMgr {
     }
 
     private <T extends AbilityEntity> T newEntity(String id, Class<T> entityClazz, Object... params) {
+        log.info("newEntity id {} entityClazz {} params {}", id, entityClazz, params);
         try {
             Class<?>[] paramsClasses = entityClazz2ParamsMap.get(entityClazz);
             if (paramsClasses == null) {
@@ -193,9 +195,11 @@ public class CacheEntityMgr implements AbilityEntityMgr {
     }
 
     @Override
-    public <T extends AbilityEntity> Homo<T> getEntityPromise(String id, Class<T> entityClazz) {
+    public <T extends AbilityEntity> Homo<T> getEntityPromise(Class<T> entityClazz, String id) {
+        log.info("getEntityPromise  clazz {} id {}", entityClazz, id);
         EntityType entityType = HomoAnnotationUtil.findAnnotation(entityClazz, EntityType.class);
         if (entityType == null) {
+            log.error("getEntityPromise entityType is null,clazz {} id {}", entityClazz, id);
             return null;
         }
         return getEntityPromise(entityType.type(), id);

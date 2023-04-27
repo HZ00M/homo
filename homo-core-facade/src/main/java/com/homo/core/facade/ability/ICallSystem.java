@@ -1,4 +1,4 @@
-package com.core.ability.base.call;
+package com.homo.core.facade.ability;
 
 import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.utils.rector.Homo;
@@ -11,9 +11,9 @@ public interface ICallSystem extends AbilitySystem {
 
     Homo callLocalMethod(String type, String id, Method method,Object[] objects);
 
-    Homo<Boolean> add(CallAbility callAbility);
+    Homo<Boolean> add(ICallAbility callAbility);
 
-    Homo<CallAbility> remove(CallAbility callAbility);
+    Homo<ICallAbility> remove(ICallAbility callAbility);
 
-    CallAbility get(String type,String id);
+    ICallAbility get(String type,String id);
 }

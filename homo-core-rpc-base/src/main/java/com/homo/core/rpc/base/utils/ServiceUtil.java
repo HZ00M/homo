@@ -1,5 +1,7 @@
 package com.homo.core.rpc.base.utils;
 
+import com.homo.core.facade.service.ServiceExport;
+import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 
@@ -15,6 +17,20 @@ public class ServiceUtil {
     public String getServiceHostName(String serviceName) {
         String[] stringArray = serviceName.split(":");
         return stringArray[0];
+    }
+
+    /**
+     * 根据服务子类信息获取服务名字
+     *
+     * @param selfZz 服务子类，不能是接口类！！！
+     * @return 服务名字
+     */
+    public static String getServiceTagName(Class<?> selfZz) {
+        ServiceExport serviceExport = HomoAnnotationUtil.findAnnotation(selfZz, ServiceExport.class);
+        if (serviceExport != null) {
+            return serviceExport.tagName();
+        }
+        return null;
     }
 
     /**

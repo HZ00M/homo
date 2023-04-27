@@ -60,6 +60,13 @@ public class ObjStorage implements Module {
             Class<T> clazz) {
 
        return storage.get( appId, regionId, logicType, ownerId, key)
-               .nextValue(ret-> serializationProcessor.readValue(ret,clazz));
+               .nextDo(ret-> {
+                   if (ret == null){
+                       return Homo.empty();
+                   }else {
+                       return Homo.result(serializationProcessor.readValue(ret,clazz));
+                   }
+
+               });
     }
 }

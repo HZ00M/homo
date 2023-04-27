@@ -1,5 +1,9 @@
 package com.core.ability.base;
 
+import com.core.ability.base.call.CallAble;
+import com.core.ability.base.notify.ListenerAble;
+import com.core.ability.base.storage.SaveAble;
+import com.core.ability.base.timer.TimeAble;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.homo.core.facade.ability.Ability;
 import com.homo.core.facade.ability.AbilityEntity;
@@ -20,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
 @ToString
-public class AbstractAbilityEntity implements AbilityEntity{
+public class AbstractAbilityEntity implements AbilityEntity, SaveAble, TimeAble, CallAble {
     static Map<Class<?>, String> entityClazzToEntityTypeMap = new ConcurrentHashMap<>();
 
     protected String id;
@@ -42,11 +46,12 @@ public class AbstractAbilityEntity implements AbilityEntity{
 
     @Override
     public Homo<Void> promiseInit() {
+        log.info("promiseInit start id {}",id);
         if (getType() == null) {
-            log.error("AbilityEntity init error, type is null");
+            log.error("promiseInit init error, type is null");
         }
         if (getId() == null) {
-            log.error("AbilityEntity init error, id is null");
+            log.error("promiseInit init error, id is null");
         }
         queueId = CallQueueMgr.getInstance().choiceQueueIdBySeed(id.hashCode());
         return Homo.result(this)

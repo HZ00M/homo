@@ -83,6 +83,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                     try {
                         InetAddress[] newAddress = InetAddress.getAllByName(host);
                         servicePodChanged = checkChannelChanged(newAddress);
+                        log.info("RpcCallClientGrpcImpl lookupCheckAddress service pod changed {} newAddress {}", servicePodChanged,newAddress);
                     } catch (Exception e) {
                         log.error("RpcCallClientGrpcImpl lookupCheckAddress parse service pod error,service {}", host);
                     }

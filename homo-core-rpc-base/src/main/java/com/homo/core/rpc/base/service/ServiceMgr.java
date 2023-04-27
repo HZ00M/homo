@@ -1,5 +1,6 @@
 package com.homo.core.rpc.base.service;
 
+import com.homo.core.common.module.DriverModule;
 import com.homo.core.common.module.ServiceModule;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
@@ -22,45 +23,52 @@ import java.util.Set;
  * 负责管理本服务上的所有service
  */
 @Log4j2
-public class ServiceMgr implements ServiceModule {
-     @Autowired(required = false)
-     private Set<Service> services = new HashSet<>();
-     private Map<String,Service> localServiceMap = new HashMap<>();
-     @Autowired(required = false)
-     @Lazy
-     private ServiceStateMgr serviceStateMgr;
-     private Map<String,ServiceExport> serviceExportMap = new HashMap<>();
-     private Service mainService;
+public class ServiceMgr implements DriverModule {
+    @Autowired(required = false)
+    @Lazy
+    private Set<Service> services = new HashSet<>();
+    private Map<String, Service> localServiceMap = new HashMap<>();
+    @Autowired(required = false)
+    @Lazy
+    private ServiceStateMgr serviceStateMgr;
+    private Map<String, ServiceExport> serviceExportMap = new HashMap<>();
+    private Service mainService;
+
+    @Override
     public void init() {
         scanServiceDefine();
         services.forEach(service -> {
             ServiceExport serviceExport = service.getServiceExport();
             if (serviceExport != null) {
-                if (serviceExport.isStateful()){
+                if (serviceExport.isStateful()) {
                     getServerInfo().setStateful(true);
                 }
-                if (serviceExport.isMainServer()){
+                if (serviceExport.isMainServer()) {
                     getServerInfo().setServerName(serviceExport.tagName());
                     mainService = service;
                 }
             }
-            if (service instanceof BaseService){
-                log.info("service {} init start",service.getTagName());
-                ((BaseService)service).init(this);
-                localServiceMap.put(service.getTagName(),service);
-            }else {
+            if (service instanceof BaseService) {
+                log.info("service {} init start", service.getTagName());
+                ((BaseService) service).init(this);
+                localServiceMap.put(service.getTagName(), service);
+            } else {
                 log.error("service must extend BaseService yet");
             }
 
         });
+        if (mainService == null){
+            log.error("main service not found");
+            System.exit(-1);
+        }
     }
 
     private void scanServiceDefine() {
         Reflections reflections = new Reflections(new ConfigurationBuilder().forPackages("").addScanners(Scanners.TypesAnnotated));
-        Set<Class<?>> exportClazz = reflections.getTypesAnnotatedWith(ServiceExport.class,true);
+        Set<Class<?>> exportClazz = reflections.getTypesAnnotatedWith(ServiceExport.class, true);
         for (Class<?> clazz : exportClazz) {
             ServiceExport serviceExport = clazz.getAnnotation(ServiceExport.class);
-            serviceExportMap.put(serviceExport.tagName(),serviceExport);
+            serviceExportMap.put(serviceExport.tagName(), serviceExport);
         }
     }
 
@@ -68,17 +76,17 @@ public class ServiceMgr implements ServiceModule {
         return services;
     }
 
-    public Service getLocalService(String serviceName){
+    public Service getLocalService(String serviceName) {
         return localServiceMap.get(serviceName);
     }
 
-    public ServiceExport getServiceExportInfo(String serviceName){
+    public ServiceExport getServiceExportInfo(String serviceName) {
         return serviceExportMap.get(serviceName);
     }
 
     public boolean isLocalService(String serviceName, Integer podIndex) {
-        if (localServiceMap.containsKey(serviceName)){
-            return serviceStateMgr==null ||podIndex.equals(serviceStateMgr.getPodIndex());
+        if (localServiceMap.containsKey(serviceName)) {
+            return serviceStateMgr == null || podIndex.equals(serviceStateMgr.getPodIndex());
         }
         return false;
     }

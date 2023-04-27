@@ -10,11 +10,11 @@ import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.utils.concurrent.lock.Locker;
 import com.homo.core.utils.rector.Homo;
+import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.log4j.Log4j2;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,21 +22,20 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
-@Component
 public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
-    @Autowired
+    static Map<String, Class<AbilityEntity>> typeToAbilityObjectClazzMap = new ConcurrentHashMap<>();
     AbilityProperties abilityProperties;
     @Autowired
     StorageSystem storageSystem;
     Map<Class<? extends AbilitySystem>, AbilitySystem> systemMap = new HashMap<>();
-    static Map<String, Class<AbilityEntity>> typeToAbilityObjectClazzMap = new ConcurrentHashMap<>();
+    Locker locker = new Locker();
 
     @Autowired
-    StorageEntityMgr(Set<? extends AbilitySystem> abilitySystems) {
+    public StorageEntityMgr(Set<? extends AbilitySystem> abilitySystems, AbilityProperties abilityProperties) {
+        this.abilityProperties = abilityProperties;
         init(abilitySystems);
     }
 
-    Locker locker = new Locker();
 
     protected void init(Set<? extends AbilitySystem> abilitySystems) {
         for (AbilitySystem system : abilitySystems) {
@@ -47,7 +46,7 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
         Reflections reflections = new Reflections(entityScanPath);
         Set<Class<?>> entityClazzSet = reflections.getTypesAnnotatedWith(EntityType.class);
         for (Class<?> entityClazz : entityClazzSet) {
-            EntityType entityType = entityClazz.getAnnotation(EntityType.class);
+            EntityType entityType = HomoAnnotationUtil.findAnnotation(entityClazz, EntityType.class);
             String type = entityType.type();
             typeToAbilityObjectClazzMap.computeIfAbsent(type, k -> (Class<AbilityEntity>) entityClazz);
             typeToAbilityObjectClazzMap.computeIfPresent(type, (k, oldClazz) -> {
@@ -68,15 +67,20 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
             Homo<T> ret;
             T entity = get(type, id);
             if (entity != null) {
+                log.info("getEntityPromise entity != null, type {} id {}", type, id);
                 ret = Homo.result(entity);
             } else {
                 Class<AbilityEntity> entityClazz = typeToAbilityObjectClazzMap.get(type);
+                log.info("getEntityPromise asyncLoad, type {} id {}", type, id);
                 ret = asyncLoad((Class<T>) entityClazz, id);
             }
-            if (entity != null) {
-                ret.switchThread(entity.getQueueId());
-            }
-            return ret;
+            return ret.nextDo(e -> {
+                if (e != null) {
+                    return Homo.result(e).switchThread(e.getQueueId());
+                } else {
+                    return Homo.result(e);
+                }
+            });
         }, () -> log.error("asyncGet error clazz {} id {}", type, id));
     }
 
@@ -97,7 +101,7 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
             return storageSystem.loadEntity(clazz, id)
                     .nextDo(entity ->
                             locker.lockCallable(id, () -> {
-                                log.trace("asyncLoad finished, clazz_{} id_{} entity_{}", clazz, id, entity);
+                                log.info("asyncLoad finished, clazz_{} id_{} entity_{}", clazz, id, entity);
                                 T inMenEntity = get(clazz, id);
                                 if (inMenEntity != null) {
                                     //内存有了就直接使用

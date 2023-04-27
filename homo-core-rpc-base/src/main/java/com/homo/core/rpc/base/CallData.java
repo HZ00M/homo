@@ -34,16 +34,16 @@ public class CallData implements RpcInterceptor {
 
 
     public Object invoke(Object o, Object[] param) throws Throwable {
-        if (idCallQueue != null) {
-            return Homo.warp(homoSink -> {
-                idCallQueue.addIdTask(new Callable() {
-                    @Override
-                    public Object call() throws Exception {
-                        return methodDispatchInfo.getMethod().invoke(o, param);
-                    }
-                }, homoSink);
-            });
-        }
+//        if (idCallQueue != null) {
+//            return Homo.warp(homoSink -> {
+//                idCallQueue.addIdTask(new Callable() {
+//                    @Override
+//                    public Object call() throws Exception {
+//                        return methodDispatchInfo.getMethod().invoke(o, param);
+//                    }
+//                }, homoSink);
+//            });
+//        }
         return methodDispatchInfo.getMethod().invoke(o, param);
     }
 

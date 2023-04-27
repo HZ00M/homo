@@ -42,5 +42,13 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-server</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-service-persistence-storage-redis-mysql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-service-cache-storage-redis</artifactId>
+        </dependency>
     </dependencies>
 </project>

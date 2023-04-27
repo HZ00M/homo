@@ -147,6 +147,9 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
         dataMap.put(podNumStr, loadTimestamp);
         return Homo.warp(asyncRedisPool.hsetAsyncReactive(stateQueryKey, dataMap))
                 .nextDo(ret -> {
+                    log.error("setServiceState error appId {} regionId {} logicType {} serviceName {} podId {} load {} loadTimestamp {} ret {}",
+                            appId, regionId, logicType, serviceName, podId, load,loadTimestamp,ret
+                    );
                     if (ret != null) {
                         return Homo.result(true);
                     } else {

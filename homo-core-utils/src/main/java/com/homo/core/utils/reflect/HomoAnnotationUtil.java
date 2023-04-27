@@ -42,9 +42,9 @@ public class HomoAnnotationUtil {
         return null;
     }
 
-    public <T extends Annotation> Set<Annotation> findAnnotations(Class<?> typeClazz) {
+    public <T extends Annotation> Map<Class<?>, Annotation> findAnnotations(Class<?> typeClazz) {
         if (annotationCache.containsKey(typeClazz)) {
-            return (Set<Annotation>)annotationCache.get(typeClazz).values();
+            return  annotationCache.get(typeClazz);
         }
         Map<Class<?>, Annotation> annotationClassMap = annotationCache.computeIfAbsent(typeClazz, k -> new HashMap<>());
 
@@ -66,7 +66,7 @@ public class HomoAnnotationUtil {
             }
         }
         log.info("findAnnotations typeClass {} annotationSet{} !", typeClazz, annotationClassMap.values());
-        return (Set<Annotation>) annotationClassMap.values();
+        return annotationClassMap;
     }
 
     /**

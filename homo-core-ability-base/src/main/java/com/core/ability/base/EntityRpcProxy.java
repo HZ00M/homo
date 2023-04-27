@@ -4,6 +4,7 @@ import com.core.ability.base.call.CallAbility;
 import com.core.ability.base.call.CallSystem;
 import com.google.protobuf.ByteString;
 import com.homo.core.facade.ability.EntityType;
+import com.homo.core.facade.ability.ICallAbility;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.service.ServiceStateMgr;
@@ -14,6 +15,7 @@ import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.entity.EntityRequest;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
@@ -27,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class EntityRpcProxy implements MethodInterceptor {
     private String serviceName;
     private String type;
+    @Setter
     private String id;
     private RpcAgentClient rpcAgentClient;
     private Class<?> interfaceType;
@@ -89,7 +92,7 @@ public class EntityRpcProxy implements MethodInterceptor {
     }
 
     private Object rpcCall(String type,String id,String methodName,EntityRequest entityRequest) throws Exception {
-        CallAbility callAbility = callSystem.get(type, id);
+        ICallAbility callAbility = callSystem.get(type, id);
         CallDispatcher callDispatcher = CallAbility.entityDispatcherMap.get(callAbility.getOwner().getClass());
         RpcContent rpcContent = callDispatcher.rpcHandleInfo.getMethodDispatchInfo(methodName).serializeParam(new Object[]{entityRequest});
         return Homo.warp(homoSink -> {

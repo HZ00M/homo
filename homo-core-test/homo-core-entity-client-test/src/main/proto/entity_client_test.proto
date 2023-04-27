@@ -1,0 +1,35 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "io.homo.proto.entity.test";     // 指定包名
+option java_outer_classname = "ClientEntityTest"; // 指定类名
+
+message ClientEntityRequest {
+  string param = 1;
+}
+
+message ClientEntityResponse {
+  int32 code = 1;
+}
+
+//收发协议
+message UserLoginRequest
+{
+  AccountInfo loginAccount = 1;
+}
+
+message UserLoginResponse{
+  int32 code = 1;
+  string msg = 2;
+}
+
+
+message AccountInfo
+{
+  // code review info by hulz: userId不用在协议里面带，
+  string userId = 1;
+  string userName = 2;
+  string token = 3;
+  string tokenL = 4;
+  int32 chanelId = 5;
+  int32 subChanelId = 6;//子渠道id
+}

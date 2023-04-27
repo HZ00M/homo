@@ -1,4 +1,6 @@
 package com.core.ability.base.timer;
 
-public interface TimeAble {
+import com.homo.core.facade.ability.AbilityAble;
+
+public interface TimeAble extends AbilityAble {
 }

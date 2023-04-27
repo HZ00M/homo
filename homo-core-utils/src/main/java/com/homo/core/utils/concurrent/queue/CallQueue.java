@@ -34,6 +34,7 @@ public class CallQueue {
 
     /**
      * 将事件交给线程池处理 支持链路追踪功能
+     *
      * @param e
      */
     public void addEvent(Event e) {
@@ -44,49 +45,52 @@ public class CallQueue {
         if (ZipkinUtil.getTracing() != null && e instanceof BaseEvent) {
             BaseEvent event = (BaseEvent) e;
             Span span = event.getSpan() != null ? event.getSpan() : ZipkinUtil.getTracing().tracer().currentSpan();
-            event.setSpan(span);
-            event.annotate("add-event");
-            event.getSpan().tag("RunningEvent", event.getClass().getSimpleName());
-            event.getSpan().tag("waitingTaskNum",String.valueOf( waitingEventNum));
+//            Span span = event.getSpan() != null ? event.getSpan() : ZipkinUtil.getTracing().tracer().newTrace();
+            if (span!= null){
+                event.setSpan(span);
+                event.annotate("add-event");
+                event.getSpan().tag("RunningEvent", event.getClass().getSimpleName());
+                event.getSpan().tag("waitingTaskNum", String.valueOf(waitingEventNum));
+            }
             eventQueue.add(event);
-        }else {
+        } else {
             eventQueue.add(e);
         }
     }
 
-    public void start(CallQueueMgr callQueueMgr){
-        log.info("CallQueue[{}] start!",id);
-        callQueueMgr.executorService.submit(()->{
+    public void start(CallQueueMgr callQueueMgr) {
+        log.info("CallQueue[{}] start!", id);
+        callQueueMgr.executorService.submit(() -> {
             //线程运行时，将当前线程的queue设置到threadLocal上
             callQueueMgr.setLocalQueue(this);
             running = true;
-            while (!isShutDown){
+            while (!isShutDown) {
                 try {
                     Event event = eventQueue.poll(1L, TimeUnit.SECONDS);
-                    if (event==null){
+                    if (event == null) {
                         continue;
                     }
                     event.doProcess();
-                }catch (Exception e){
-                    log.error("CallQueue[{}] run error cause:",id,e);
-                }finally {
-                    log.debug("CallQueue[{}] run finish",id);
+                } catch (Exception e) {
+                    log.error("CallQueue[{}] run error cause:", id, e);
+                } finally {
+                    log.debug("CallQueue[{}] run finish", id);
                 }
             }
-            log.info("CallQueue[{}] shutdown",id);
+            log.info("CallQueue[{}] shutdown", id);
             running = false;
         });
     }
 
-    public void shutdown(){
+    public void shutdown() {
         isShutDown = true;
     }
 
-    public boolean isRunning(){
+    public boolean isRunning() {
         return running;
     }
 
-    int getWaitingTasksNum(){
+    int getWaitingTasksNum() {
         return eventQueue.size();
     }
 }

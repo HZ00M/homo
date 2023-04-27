@@ -20,12 +20,13 @@ public class Locker {
         LockBlock lockBlock ;
         synchronized (this){
             lockBlock = idLockMap.computeIfAbsent(id, id1->new LockBlock());
+            lockBlock.count.incrementAndGet();
         }
         try {
             lockBlock.lock.unlock();
-            log.trace("lock id_{} idLock_{} begin>>>",lockBlock, id);
+            log.info("lock id_{} idLock_{} begin",lockBlock, id);
             runnable.run();
-            log.trace("lock id_{} idLock_{} end",lockBlock, id);
+            log.info("lock id_{} idLock_{} end",lockBlock, id);
         }catch (Throwable throwable){
             log.error("lock id {} catch error!", id, throwable);
         }finally {
@@ -44,13 +45,14 @@ public class Locker {
         LockBlock lockBlock ;
         synchronized (this){
             lockBlock = idLockMap.computeIfAbsent(id, id1->new LockBlock());
+            lockBlock.count.incrementAndGet();
         }
         try {
             T rel;
-            lockBlock.lock.unlock();
-            log.trace("lock id_{} idLock_{} begin>>>",lockBlock, id);
+            lockBlock.lock.lock();
+            log.info("lock id_{} idLock_{} begin", id,lockBlock.count);
             rel= callable.call();
-            log.trace("lock id_{} idLock_{} end",lockBlock, id);
+            log.info("lock id_{} idLock_{} end", id,lockBlock.count);
             return rel;
         }catch (Exception e){
             log.error("lock id {} catch error!", id, e);
@@ -59,7 +61,7 @@ public class Locker {
             synchronized (this){
                 if (lockBlock.count.decrementAndGet() == 0) {
                     idLockMap.remove(id);
-                    log.trace("lock remove id {} idLockMap !", id);
+                    log.info("lock remove id {} idLockMap !", id);
                 }
             }
             lockBlock.lock.unlock();
@@ -68,7 +70,7 @@ public class Locker {
 
     public <T>T lockCallable(String id, Callable<T> callable){
         try{
-            return lockCallable(id, callable);
+            return lock(id, callable);
         } catch (Exception e){
             log.error("lock callable id_{} Exception!", id, e);
             return null;

@@ -4,6 +4,7 @@ import brave.Span;
 import com.core.ability.base.AbstractAbility;
 import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.facade.ability.EntityType;
+import com.homo.core.facade.ability.ICallAbility;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
@@ -17,7 +18,7 @@ import org.springframework.util.Assert;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CallAbility extends AbstractAbility {
+public class CallAbility extends AbstractAbility implements ICallAbility {
     public static Map<Class<?>, CallDispatcher> entityDispatcherMap = new ConcurrentHashMap<>();
 
     public CallAbility(AbilityEntity abilityEntity) {

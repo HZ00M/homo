@@ -26,6 +26,7 @@ public class ModuleMgrImpl implements ModuleMgr, SmartLifecycle {
             isRunning = true;
         } catch (Exception e) {
             log.error("ModuleMgr init error !", e);
+            System.exit(-1);
         }
     }
 

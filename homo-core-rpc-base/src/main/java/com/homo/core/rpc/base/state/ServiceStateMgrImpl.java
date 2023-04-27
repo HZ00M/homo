@@ -92,7 +92,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                                     serverStateProperties.getServiceStateExpireSeconds(), lastUpdateStateTime, currentTime);
                         }
                         lastUpdateStateTime = currentTime;
-                        String serviceName = serviceMgr.getMainService().getTagName();
+                        String serviceName = serviceMgr.getMainService().getHostName();
                         int weightLoad = loadFun.get();
                         String appId = rootModule.getServerInfo().appId;
                         String regionId = rootModule.getServerInfo().namespace;

@@ -18,6 +18,9 @@
         <module>homo-core-rpc-client-facade-test</module>
         <module>homo-core-tcp-gate-test</module>
         <module>homo-core-tread-test</module>
+        <module>homo-core-entity-test</module>
+        <module>homo-core-entity-facade-test</module>
+        <module>homo-core-entity-client-test</module>
     </modules>
     <artifactId>homo-core-test</artifactId>
 
@@ -109,6 +112,21 @@
             <dependency>
                 <artifactId>homo-core-persistent-test</artifactId>
                 <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homo</groupId>
+                <artifactId>homo-core-entity-test</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homo</groupId>
+                <artifactId>homo-core-entity-facade-test</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homo</groupId>
+                <artifactId>homo-core-entity-client-test</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!--            单元测试-->

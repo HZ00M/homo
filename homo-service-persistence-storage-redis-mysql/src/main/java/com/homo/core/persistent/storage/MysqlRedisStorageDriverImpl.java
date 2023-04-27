@@ -36,7 +36,7 @@ import java.util.*;
  * 5数据移除会将需要移除的数据迁移到hSet的另一个字段上（logicKey+:+del）（逻辑删除）,然后原先的logicKey的值会被打上删除标记（:delFlag标识）
  */
 @Log4j2
-public class StorageRedisDriverImpl implements StorageDriver {
+public class MysqlRedisStorageDriverImpl implements StorageDriver {
 
     private static final String REDIS_KEY_TMPL = "slug:{%s:%s:%s:%s}";
     private static final String REDIS_EXIST_KEY_TMPL = "slug:{%s:%s:%s:%s:exist}";
@@ -67,61 +67,60 @@ public class StorageRedisDriverImpl implements StorageDriver {
             args[i + 1] = fieldList.get(i).getBytes(StandardCharsets.UTF_8);
         }
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(queryFieldsScript, keys, args);
-        Sinks.One<Map<String, byte[]>> one = Sinks.one();
-        Homo<Map<String, byte[]>> homo = new Homo<>(one.asMono());
-        resultFlux.subscribe(ret -> {
-            try {
-                log.trace("asyncGetByFields subscribe appId_{} regionId_{} logicType_{} ownerId_{} fieldList_{}", appId, regionId, logicType, ownerId, fieldList);
-                List arrayList = (ArrayList) ret;
-                Map<String, byte[]> map = new HashMap<>();
-                List needLoadFields = new ArrayList<>();
-                if (!CollectionUtils.isEmpty(arrayList)) {
-                    if (arrayList.size() == 1 && arrayList.get(0).equals(-1L)) {
-                        one.tryEmitValue(map);
-                        return;
-                    }
-                    //将redis数据整合在map中
-                    for (int i = 0; i < arrayList.size(); i += 2) {
-                        if (arrayList.get(i + 1) != null) {
-                            String field = new String((byte[]) arrayList.get(i), StandardCharsets.UTF_8);
-                            if ("missNum".equals(field)) {
-                                if (!Collections.emptyList().equals(arrayList.get(i + 1))) {
-                                    needLoadFields = (ArrayList) arrayList.get(i + 1);
+        return Homo.warp(homoSink -> {
+            resultFlux.subscribe(ret -> {
+                try {
+                    log.trace("asyncGetByFields subscribe appId_{} regionId_{} logicType_{} ownerId_{} fieldList_{}", appId, regionId, logicType, ownerId, fieldList);
+                    List arrayList = (ArrayList) ret;
+                    Map<String, byte[]> map = new HashMap<>();
+                    List needLoadFields = new ArrayList<>();
+                    if (!CollectionUtils.isEmpty(arrayList)) {
+                        if (arrayList.size() == 1 && arrayList.get(0).equals(-1L)) {
+                            homoSink.success(map);
+                            return;
+                        }
+                        //将redis数据整合在map中
+                        for (int i = 0; i < arrayList.size(); i += 2) {
+                            if (arrayList.get(i + 1) != null) {
+                                String field = new String((byte[]) arrayList.get(i), StandardCharsets.UTF_8);
+                                if ("missNum".equals(field)) {
+                                    if (!Collections.emptyList().equals(arrayList.get(i + 1))) {
+                                        needLoadFields = (ArrayList) arrayList.get(i + 1);
+                                    }
+                                    continue;
                                 }
-                                continue;
+                                byte[] bytes = (byte[]) arrayList.get(i + 1);
+                                map.put(field, bytes);
                             }
-                            byte[] bytes = (byte[]) arrayList.get(i + 1);
-                            map.put(field, bytes);
                         }
                     }
-                }
-                //如果redis取的数据不全，从数据库中获取
-                if (needLoadFields.size() > 0) {
-                    List<String> queryFields = new ArrayList<>();
-                    //构造MySQL查询的key
-                    for (Object needLoadField : needLoadFields) {
-                        queryFields.add(new String((byte[]) needLoadField));
+                    //如果redis取的数据不全，从数据库中获取
+                    if (needLoadFields.size() > 0) {
+                        List<String> queryFields = new ArrayList<>();
+                        //构造MySQL查询的key
+                        for (Object needLoadField : needLoadFields) {
+                            queryFields.add(new String((byte[]) needLoadField));
+                        }
+                        //查询数据库
+                        DBDataHolder.hotFields(appId, regionId, logicType, ownerId, redisKey, queryFields)
+                                .consumerValue(list -> {
+                                    for (DataObject dataObject : list) {
+                                        map.put(dataObject.getKey(), dataObject.getValue());
+                                    }
+                                    //redis取的数据是全的，直接返回
+                                    log.info("asyncGetByFields hotFields appId_{} regionId_{} logicType_{} ownerId_{} fieldList_{}", appId, regionId, logicType, ownerId, fieldList);
+                                    homoSink.success(map);
+                                }).start();
+                    }else {
+                        //redis取的数据是全的，直接返回
+                        log.info("asyncGetByFields complete appId_{} regionId_{} logicType_{} ownerId_{} fieldList_{}", appId, regionId, logicType, ownerId, fieldList);
+                        homoSink.success(map);
                     }
-                    //查询数据库
-                    DBDataHolder.hotFields(appId, regionId, logicType, ownerId, redisKey, queryFields)
-                            .consumerValue(list -> {
-                                for (DataObject dataObject : list) {
-                                    map.put(dataObject.getKey(), dataObject.getValue());
-                                }
-                                //redis取的数据是全的，直接返回
-                                log.info("asyncGetByFields hotFields appId_{} regionId_{} logicType_{} ownerId_{} fieldList_{}", appId, regionId, logicType, ownerId, fieldList);
-                                one.tryEmitValue(map);
-                            }).start();
-                }else {
-                    //redis取的数据是全的，直接返回
-                    log.info("asyncGetByFields complete appId_{} regionId_{} logicType_{} ownerId_{} fieldList_{}", appId, regionId, logicType, ownerId, fieldList);
-                    one.tryEmitValue(map);
+                } catch (Exception e) {
+                    homoSink.error(e);
                 }
-            } catch (Exception e) {
-                one.tryEmitError(e);
-            }
-        }, one::tryEmitError);
-        return homo;
+            }, homoSink::error);
+        });
     }
 
     @Override
@@ -138,7 +137,6 @@ public class StorageRedisDriverImpl implements StorageDriver {
             try {
                 ArrayList list = (ArrayList) ret;
                 Map<String, byte[]> map = new HashMap<>();
-
                 if (list.size() == 1 && list.get(0).equals(0L)) {//数据库里有数据但内存里的数据不是最新的
                     DBDataHolder.hotAllField(appId, regionId, logicType, ownerId, redisKey)
                             .consumerValue(bool -> {

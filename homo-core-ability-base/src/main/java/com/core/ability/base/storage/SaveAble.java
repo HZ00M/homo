@@ -6,10 +6,6 @@ import com.homo.core.facade.storege.SaveObject;
 
 
 public interface SaveAble extends AbilityAble, SaveObject, Entity {
-    /**
-     * 对象存储
-     */
-    void save();
 
     /**
      * 获取logicalType

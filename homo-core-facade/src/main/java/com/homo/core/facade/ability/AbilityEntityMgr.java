@@ -115,7 +115,7 @@ public interface AbilityEntityMgr {
      * @return
      * @param <T>
      */
-    <T extends AbilityEntity> Homo<T> getEntityPromise(String id, Class<T> abilityClazz);
+    <T extends AbilityEntity> Homo<T> getEntityPromise(Class<T> abilityClazz,String id);
 
     void removeAllEntity();
 

@@ -22,7 +22,6 @@ import java.util.Map;
 ;
 
 @Log4j2
-@Component
 public class RedisCacheDriver implements CacheDriver {
     private static String REDIS_KEY_TMPL = "slug:{%s:%s:%s:%s}";  //slug:{appId:regionId:logicType:ownerId}
     @Autowired

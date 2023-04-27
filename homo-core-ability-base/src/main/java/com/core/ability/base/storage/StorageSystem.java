@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
-@Component
 public class StorageSystem implements AbilitySystem, ServiceModule {
     final Locker locker = new Locker();
     @Autowired
@@ -38,6 +37,7 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
     @Autowired(required = false)
     HomoSerializationProcessor serializationProcessor;
     HomoTimerMgr timerMgr = HomoTimerMgr.getInstance();
+
     @Override
     public void init(AbilityEntityMgr abilityEntityMgr) {
         abilityEntityMgr.registerAddProcess(SaveAble.class, StorageAbility::new);
@@ -69,7 +69,7 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
             saveEntityMap.put(saveAbleEntity.getId(), new SaveCache(saveAbleEntity, serializationProcessor.writeByte(saveAbleEntity), false));
         }
         long end = System.currentTimeMillis();
-        if (end - start > 500){
+        if (end - start > 500) {
             log.warn("save object take more than 500 milliseconds, {} milliseconds used type_{} Id_{}, entity_{}", end - start, saveAbleEntity.getType(), saveAbleEntity.getId(), saveAbleEntity);
         }
     }
@@ -128,6 +128,7 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
     }
 
     public <T extends AbilityEntity> Homo<T> loadEntity(Class<T> clazz, String id) {
+        log.info("loadEntity start clazz {} id {}", clazz, id);
         if (!SaveAble.class.isAssignableFrom(clazz)) {
             return Homo.error(new Exception(String.format("loadEntity error clazz is not saveAble entity clazz [%s] id = [%s] ", clazz, id)));
         }
@@ -137,11 +138,12 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
         }
         String type = entityType.type();
         return load(type, id, (Class<SaveObject>) (Class<?>) clazz)
-                .nextValue(ret -> {
+                .nextDo(ret -> {
+                    log.info("loadEntity end clazz {} id {} ret {}", clazz, id ,ret);
                     if (ret == null) {
-                        return null;
+                        return Homo.result(null);
                     } else {
-                        return (T) ret;
+                        return Homo.result((T) ret);
                     }
                 });
     }
@@ -162,12 +164,19 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
     }
 
     <E extends SaveObject> Homo<E> loadFromStorage(String logicType, String id, Class<E> zz) {
+        log.info("loadFromStorage logicType load start {} id {} clazz {}", logicType, id, zz);
         E cached = (E) getInCache(logicType, id);
         if (cached != null) {
             // 如果有了就直接取缓存中的值
-            Homo.result(cached);
+            return Homo.result(cached).consumerValue(ret -> {
+                log.info("loadFromStorage load () logicType {} id {} clazz {} ret {}", logicType, id, zz, ret);
+            });
         }
-        return storage.load(logicType, id, zz);
+        return storage.load(logicType, id, zz)
+                .ifEmptyThen(Homo.result(null))
+                .consumerValue(ret -> {
+                    log.info("loadFromStorage load () logicType {} id {} clazz {} ret {}", logicType, id, zz, ret);
+                });
     }
 
     String getKey(String type, String id) {
