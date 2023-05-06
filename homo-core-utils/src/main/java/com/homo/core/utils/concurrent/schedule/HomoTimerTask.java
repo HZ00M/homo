@@ -3,11 +3,14 @@ package com.homo.core.utils.concurrent.schedule;
 
 import com.homo.core.utils.concurrent.event.TimerTaskEvent;
 import com.homo.core.utils.concurrent.queue.CallQueue;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import lombok.Setter;
 
 import java.util.function.Consumer;
 
 public class HomoTimerTask extends AbstractHomoTimerTask<HomoTimerTask> {
+    @Setter
+    public String id;
     public Runnable task;
 
     public Object[] objects;
@@ -15,24 +18,30 @@ public class HomoTimerTask extends AbstractHomoTimerTask<HomoTimerTask> {
     public int currentTimes;
     @Setter
     public volatile boolean interrupt;
-    public HomoTimerTask(){
-
+    public HomoTimerTask(String id,Runnable task){
+        super(CallQueueMgr.getInstance().getLocalQueue());
+        this.id = id;
+        this.task = task;
     }
-    public HomoTimerTask(Runnable task, int runTimes, Object... objects) {
+    public HomoTimerTask(String id,Runnable task, int runTimes, Object... objects) {
+        super(CallQueueMgr.getInstance().getLocalQueue());
+        this.id = id;
         this.task = task;
         this.objects = objects;
         this.runTimes = runTimes;
     }
 
-    public HomoTimerTask(CallQueue callQueue, Runnable task, int runTimes, Object... objects) {
+    public HomoTimerTask(String id,CallQueue callQueue, Runnable task, int runTimes, Object... objects) {
         super(callQueue);
+        this.id = id;
         this.task = task;
         this.objects = objects;
         this.runTimes = runTimes;
     }
 
-    public HomoTimerTask(CallQueue callQueue, Consumer<AbstractHomoTimerTask> onErrorConsumer, Runnable task, int runTimes, Object... objects) {
+    public HomoTimerTask(String id,CallQueue callQueue, Consumer<AbstractHomoTimerTask> onErrorConsumer, Runnable task, int runTimes, Object... objects) {
         super(callQueue, onErrorConsumer);
+        this.id = id;
         this.task = task;
         this.objects = objects;
         this.runTimes = runTimes;

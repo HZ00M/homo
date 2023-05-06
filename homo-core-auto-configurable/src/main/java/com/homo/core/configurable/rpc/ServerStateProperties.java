@@ -32,14 +32,14 @@ public class ServerStateProperties {
     /**
      * 服务器状态超时时间，默认60秒
      */
-    @Value("${homo.service.state.expire.seconds:60}")
-    private long serviceStateExpireSeconds;
+    @Value("${homo.service.state.expire.millSeconds:60000}")
+    private long serviceStateExpireMillSeconds;
 
     /**
      * 服务器状态更新间隔
      */
-    @Value("${homo.service.state.update.seconds:30}")
-    private int serviceStateUpdatePeriodSeconds;
+    @Value("${homo.service.state.update.millSeconds:30000}")
+    private int serviceStateUpdatePeriodMillSeconds;
 
     /**
      * 负载均衡因子 （0~1）0.5表示负载均衡0.5参考cpu，0.5参考内存值

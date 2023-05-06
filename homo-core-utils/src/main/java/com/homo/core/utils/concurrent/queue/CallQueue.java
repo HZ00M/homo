@@ -3,6 +3,7 @@ package com.homo.core.utils.concurrent.queue;
 import brave.Span;
 import com.homo.core.utils.concurrent.event.BaseEvent;
 import com.homo.core.utils.concurrent.event.Event;
+import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -45,12 +46,17 @@ public class CallQueue {
         if (ZipkinUtil.getTracing() != null && e instanceof BaseEvent) {
             BaseEvent event = (BaseEvent) e;
             Span span = event.getSpan() != null ? event.getSpan() : ZipkinUtil.getTracing().tracer().currentSpan();
-//            Span span = event.getSpan() != null ? event.getSpan() : ZipkinUtil.getTracing().tracer().newTrace();
+            if (span == null ){
+                span = ZipkinUtil.getTracing().tracer().newTrace();
+            }
             if (span!= null){
                 event.setSpan(span);
                 event.annotate("add-event");
                 event.getSpan().tag("RunningEvent", event.getClass().getSimpleName());
                 event.getSpan().tag("waitingTaskNum", String.valueOf(waitingEventNum));
+            }else {
+                log.error("CallQueue id_{} addEvent error , span is null waitingEventNum_{} event_{}", id, waitingEventNum, e);
+                throw HomoError.throwError(HomoError.spanError);
             }
             eventQueue.add(event);
         } else {

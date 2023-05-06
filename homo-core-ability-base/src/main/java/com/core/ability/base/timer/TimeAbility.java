@@ -5,6 +5,8 @@ import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerTask;
 import org.apache.logging.log4j.core.util.UuidUtil;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,31 +16,42 @@ import java.util.Map;
  */
 public class TimeAbility extends AbstractAbility {
     Map<String, HomoTimerTask> timeTaskMap = new HashMap<>();
+
     public TimeAbility(AbilityEntity abilityEntity) {
         attach(abilityEntity);
     }
 
-    private void clearAll(){
+    private void clearAll() {
         for (HomoTimerTask timer : timeTaskMap.values()) {
-            log.info("unAttach cancel timer type_{}  id_{}  result_{}",  getOwner().getType(), getOwner().getId(), timer.justCancel());
+            log.info("unAttach cancel timer type_{}  id_{}  result_{}", getOwner().getType(), getOwner().getId(), timer.justCancel());
         }
         timeTaskMap.clear();
     }
 
+    public boolean cancel(String id) {
+        log.info("TimeAbility cancel {}", id);
+        HomoTimerTask timerTask = timeTaskMap.remove(id);
+        if (timerTask != null) {
+            timerTask.cancel();
+        }
+        return true;
+    }
 
     @Override
     public void unAttach(AbilityEntity abilityEntity) {
         clearAll();
     }
 
-    public String newTimer(Runnable task, long time, long period, int runCount){
-        return addTimer(HomoTimerMgr.getInstance().schedule(task, time, period, runCount));
+    public HomoTimerTask newTimer(String id, Runnable task, long time, long period, int runCount) {
+        HomoTimerTask timerTask = HomoTimerMgr.getInstance().schedule(id, task, time, period, runCount);
+        addTimer(timerTask);
+        return timerTask;
     }
 
-    private String addTimer(HomoTimerTask task){
-        String uuid = UuidUtil.getTimeBasedUuid().toString();
-        timeTaskMap.put(uuid, task);
-        task.setOnCancelConsumer(tpfTimer1 -> timeTaskMap.remove(uuid));
-        return uuid;
+    private boolean addTimer(HomoTimerTask task) {
+        String id = task.id;
+        timeTaskMap.put(id, task);
+        task.setOnCancelConsumer(tpfTimer1 -> timeTaskMap.remove(id));
+        return true;
     }
 }

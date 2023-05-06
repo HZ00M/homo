@@ -1,11 +1,13 @@
 package com.homo.core.utils.concurrent.schedule;
 
+import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import lombok.extern.log4j.Log4j2;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -53,8 +55,7 @@ public class HomoTimerMgr {
 
     private void schedule(HomoTimerTask timerTask, long date, long period) {
         try {
-
-            ScheduledFuture<?> future = getTimer().scheduleAtFixedRate(timerTask, date, period, TimeUnit.SECONDS);
+            ScheduledFuture<?> future = getTimer().scheduleAtFixedRate(timerTask, date, period, TimeUnit.MILLISECONDS);
             timerTask.future = future;
         } catch (IllegalStateException cancelled) {
             timer = null;
@@ -63,40 +64,65 @@ public class HomoTimerMgr {
             throw throwable;
         }
     }
-
     public HomoTimerTask once(Runnable taskFun, String time, Object... objects) throws ParseException {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, 1, objects);
+        return once(UUID.randomUUID().toString(),taskFun,time,objects);
+    }
+    public HomoTimerTask once(String id,Runnable taskFun, String time, Object... objects) throws ParseException {
+        HomoTimerTask homoTimerTask = new HomoTimerTask(id, taskFun, 1, objects);
         schedule(homoTimerTask, dateFormat.parse(time).getTime() - System.currentTimeMillis(), 1);
         return homoTimerTask;
     }
-
     public HomoTimerTask once(Runnable taskFun, Date time, Object... objects) {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, 1, objects);
+        return once(UUID.randomUUID().toString(),taskFun,time,objects);
+    }
+    public HomoTimerTask once(String id,Runnable taskFun, Date time, Object... objects) {
+        HomoTimerTask homoTimerTask = new HomoTimerTask(id, taskFun, 1, objects);
         schedule(homoTimerTask, time.getTime() - System.currentTimeMillis(), 1);
         return homoTimerTask;
     }
 
-    public HomoTimerTask once(Runnable taskFun, long delaySecond, Object... objects) {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, 1, objects);
-        schedule(homoTimerTask, delaySecond, 1);
+    public HomoTimerTask once(Runnable taskFun, long delayMillSecond, Object... objects) {
+        return once(UUID.randomUUID().toString(),taskFun, delayMillSecond,objects);
+    }
+
+    public HomoTimerTask once(String id, Runnable taskFun, long delayMillSecond, Object... objects) {
+        HomoTimerTask homoTimerTask = new HomoTimerTask(id, taskFun, 1, objects);
+        schedule(homoTimerTask, delayMillSecond, 1);
+        return homoTimerTask;
+    }
+
+    public HomoTimerTask once(String id, CallQueue callQueue, Runnable taskFun, long delayMillSecond, Object... objects) {
+        HomoTimerTask homoTimerTask = new HomoTimerTask(id,callQueue, taskFun, 1, objects);
+        schedule(homoTimerTask, delayMillSecond, 1);
         return homoTimerTask;
     }
 
     public HomoTimerTask schedule(Runnable taskFun, String time, long period, int runTimes, Object... objects) throws ParseException {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, runTimes, objects);
+        return schedule(UUID.randomUUID().toString(),taskFun,time,period,runTimes,objects);
+    }
+
+    public HomoTimerTask schedule(String id,Runnable taskFun, String time, long period, int runTimes, Object... objects) throws ParseException {
+        HomoTimerTask homoTimerTask = new HomoTimerTask(id, taskFun, runTimes, objects);
         schedule(homoTimerTask, dateFormat.parse(time).getTime() - System.currentTimeMillis(), period);
         return homoTimerTask;
     }
 
     public HomoTimerTask schedule(Runnable taskFun, Date time, long period, int runTimes, Object... objects) {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, runTimes, objects);
+        return schedule(UUID.randomUUID().toString(),taskFun,time,period,runTimes,objects);
+    }
+
+    public HomoTimerTask schedule(String id,Runnable taskFun, Date time, long period, int runTimes, Object... objects) {
+        HomoTimerTask homoTimerTask = new HomoTimerTask(id, taskFun, runTimes, objects);
         schedule(homoTimerTask, time.getTime() - System.currentTimeMillis(), period);
         return homoTimerTask;
     }
 
-    public HomoTimerTask schedule(Runnable taskFun, long delaySecond, long period, int runTimes, Object... objects) {
-        HomoTimerTask homoTimerTask = new HomoTimerTask(taskFun, runTimes, objects);
-        schedule(homoTimerTask, delaySecond, period);
+    public HomoTimerTask schedule(Runnable taskFun, long delayMillSecond, long period, int runTimes, Object... objects) {
+        return schedule(UUID.randomUUID().toString(),taskFun, delayMillSecond,period,runTimes,objects);
+    }
+    public HomoTimerTask schedule(String id, Runnable taskFun, long delayMillSecond, long period, int runTimes, Object... objects) {
+        HomoTimerTask homoTimerTask = new HomoTimerTask(id, taskFun, runTimes, objects);
+        schedule(homoTimerTask, delayMillSecond, period);
         return homoTimerTask;
     }
 

@@ -181,22 +181,23 @@ public class CallSystem implements ICallSystem, ServiceModule {
 
     @Override
     public Homo<Boolean> add(ICallAbility callAbility) {
+        log.info("CallSystem add entity type {} id {}", callAbility.getOwner().getType(), callAbility.getOwner().getId());
         String type = callAbility.getOwner().getType();
         String id = callAbility.getOwner().getId();
         //保存callAbility引用
         type2id2callAbilityMap.set(type, id, callAbility);
         //设置连接信息
-        boolean linked = id2type2callLinkMap.get(id, type);
+        boolean linked = id2type2callLinkMap.containsFirstKey(id);
         if (linked) {
-            log.debug("no need to link when add entity type_{}, id_{}", type, id);
+            log.info("CallSystem no need to link when add entity type {} id {}", type, id);
             return Homo.result(true);
         } else {
-            log.info("link entity type_{}, id_{}", type, id);
+            log.info("CallSystem link entity type {} id {}", type, id);
             return serviceStateMgr.setUserLinkedPod(id, getServerInfo().serverName, serviceStateMgr.getPodIndex(), false)
                     .nextValue(prePodIndex -> {
                         //如果之前的podIndex不为空，且不等于当前podIndex，则添加失败
                         if (prePodIndex != null && !prePodIndex.equals(serviceStateMgr.getPodIndex())) {
-                            log.error("prePodIndex not equals current podIndex prePodIndex_{} currentPodIndex_{}", prePodIndex, serviceStateMgr.getPodIndex());
+                            log.error("CallSystem prePodIndex not equals current podIndex prePodIndex {} currentPodIndex {}", prePodIndex, serviceStateMgr.getPodIndex());
                             return false;
                         }
                         return true;
@@ -214,14 +215,14 @@ public class CallSystem implements ICallSystem, ServiceModule {
         id2type2callLinkMap.remove(id, type);
         if (!id2type2callLinkMap.containsFirstKey(id)) {
             return serviceStateMgr.removeUserLinkedPod(id, getServerInfo().serverName, false).nextValue(ret -> callAbility);
-        }else {
+        } else {
             return Homo.result(callAbility);
         }
     }
 
     @Override
     public ICallAbility get(String type, String id) {
-        return type2id2callAbilityMap.get(type,id);
+        return type2id2callAbilityMap.get(type, id);
     }
 
 }

@@ -12,6 +12,7 @@ import com.homo.core.rpc.base.service.CallDispatcher;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
+import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import org.springframework.util.Assert;
 
@@ -28,9 +29,16 @@ public class CallAbility extends AbstractAbility implements ICallAbility {
         attach(abilityEntity);
     }
 
+    public void afterAttach(AbilityEntity abilityEntity) {
+        CallSystem callSystem = GetBeanUtil.getBean(CallSystem.class);
+        callSystem.add(this).start();
+    }
+
     @Override
-    public void attach(AbilityEntity abilityEntity) {
-        log.info("CallAbility attach");
+    public void unAttach(AbilityEntity abilityEntity) {
+        log.info("CallAbility unAttach");
+        CallSystem callSystem = GetBeanUtil.getBean(CallSystem.class);
+        callSystem.remove(this).start();
     }
 
     public CallDispatcher getEntityCallDispatcher(Class<? extends AbilityEntity> entityClazz) {
@@ -59,8 +67,5 @@ public class CallAbility extends AbstractAbility implements ICallAbility {
         return callDispatcher.callFun(getOwner(), srcName, funName, new ByteRpcContent(data, RpcContentType.BYTES, span), idCallQueue, queueId);
     }
 
-    @Override
-    public void unAttach(AbilityEntity abilityEntity) {
-        log.info("CallAbility unAttach");
-    }
+
 }

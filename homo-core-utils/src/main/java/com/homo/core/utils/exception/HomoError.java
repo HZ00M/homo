@@ -17,8 +17,8 @@ public enum HomoError implements HomoThrowable {
     httpMaxByteError(107, "bytesLength > bytesLimit size %s limit %s"),
     rpcAgentTypeNotSupport(108, "RpcAgent no support rpcType %s tagName %s"),
     gateError(109, "gateError %s"),
-    broadcastError(110, "broadcastError");
-
+    broadcastError(110, "broadcastError"),
+    spanError(111, "spanError");
     private int code;
     private String message;
     private static final Map<Integer, String> errorDefineMap = new ConcurrentHashMap<>();

@@ -49,7 +49,7 @@ public class AbstractAbilityEntity implements AbilityEntity, SaveAble, TimeAble,
 
     @Override
     public Homo<Void> promiseInit() {
-        log.info("promiseInit start id {}",id);
+        log.info("promiseInit start type {} id {}", getType(), id);
         if (getType() == null) {
             log.error("promiseInit init error, type is null");
         }
@@ -72,13 +72,13 @@ public class AbstractAbilityEntity implements AbilityEntity, SaveAble, TimeAble,
                     for (Ability ability : abilityMap.values()) {
                         afterInitAbility.add(ability.promiseAfterInitAttach(entity));
                     }
-                    return Homo.when(afterInitAbility).nextDo(ret -> afterPromiseInit());
+                    return Homo.when(afterInitAbility).justThen(this::afterPromiseInit);
                 });
 
     }
 
     protected Homo<Void> afterPromiseInit() {
-        return Homo.result();
+        return Homo.result(null);
     }
 
     @Override
@@ -91,17 +91,17 @@ public class AbstractAbilityEntity implements AbilityEntity, SaveAble, TimeAble,
                         beforeAfterDestroyAbility.add(ability.promiseBeforeDestroyUnAttach(entity));
                     }
                     return Homo.when(beforeAfterDestroyAbility)
-                            .nextDo(ret -> {
+                            .justThen(() -> {
                                 this.abilityMap.clear();
                                 AbstractAbilityEntity remove = GetBeanUtil.getBean(AbilityEntityMgr.class).remove(entity);
-                                log.info("promiseDestroy done remove entity {} {}",remove.getType(),remove.getId());
+                                log.info("promiseDestroy done remove entity {} {}", remove.getType(), remove.getId());
                                 return afterPromiseDestroy();
                             });
                 });
     }
 
     protected Homo<Void> afterPromiseDestroy() {
-        return Homo.resultVoid();
+        return Homo.result(null);
     }
 
     //落地时需要忽略该get方法

@@ -12,6 +12,8 @@ import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.spring.GetBeanUtil;
 
+import java.util.UUID;
+
 /**
  * 对象保存能力实现
  */
@@ -28,7 +30,9 @@ public class StorageAbility extends AbstractAbility {
     public void save() {
         storageSystem.save((SaveAble) getOwner());
         WatchAbility watchAbility = getOwner().getAbility(WatchAbility.class);
-        watchAbility.notify(SAVE_EVENT, updateTime);
+        if (watchAbility != null) {
+            watchAbility.notify(SAVE_EVENT, updateTime);
+        }
     }
 
     public StorageAbility(AbilityEntity abilityEntity) {
@@ -36,13 +40,13 @@ public class StorageAbility extends AbstractAbility {
         StorageTime storageTime = HomoAnnotationUtil.findAnnotation(abilityEntity.getClass(), StorageTime.class);
         if (storageTime != null) {
             this.saveTime = storageTime.value();
-        }else {
+        } else {
             this.saveTime = abilityProperties.getSaveTimeSecondMills();
         }
         CacheTime cacheTime = HomoAnnotationUtil.findAnnotation(abilityEntity.getClass(), CacheTime.class);
         if (cacheTime != null) {
             this.cacheTime = cacheTime.value();
-        }else {
+        } else {
             this.cacheTime = abilityProperties.getCacheTimeSecondMillis();
         }
         updateTime = System.currentTimeMillis();
@@ -50,33 +54,39 @@ public class StorageAbility extends AbstractAbility {
     }
 
     @Override
-    public Homo<Void> promiseAfterInitAttach(AbilityEntity abilityEntity){
+    public Homo<Void> promiseAfterInitAttach(AbilityEntity abilityEntity) {
+        storageSystem = GetBeanUtil.getBean(StorageSystem.class);
         return super.promiseAfterInitAttach(abilityEntity)
-                .consumerValue(ret->{
-                    log.info("attach type {} id {}", abilityEntity.getType(), abilityEntity.getId());
-                    storageSystem = GetBeanUtil.getBean(StorageSystem.class);
+                .consumerValue((ret) -> {
+
                     // 配置了定时保持或者缓存时间
                     // 如果定时保存，就按照定时保存的时间起定时器，如果定时保存的时间比缓存时间大，那么可能会多缓存一会
-                    long timerTimer = saveTime > 0 ? saveTime : cacheTime;
+                    long updateStep = saveTime > 0 ? saveTime : cacheTime;
+                    log.info("attach type {} id {} updateStep {}", abilityEntity.getType(), abilityEntity.getId(), updateStep);
                     CallQueueMgr.getInstance().task(() -> {
-                        HomoTimerTask task = new HomoTimerTask().setOnCancelConsumer(needCancelTask -> {
-                            if (cacheTime != null && System.currentTimeMillis() - updateTime >= cacheTime) {
+                        getOwner().getAbility(TimeAbility.class).newTimer(getOwner().getId(), () -> {
+                            if (cacheTime != null && cacheTime > 0) {
                                 // 配置了缓存时间，且过了缓存时间
-                                if (System.currentTimeMillis() - updateTime > cacheTime) {
+                                long diffTime = System.currentTimeMillis() - updateTime;
+
+                                if (diffTime >= cacheTime) {
                                     // 缓存时间到了，取消定时器，清除缓存
-                                    needCancelTask.cancel();
+                                    getOwner().getAbility(TimeAbility.class).cancel(getOwner().getId());
                                     // 超过了时间就释放掉
-                                    log.info("save and destroy [{}] [{}], currentTimeMillis:[{}] - updateTime:[{}] = [{}] > cacheTime:[{}]", getOwner().getType(), getOwner().getId(), System.currentTimeMillis(), updateTime, System.currentTimeMillis() - updateTime, cacheTime);
+                                    log.info("TimeAbility destroy [{}] [{}], currentTimeMillis:[{}] - updateTime:[{}]  diffTime [{}] > cacheTime:[{}]", getOwner().getType(), getOwner().getId(), System.currentTimeMillis(), updateTime, diffTime, cacheTime);
                                     getOwner().promiseDestroy().start();
+                                } else {
+                                    log.info("TimeAbility destroy doNothing [{}] [{}], currentTimeMillis:[{}] - updateTime:[{}]  diffTime [{}] < cacheTime:[{}]", getOwner().getType(), getOwner().getId(), System.currentTimeMillis(), updateTime, diffTime, cacheTime);
                                 }
                             } else {
                                 if (updateTime > lastSaveTime) {
-                                    log.info("save [{}] [{}]", getOwner().getType(), getOwner().getId());
+                                    log.info("TimeAbility save [{}] [{}] updateTime:[{}] lastSaveTime:[{}]", getOwner().getType(), getOwner().getId(), updateTime, lastSaveTime);
                                     save();
+                                } else {
+                                    log.info("TimeAbility save doNothing [{}] [{}] updateTime:[{}] lastSaveTime:[{}]", getOwner().getType(), getOwner().getId(), updateTime, lastSaveTime);
                                 }
                             }
-                        });
-                        getOwner().getAbility(TimeAbility.class).newTimer(task, timerTimer, timerTimer, HomoTimerMgr.UNLESS_TIMES);
+                        }, updateStep, updateStep, HomoTimerMgr.UNLESS_TIMES);
                     }, abilityEntity.getQueueId());
                 });
     }

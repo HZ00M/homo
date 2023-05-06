@@ -76,25 +76,27 @@ public class EntityRpcProxy implements MethodInterceptor {
 
         // 如果有CallSystemImpl实现类，且是本地服务的entity call，则使用本地call,否则用rpc call
         if (callSystem != null && callSystem.get(type, id) != null) {
+            log.info("intercept callLocalMethod, methodName {} type {} id {}", method.getName(), type, id);
             return callSystem.callLocalMethod(type, id, method, objects);
         }
         //发起远程调用
         String methodName = method.getName();
         EntityRequest.Builder builder = EntityRequest.newBuilder().setType(type).setId(id).setFunName(methodName);
-        ByteRpcContent rpcContent = (ByteRpcContent) rpcHandlerInfoForClientMap.get(o.getClass()).serializeParamForInvoke(methodName,objects);
+        ByteRpcContent rpcContent = (ByteRpcContent) rpcHandlerInfoForClientMap.get(o.getClass()).serializeParamForInvoke(methodName, objects);
         if (rpcContent != null) {
             byte[][] data = rpcContent.getData();
-            if (data!= null){
+            if (data != null) {
                 for (byte[] datum : data) {
                     builder.addContent(ByteString.copyFrom(datum));
                 }
             }
         }
         EntityRequest entityRequest = builder.build();
-        return rpcCall(type,id,methodName,entityRequest);
+        log.info("intercept rpcCall, methodName {} type {} id {}", method, type, id);
+        return rpcCall(type, id, methodName, entityRequest);
     }
 
-    private Object rpcCall(String type,String id,String methodName,EntityRequest entityRequest) throws Exception {
+    private Object rpcCall(String type, String id, String methodName, EntityRequest entityRequest) throws Exception {
         ICallAbility callAbility = callSystem.get(type, id);
         CallDispatcher callDispatcher = CallAbility.entityDispatcherMap.get(callAbility.getOwner().getClass());
         RpcContent rpcContent = callDispatcher.rpcHandleInfo.getMethodDispatchInfo(methodName).serializeParam(new Object[]{entityRequest});
@@ -106,17 +108,17 @@ public class EntityRpcProxy implements MethodInterceptor {
                                 log.error("entity proxy rpcClientCall getServiceNameByTag is null. type: {}, id: {}, funName: {}", type, id, methodName);
                                 homoSink.error(new Throwable("entity proxy rpcClientCall getServiceNameByTag is null"));
                             }
-                            rpcAgentClient.rpcCall(methodName,rpcContent)
-                                    .consumerValue(ret->{
+                            rpcAgentClient.rpcCall(methodName, rpcContent)
+                                    .consumerValue(ret -> {
                                         homoSink.success(ret);
                                         ZipkinUtil.getTracing().tracer().currentSpan().tag("entityType", type)
                                                 .tag("entityId", id)
                                                 .tag("methodName", methodName);
                                     }).start();
                         });
-            }else {
-                rpcAgentClient.rpcCall(methodName,rpcContent)
-                        .consumerValue(ret->{
+            } else {
+                rpcAgentClient.rpcCall(methodName, rpcContent)
+                        .consumerValue(ret -> {
                             homoSink.success(ret);
                             ZipkinUtil.getTracing().tracer().currentSpan().tag("entityType", type)
                                     .tag("entityId", id)

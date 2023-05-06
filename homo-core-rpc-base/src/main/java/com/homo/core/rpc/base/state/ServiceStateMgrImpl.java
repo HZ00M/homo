@@ -87,9 +87,9 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                     @Override
                     public void run() {
                         long currentTime = System.currentTimeMillis();
-                        if (lastUpdateStateTime > 0 && (currentTime - lastUpdateStateTime) >= serverStateProperties.getServiceStateExpireSeconds() * 1000) {
+                        if (lastUpdateStateTime > 0 && (currentTime - lastUpdateStateTime) >= serverStateProperties.getServiceStateExpireMillSeconds() * 1000) {
                             log.error("setState period larger than expireSeconds_{}!lastTime_{}, currentTime_{}",
-                                    serverStateProperties.getServiceStateExpireSeconds(), lastUpdateStateTime, currentTime);
+                                    serverStateProperties.getServiceStateExpireMillSeconds(), lastUpdateStateTime, currentTime);
                         }
                         lastUpdateStateTime = currentTime;
                         String serviceName = serviceMgr.getMainService().getHostName();
@@ -110,7 +110,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                                 })
                                 .start();
                     }
-                }, 10, serverStateProperties.getServiceStateUpdatePeriodSeconds(), HomoTimerMgr.UNLESS_TIMES);
+                }, 10000, serverStateProperties.getServiceStateUpdatePeriodMillSeconds(), HomoTimerMgr.UNLESS_TIMES);
             }
         });
     }
@@ -123,9 +123,9 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
             log.error("homo.service.state.cpu.factor config need between 0 - 1");
             System.exit(-1);
         }
-        if (serverStateProperties.getServiceStateUpdatePeriodSeconds() > serverStateProperties.getServiceStateExpireSeconds() ||
-                serverStateProperties.getServiceStateUpdatePeriodSeconds() <= 0 ||
-                serverStateProperties.getServiceStateExpireSeconds() < 0
+        if (serverStateProperties.getServiceStateUpdatePeriodMillSeconds() > serverStateProperties.getServiceStateExpireMillSeconds() ||
+                serverStateProperties.getServiceStateUpdatePeriodMillSeconds() <= 0 ||
+                serverStateProperties.getServiceStateExpireMillSeconds() < 0
         ) {
             log.error("please check homo.service.state.expire.seconds and homo.service.state.update.seconds value is sense");
             System.exit(-1);
@@ -298,7 +298,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         String appId = rootModule.getServerInfo().appId;
         String regionId = rootModule.getServerInfo().namespace;
         String logicType = stateLogicType;
-        long beginTimeMillis = System.currentTimeMillis() - serverStateProperties.getServiceStateExpireSeconds() * 1000;
+        long beginTimeMillis = System.currentTimeMillis() - serverStateProperties.getServiceStateExpireMillSeconds() * 1000;
         return statefulDriver.getServiceState(appId, regionId, logicType, serviceName, beginTimeMillis)
                 .consumerValue(ret -> {
                     log.trace("getServiceAllStateInfo serviceName {}  ret {}", serviceName, ret);
@@ -354,7 +354,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                                                             }
                                                         }
                                                     }, 0,
-                        serverStateProperties.getServiceStateUpdatePeriodSeconds(),
+                        serverStateProperties.getServiceStateUpdatePeriodMillSeconds(),
                         HomoTimerMgr.UNLESS_TIMES);
             }
         });

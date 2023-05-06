@@ -21,7 +21,7 @@ public class PersistentProcess implements Module {
     @Override
     public void init() {
         log.info("landingTask start dirtyProperties {} ",dirtyProperties);
-            homoTimerMgr.once(() -> {
+            homoTimerMgr.once("dirtyLanding",() -> {
                 String dirtyName = dirtyDriver.chooseDirtyMap();
                 try {
                         String dirtySaving = dirtyDriver.snapShot(dirtyName);

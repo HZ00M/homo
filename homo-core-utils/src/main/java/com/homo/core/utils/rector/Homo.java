@@ -8,6 +8,7 @@ import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.fun.FuncEx;
 import lombok.extern.log4j.Log4j2;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
@@ -82,7 +83,14 @@ public class Homo<T> extends Mono<T> {
     }
 
     public static <T> Homo<T> warp(Supplier<Mono<T>> supplier) {
-        return Homo.warp(supplier.get());
+        Supplier<Mono<T>> warp = ()->{
+            try {
+                return supplier.get();
+            }catch (Exception e){
+                return Homo.error(e);
+            }
+        };
+        return Homo.warp(Mono.defer(warp));
     }
 
     public static <T> Homo<T> warp(ConsumerEx<HomoSink<T>> callback) {
@@ -99,8 +107,12 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(Mono.create(consumer));
     }
 
-    public <V> Homo<V> then(Homo<V> other) {
+    public <V> Homo<V> justThen(Homo<V> other) {
         return Homo.warp(mono.then(other));
+    }
+
+    public <V> Homo<V> justThen(Supplier<Mono<V>> supplier) {
+        return justThen(Homo.warp(supplier));
     }
 
     public final Homo<T> ifEmptyThen(Homo<? extends T> alternate) {
@@ -122,13 +134,22 @@ public class Homo<T> extends Mono<T> {
     }
 
     public final <R> Homo<R> nextValue(Function<? super T, ? extends R> mapper) {
-        Function<? super T, ? extends R> warp = (Function<T, R>) t -> {
-            if (t == Optional.empty()) {
-                t = null;
+        Function<? super T, ? extends Homo<R>> warp = (Function<T, Homo<R>>) t -> {
+            try {
+                if (t == Optional.empty()) {
+                    t = null;
+                }
+                R ret = null;
+                ret = mapper.apply(t);
+                if (ret == null){
+                    return Homo.result((R)Optional.empty());
+                }
+                return Homo.result(ret);
+            }catch (Exception e){
+                return Homo.error(e);
             }
-            return mapper.apply(t);
         };
-        return Homo.warp(mono.map(warp));
+        return Homo.warp(mono.flatMap(warp));
     }
 
     public final Homo<T> consumerValue(Consumer<? super T> onSuccess) {
@@ -138,9 +159,22 @@ public class Homo<T> extends Mono<T> {
                     t = null;
                 }
                 onSuccess.accept(t);
+            }else{
+                onSuccess.accept(t);
             }
         };
         return Homo.warp(mono.doOnSuccess(warp));
+    }
+
+    public final Homo<T> consumerEmpty(Runnable onEmpty) {
+        return Homo.warp(mono.doOnSuccess(new Consumer<T>() {
+            @Override
+            public void accept(T t) {
+                if (t == null) {
+                    onEmpty.run();
+                }
+            }
+        }));
     }
 
     public final Homo<T> catchError(Consumer<? super Throwable> onError) {
@@ -315,14 +349,5 @@ public class Homo<T> extends Mono<T> {
         return this;//todo 实现合并调用
     }
 
-    public final Homo<T> consumerEmpty(Runnable onEmpty) {
-        return Homo.warp(mono.doOnSuccess(new Consumer<T>() {
-            @Override
-            public void accept(T t) {
-                if (t == null) {
-                    onEmpty.run();
-                }
-            }
-        }));
-    }
+
 }

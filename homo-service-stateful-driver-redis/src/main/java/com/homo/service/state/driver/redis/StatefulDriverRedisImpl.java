@@ -58,13 +58,15 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
         String[] keys = {uidSvcKey, uidKey};
         String[] args = {String.valueOf(serviceName), String.valueOf(podId), String.valueOf(persistSeconds)};
         String statefulSetLinkIfAbsent = LuaScriptHelper.statefulSetLinkIfAbsent;
+        log.info("setLinkedPodIfAbsent start appId {} regionId {} logicType {} serviceName {} uid {} podId {} persistSeconds {} ", appId, regionId, logicType, serviceName, uid, podId, persistSeconds);
+
         return Homo.warp(new ConsumerEx<HomoSink<Integer>>() {
             @Override
             public void accept(HomoSink<Integer> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(statefulSetLinkIfAbsent, keys, args)
                         .subscribe(ret -> {
                             String rel = (String) ((List) ret).get(0);
-                            log.trace("setLinkedPodIfAbsent  appId {} regionId {} logicType {} serviceName {} uid {} podId {} persistSeconds {} rel {}", appId, regionId, logicType, serviceName, uid, podId, persistSeconds, rel);
+                            log.info("setLinkedPodIfAbsent end appId {} regionId {} logicType {} serviceName {} uid {} podId {} persistSeconds {} rel {}", appId, regionId, logicType, serviceName, uid, podId, persistSeconds, rel);
                             homoSink.success(Integer.parseInt(rel));
                         });
             }
@@ -102,13 +104,14 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
             public void accept(HomoSink<Boolean> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(statefulRemoveLink, keys, args)
                         .subscribe(ret -> {
-                            Integer rel = (Integer) ret;
+                            List<Object> resultList = (List<Object>) ret;
+                            Long rel = (Long) resultList.get(0);
                             if (rel > 0) {
                                 homoSink.success(true);
                             } else {
                                 homoSink.success(false);
                             }
-                            log.trace("getLinkedPod  appId {} regionId {} logicType {} serviceName {} uid {} rel {}", appId, regionId, logicType, serviceName, uid, rel);
+                            log.info("removeLinkedPod  appId {} regionId {} logicType {} serviceName {} uid {} rel {}", appId, regionId, logicType, serviceName, uid, rel);
 
                         });
             }

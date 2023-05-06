@@ -291,7 +291,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
             }
         });
         //请求将在10秒后过期
-        HomoTimerMgr.getInstance().once(new Runnable() {
+        HomoTimerMgr.getInstance().once("rpcTimeOuc",new Runnable() {
             @Override
             public void run() {
                 log.info("asyncBytesStreamCall reqId {} timer run ",reqId);

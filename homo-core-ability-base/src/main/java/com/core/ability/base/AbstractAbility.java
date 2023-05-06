@@ -11,8 +11,9 @@ public abstract class AbstractAbility implements Ability {
     protected AbilityEntity abilityEntity;
     @Override
     public void attach(AbilityEntity abilityEntity) {
+        this.abilityEntity = abilityEntity;
         abilityEntity.setAbility(this);
-        log.trace("Ability attach to entity name_{}, type_{} id_{} ", this.getClass().getSimpleName(), abilityEntity.getType(), abilityEntity.getId());
+        log.info("Ability attach to entity name {} type {} id {} ", this.getClass().getSimpleName(), abilityEntity.getType(), abilityEntity.getId());
     }
 
     @JSONField(serialize = false, deserialize = false)

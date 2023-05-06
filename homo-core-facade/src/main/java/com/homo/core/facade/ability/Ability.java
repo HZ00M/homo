@@ -15,29 +15,44 @@ public interface Ability {
 //    default void attach(AbilityEntity abilityEntity) {
 //        attach(abilityEntity.getClass().getSimpleName(), abilityEntity);
 //    }
+
     /**
      * 关联对象
+     *
      * @param abilityEntity
      */
     void attach(AbilityEntity abilityEntity);
+
+    default void afterAttach(AbilityEntity abilityEntity) {
+
+    }
+
     /**
      * 取消关联
      */
     void unAttach(AbilityEntity abilityEntity);
-    default Homo<Void> promiseAfterInitAttach(AbilityEntity abilityEntity){
+
+    default void afterUnAttach(AbilityEntity abilityEntity) {
+
+    }
+
+    default Homo<Void> promiseAfterInitAttach(AbilityEntity abilityEntity) {
         return Homo.warp(
-                sink->{
+                sink -> {
+                    log.info("Ability promiseAfterAttach name {} type {} id {} ", this.getClass().getSimpleName(), abilityEntity.getType(), abilityEntity.getId());
                     attach(abilityEntity);
-                    log.trace("Ability promiseAfterAttach name_{} type_{} id_{} ", this.getClass().getSimpleName(), getOwner().getType(), getOwner().getId());
+                    afterAttach(abilityEntity);
                     sink.success();
                 }
         );
     }
-    default Homo<Void> promiseBeforeDestroyUnAttach(AbilityEntity abilityEntity){
+
+    default Homo<Void> promiseBeforeDestroyUnAttach(AbilityEntity abilityEntity) {
         return Homo.warp(
-                sink->{
+                sink -> {
                     unAttach(abilityEntity);
                     log.trace("Ability promiseAfterDestroyUnAttach name_{} type_{} id_{} ", this.getClass().getSimpleName(), getOwner().getType(), getOwner().getId());
+                    afterUnAttach(abilityEntity);
                     sink.success();
                 }
         );
@@ -46,6 +61,7 @@ public interface Ability {
 
     /**
      * 获取关联的对象
+     *
      * @return
      */
     AbilityEntity getOwner();

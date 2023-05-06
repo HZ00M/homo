@@ -157,16 +157,19 @@ public class CacheEntityMgr implements AbilityEntityMgr {
         return Homo.queue(idCallQueue, () -> {
             T entity = get(entityClazz, id);//创建前再次判断是否存在
             if (entity == null) {
+                log.info("createEntityPromise star entityClazz {} id {} params {}", entityClazz, id, params);
                 entity = newEntity(id, entityClazz, params);
                 if (entity == null) {
                     return Homo.error(new Exception("createEntityPromise error id " + id + " entityClazz " + entityClazz));
                 }
             }
             T finalEntity = entity;
-            return entity.promiseInit().nextValue(self -> {
-                processConsumer(createProcess, finalEntity);
-                return finalEntity;
-            });
+            return entity.promiseInit()
+                    .nextValue(self -> {
+                        log.error("createEntityPromise finish id {} entityClazz {} params {} self {}", id, entityClazz, params, self);
+                        processConsumer(createProcess, finalEntity);
+                        return finalEntity;
+                    });
         }, () -> log.error("createEntityPromise fail id {} entityClazz {} params {}", id, entityClazz, params));
     }
 

@@ -41,12 +41,12 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
     }
 
     public <T> void addIdTask(Callable callable, Runnable errorCallBack, HomoSink sink) {
-        log.info("IdCallQueue addIdTask id {} ", id);
+        log.info("IdCallQueue addIdTask id {} hashCode {}", id, callable.hashCode());
         IdTask task = new IdTask(this, callable, errorCallBack, sink);
         add(task);
         IdTask headTask = peek();
         if (headTask == task) {//如果是队首,就直接执行
-            log.info("IdCallQueue headTask == task run !id {} task {}", id, task);
+            log.info("IdCallQueue headTask == task run, id {} hashCode {} task {}", id, callable.hashCode(), task.hashCode());
             task.run();
             return;
         }
@@ -54,12 +54,12 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
         if (headTask != null) {
             if (timeOutMills > 0 && (System.currentTimeMillis() - headTask.getStartTime()) > timeOutMills) {
                 //超时了
-                log.error("IdCallQueue task timeOut! id:{} headTask.startTime:{}, currentTime:{} strategy:{}",
+                log.error("IdCallQueue task timeOut! id:{} headTask.startTime {} currentTime {} strategy {}",
                         id, headTask.getStartTime(), System.currentTimeMillis(), dropStrategy);
                 //不丢弃策略,就不用cancel当前task,只需返回errCallBack即可
                 if (dropStrategy == DropStrategy.NONE) {
                     headTask.callback();
-                    log.info("IdCallQueue headTask.errorCallBack.run() run !id {} task {}", id, task);
+                    log.info("IdCallQueue headTask.errorCallBack.run() run  id {} hashCode {} task {}", id, callable.hashCode(), task.hashCode());
 //                    poll();
 //                    IdTask nextTask = peek();
 //                    if (nextTask != null) {
@@ -84,7 +84,7 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
                     }
                 } else {
                     //取消失败,说明task已经在执行或者已完成了,当做没有超时处理
-                    log.info("IdCallQueue task cancel fail! id {} maybe is done!", id);
+                    log.info("IdCallQueue task cancel fail! id {} maybe is done! hashCode {}", id, callable.hashCode());
                 }
             }
 
@@ -118,21 +118,21 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
 
         @Override
         public void run() {
-            log.info("IdCallQueue task star  id {} state {}", id,state);
-            if (state == State.CANCEL) {
-                if (homoSink != null) {
-                    homoSink.error(new RuntimeException("IdCallQueue task cancel"));
-                }
-                IdTask nextTask = peek();
-                if (nextTask != null) {
-                    nextTask.run();
-                }
-                return;
-            }
-            state = State.PROCESS;
-            log.info("IdCallQueue task run! id {} state {}", id,state);
-            startTime = System.currentTimeMillis();
             try {
+                log.info("IdCallQueue task star id {} hashCode {} state {}", id, callable.hashCode(), state);
+                if (state == State.CANCEL) {
+                    if (homoSink != null) {
+                        homoSink.error(new RuntimeException("IdCallQueue task cancel"));
+                    }
+                    IdTask nextTask = peek();
+                    if (nextTask != null) {
+                        nextTask.run();
+                    }
+                    return;
+                }
+                state = State.PROCESS;
+                log.info("IdCallQueue task run id {} hashCode {} state {}", id, callable.hashCode(), state);
+                startTime = System.currentTimeMillis();
                 Object call = callable.call();
                 if (homoSink != null) {
 //                    homoSink.success(call);
@@ -144,6 +144,8 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
                         homoSink.success(call);
                     }
                 }
+                state = State.FINISH;
+                log.info("IdCallQueue task end id {} hashCode {} state {}", id, callable.hashCode(), state);
             } catch (Exception e) {
                 log.error("IdCallQueue run error", e);
                 if (errorCallBack != null) {
@@ -153,8 +155,6 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
                     homoSink.error(e);
                 }
             } finally {
-                log.info("IdCallQueue task end  id {} state {}", id,state);
-                state = State.FINISH;
                 ownerQueue.finishCounter.incrementAndGet();
                 poll();
                 IdTask nextTask = peek();

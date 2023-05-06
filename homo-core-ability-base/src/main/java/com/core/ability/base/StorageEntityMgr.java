@@ -111,7 +111,10 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
                                     return Homo.result(inMenEntity);
                                 }
                                 if (entity != null) {
-                                    return entity.promiseInit().nextDo(ret -> Homo.result(entity));
+                                    return entity.promiseInit().nextDo(ret -> {
+                                        log.info("asyncLoad entity.promiseInit finish, clazz_{} id_{} entity_{}", clazz, id, entity);
+                                        return Homo.result(entity);
+                                    });
                                 }
                                 return Homo.result(null);
                             }))

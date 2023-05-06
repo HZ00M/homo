@@ -1,6 +1,7 @@
 package com.core.ability.base.storage;
 
 import brave.Span;
+import com.core.ability.base.CacheEntityMgr;
 import com.homo.core.common.module.ServiceModule;
 import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.AbilityEntity;
@@ -11,6 +12,7 @@ import com.homo.core.facade.storege.SaveObject;
 import com.homo.core.root.storage.ByteStorage;
 import com.homo.core.root.storage.ObjStorage;
 import com.homo.core.utils.concurrent.lock.Locker;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
@@ -104,13 +106,13 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
                 .consumerValue(ret -> {
                     //清空
                     getLandEntity().clear();
-                    timerMgr.once(this::landEntity, abilityProperties.getIntervalSecondMillis());
+                    timerMgr.once("landEntity", CallQueueMgr.getInstance().getQueue(CallQueueMgr.frame_queue_id), this::landEntity, abilityProperties.getIntervalSecondMillis());
                     log.trace("landEntity finish ");
                 }).catchError(throwable -> {
                     log.error("landEntity error ", throwable);
                     Map<String, SaveCache> landEntity = getLandEntity();
                     landEntity.entrySet().removeIf(item -> item.getValue().isSave);
-                    timerMgr.once(this::landEntity, abilityProperties.getIntervalSecondMillis());
+                    timerMgr.once("landEntity", CallQueueMgr.getInstance().getQueue(CallQueueMgr.frame_queue_id), this::landEntity, abilityProperties.getIntervalSecondMillis());
                 })
                 .finallySignal(ret -> {
                     long end = System.currentTimeMillis();
@@ -142,7 +144,7 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
         String type = entityType.type();
         return load(type, id, (Class<SaveObject>) (Class<?>) clazz)
                 .nextDo(ret -> {
-                    log.info("loadEntity end clazz {} id {} ret {}", clazz, id ,ret);
+                    log.info("loadEntity end clazz {} id {} ret {}", clazz, id, ret);
                     if (ret == null) {
                         return Homo.result(null);
                     } else {
@@ -167,18 +169,18 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
     }
 
     <E extends SaveObject> Homo<E> loadFromStorage(String logicType, String id, Class<E> zz) {
-        log.info("loadFromStorage logicType load start {} id {} clazz {}", logicType, id, zz);
+        log.info("loadFromStorage load start logicType {} id {} clazz {}", logicType, id, zz);
         E cached = (E) getInCache(logicType, id);
         if (cached != null) {
             // 如果有了就直接取缓存中的值
             return Homo.result(cached).consumerValue(ret -> {
-                log.info("loadFromStorage load () logicType {} id {} clazz {} ret {}", logicType, id, zz, ret);
+                log.info("loadFromStorage load form cache  logicType {} id {} clazz {} ret {}", logicType, id, zz, ret);
             });
         }
         return storage.load(logicType, id, zz)
                 .ifEmptyThen(Homo.result(null))
                 .consumerValue(ret -> {
-                    log.info("loadFromStorage load () logicType {} id {} clazz {} ret {}", logicType, id, zz, ret);
+                    log.info("loadFromStorage load from persistent () logicType {} id {} clazz {} ret {}", logicType, id, zz, ret);
                 });
     }
 

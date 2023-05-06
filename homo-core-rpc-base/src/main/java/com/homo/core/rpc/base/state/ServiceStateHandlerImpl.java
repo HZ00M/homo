@@ -64,7 +64,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
             @Override
             public void run() {
                 HomoTimerMgr.getInstance().schedule(ServiceStateHandlerImpl.this, 0,
-                        serverStateProperties.getServiceStateUpdatePeriodSeconds(),
+                        serverStateProperties.getServiceStateUpdatePeriodMillSeconds(),
                         HomoTimerMgr.UNLESS_TIMES);
             }
         });
