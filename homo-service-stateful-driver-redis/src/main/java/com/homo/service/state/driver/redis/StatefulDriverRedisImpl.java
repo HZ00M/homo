@@ -26,9 +26,9 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
     @Qualifier("homoRedisPool")
     private HomoAsyncRedisPool asyncRedisPool;
 
-    private static final String SERVICE_STATE_TEMP = "state:{%s:%s:%s:%s}";//服务器负载信息
-    private static final String USER_TEMP = "lk:{%s:%s:%s:%s}";//用户与所有服务连接信息
-    private static final String USER_SERVICE_TEMP = "lk:{%s:%s:%s:%s:%s}";//用户与服务连接信息
+    private static final String SERVICE_STATE_TEMP = "slug-state:{%s:%s:%s:%s}";//服务器负载信息
+    private static final String USER_TEMP = "slug-lk:{%s:%s:%s:%s}";//用户与所有服务连接信息
+    private static final String USER_SERVICE_TEMP = "slug-lk:{%s:%s:%s:%s:%s}";//用户与服务连接信息
     public static String[] nullArgs = new String[]{};
 
     @Override
@@ -150,7 +150,7 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
         dataMap.put(podNumStr, loadTimestamp);
         return Homo.warp(asyncRedisPool.hsetAsyncReactive(stateQueryKey, dataMap))
                 .nextDo(ret -> {
-                    log.error("setServiceState error appId {} regionId {} logicType {} serviceName {} podId {} load {} loadTimestamp {} ret {}",
+                    log.info("setServiceState ret appId {} regionId {} logicType {} serviceName {} podId {} load {} loadTimestamp {} ret {}",
                             appId, regionId, logicType, serviceName, podId, load,loadTimestamp,ret
                     );
                     if (ret != null) {

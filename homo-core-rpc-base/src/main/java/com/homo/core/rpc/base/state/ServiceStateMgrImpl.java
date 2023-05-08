@@ -83,7 +83,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         CallQueueMgr.getInstance().frameTask(new Runnable() {
             @Override
             public void run() {
-                HomoTimerMgr.getInstance().schedule(new Runnable() {
+                HomoTimerMgr.getInstance().schedule("scheduleUpdateLoad",new Runnable() {
                     @Override
                     public void run() {
                         long currentTime = System.currentTimeMillis();
@@ -342,7 +342,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         CallQueueMgr.getInstance().frameTask(new Runnable() {
             @Override
             public void run() {
-                HomoTimerMgr.getInstance().schedule(new Runnable() {
+                HomoTimerMgr.getInstance().schedule("scheduleUpdateService",new Runnable() {
                                                         @Override
                                                         public void run() {
                                                             log.debug("state cache update");

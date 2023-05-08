@@ -38,8 +38,8 @@ import java.util.*;
 @Log4j2
 public class MysqlRedisStorageDriverImpl implements StorageDriver {
 
-    private static final String REDIS_KEY_TMPL = "slug:{%s:%s:%s:%s}";
-    private static final String REDIS_EXIST_KEY_TMPL = "slug:{%s:%s:%s:%s:exist}";
+    private static final String REDIS_KEY_TMPL = "slug-data:{%s:%s:%s:%s}";
+    private static final String REDIS_EXIST_KEY_TMPL = "slug-exist:{%s:%s:%s:%s:exist}";
 
     @Autowired(required = false)
     @Qualifier("homoRedisPool")
@@ -111,7 +111,7 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
                                     log.info("asyncGetByFields hotFields appId_{} regionId_{} logicType_{} ownerId_{} fieldList_{}", appId, regionId, logicType, ownerId, fieldList);
                                     homoSink.success(map);
                                 }).start();
-                    }else {
+                    } else {
                         //redis取的数据是全的，直接返回
                         log.info("asyncGetByFields complete appId_{} regionId_{} logicType_{} ownerId_{} fieldList_{}", appId, regionId, logicType, ownerId, fieldList);
                         homoSink.success(map);
@@ -185,12 +185,13 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
         }
         Sinks.One<Pair<Boolean, Map<String, byte[]>>> one = Sinks.one();
         Homo<Pair<Boolean, Map<String, byte[]>>> homo = new Homo<>(one.asMono());
+        log.trace("asyncUpdate exec appId_{} regionId_{} logicType_{} ownerId_{} keys {} args {}", appId, regionId, logicType, ownerId,keys,args);
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(updateFieldsScript, keys, args);
         resultFlux.subscribe(ret -> {
             try {
-                log.trace("asyncUpdate finish appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
+                log.trace("asyncUpdate finish appId_{} regionId_{} logicType_{} ownerId_{} ret {}", appId, regionId, logicType, ownerId, ret);
                 dirtyDriver.dirtyUpdate(dirtyHelper.build())
-                        .consumerValue(res->{
+                        .consumerValue(res -> {
                             Pair<Boolean, Map<String, byte[]>> pair = new Pair<>(true, new HashMap<>());
                             one.tryEmitValue(pair);
                         }).start();
@@ -231,10 +232,10 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
                         DBDataHolder.hotAllField(appId, regionId, logicType, ownerId, redisKey)
                                 .consumerValue(res ->
                                         asyncIncr(appId, regionId, logicType, ownerId, incrData)
-                                        .consumerValue(res2->{
-                                            one.tryEmitValue(res2);
-                                        }
-                                        ).start()
+                                                .consumerValue(res2 -> {
+                                                            one.tryEmitValue(res2);
+                                                        }
+                                                ).start()
                                 )
                                 .catchError(one::tryEmitError).start();
                         return;
@@ -242,11 +243,11 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
                     DirtyHelper dirtyHelper = DirtyHelper.create(redisKey);
                     for (int i = 0; i < list.size(); i += 2) {
                         retMap.put((String) list.get(i), (Long) list.get(i + 1));
-                        dirtyHelper.incr(appId, regionId, logicType, ownerId, (String) list.get(i),(Long) list.get(i + 1));
+                        dirtyHelper.incr(appId, regionId, logicType, ownerId, (String) list.get(i), (Long) list.get(i + 1));
                     }
 
                     dirtyDriver.dirtyUpdate(dirtyHelper.build())
-                            .consumerValue(res->{
+                            .consumerValue(res -> {
                                 log.trace("asyncIncr complete appId_{} regionId_{} logicType_{} ownerId_{} incrData_{}", appId, regionId, logicType, ownerId, ret);
                                 one.tryEmitValue(pair);
                             }).start();
@@ -283,14 +284,14 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
             if (list.size() == 1 && list.get(0).equals("unCachedAllKey")) {
                 DBDataHolder
                         .hotAllField(appId, regionId, logicType, ownerId, redisKey)
-                        .nextDo(res->
-                            asyncRemoveKeys(appId,regionId,logicType,ownerId,remKeys)
-                                .consumerValue(one::tryEmitValue)
+                        .nextDo(res ->
+                                asyncRemoveKeys(appId, regionId, logicType, ownerId, remKeys)
+                                        .consumerValue(one::tryEmitValue)
                         )
                         .start();
-            }else {
+            } else {
                 dirtyDriver.dirtyUpdate(dirtyHelper.build())
-                        .consumerValue(res->{
+                        .consumerValue(res -> {
                             one.tryEmitValue(true);
                         }).start();
             }

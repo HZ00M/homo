@@ -1,7 +1,6 @@
 package com.core.ability.base.storage;
 
 import brave.Span;
-import com.core.ability.base.CacheEntityMgr;
 import com.homo.core.common.module.ServiceModule;
 import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.AbilityEntity;
@@ -22,7 +21,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,14 +46,20 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
         abilityEntityMgr.registerAddProcess(SaveAble.class, StorageAbility::new);
 
         abilityEntityMgr.registerCreateProcess(SaveAble.class, abilityEntity -> abilityEntity.getAbility(StorageAbility.class).save());
+        abilityEntityMgr.registerGetProcess(SaveAble.class, abilityEntity -> abilityEntity.getAbility(StorageAbility.class).currentGet());
     }
 
     @Data
-    @AllArgsConstructor
     static class SaveCache {
-        SaveObject saveObject;
-        byte[] data;
-        boolean isSave;
+        public SaveObject saveObject;
+        public byte[] data;
+        public boolean isSave;
+
+        public SaveCache(SaveObject saveObject, byte[] data, boolean isSave) {
+            this.saveObject = saveObject;
+            this.data = data;
+            this.isSave = isSave;
+        }
     }
 
     Map<String, SaveCache> saveEntityMap;
@@ -93,7 +97,7 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
         List<Homo<Boolean>> storagePromiseList = new ArrayList<>();
         for (SaveCache saveCache : lastEntityMap.values()) {
             SaveObject saveObject = saveCache.saveObject;
-            Homo<Boolean> savePromise = storage.save(getServerInfo().appId, getServerInfo().regionId, saveObject.getLogicType(), saveObject.getOwnerId(), ByteStorage.DEFAULT_DATA_KEY, saveCache.data)
+            Homo<Boolean> savePromise = storage.save(getServerInfo().appId, getServerInfo().regionId, saveObject.getLogicType(), saveObject.getOwnerId(), ByteStorage.DEFAULT_DATA_KEY, saveCache.getData())
                     .consumerValue(ret -> {
                         if (ret) {
                             saveCache.setSave(true);

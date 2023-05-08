@@ -34,12 +34,17 @@ public class ObjStorage implements Module {
                 .nextDo(ret-> Homo.result(ret.getKey()));
     }
 
-    public <T extends Serializable> Homo<Boolean> save(String appId, String regionId, String logicType, String ownerId, String key, T obj){
-        byte[] bytes = serializationProcessor.writeByte(obj);
+    public <T extends Serializable> Homo<Boolean> save(String appId, String regionId, String logicType, String ownerId, String key, byte[] objByte){
+
         Map<String,byte[]> map = new HashMap<>();
-        map.put(key,bytes);
+        map.put(key,objByte);
         return storage.update(appId,regionId,logicType,ownerId,map)
                 .nextDo(ret-> Homo.result(ret.getKey()));
+    }
+
+    public <T extends Serializable> Homo<Boolean> save(String appId, String regionId, String logicType, String ownerId, String key, T obj){
+        byte[] bytes = serializationProcessor.writeByte(obj);
+        return save(appId,regionId,logicType,ownerId,key,bytes);
     }
 
     public <T extends Serializable> Homo<Pair<Boolean, Map<String, byte[]>>> update(String appId, String regionId, String logicType, String ownerId, Map<String,byte[]> map){
@@ -48,7 +53,7 @@ public class ObjStorage implements Module {
 
 
     public <T extends SaveObject> Homo<T> load(String logicType, String ownerId,Class<T> clazz) {
-        return load(warpAppId(getServerInfo().getServerName()), getServerInfo().getRegionId(), logicType, ownerId, OBJECT_KEY,clazz);
+        return load(warpAppId(getServerInfo().getAppId()), getServerInfo().getRegionId(), logicType, ownerId, OBJECT_KEY,clazz);
     }
 
     public <T extends Serializable> Homo<T> load(

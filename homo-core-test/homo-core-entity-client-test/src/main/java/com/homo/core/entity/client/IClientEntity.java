@@ -7,7 +7,7 @@ import com.homo.core.utils.rector.Homo;
 
 @EntityType(type = "client")
 @StorageTime(10000)
-@CacheTime(60000)
+@CacheTime(10000)
 public interface IClientEntity {
     Homo<String> clientCall(String param);
 }

@@ -29,9 +29,9 @@ public class TimeAbility extends AbstractAbility {
     }
 
     public boolean cancel(String id) {
-        log.info("TimeAbility cancel {}", id);
-        HomoTimerTask timerTask = timeTaskMap.remove(id);
+        HomoTimerTask timerTask = timeTaskMap.get(id);
         if (timerTask != null) {
+            log.info("TimeAbility cancel id {} hashCode {}", id,timerTask.hashCode());
             timerTask.cancel();
         }
         return true;

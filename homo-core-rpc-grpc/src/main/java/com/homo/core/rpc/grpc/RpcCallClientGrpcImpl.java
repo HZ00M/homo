@@ -44,11 +44,11 @@ public class RpcCallClientGrpcImpl implements RpcClient {
     private final EventLoopGroup eventLoopGroup;
     private boolean servicePodChanged;
     private final boolean isStateful;
-    private final int checkDelay ;
-    private final int checkPeriod ;
-    private final int messageMaxSize ;
-    private final int channelKeepLiveMills ;
-    private final int channelKeepLiveTimeoutMills ;
+    private final int checkDelay;
+    private final int checkPeriod;
+    private final int messageMaxSize;
+    private final int channelKeepLiveMills;
+    private final int channelKeepLiveTimeoutMills;
     private StreamObserver<StreamReq> reqStreamObserver;
 
     public RpcCallClientGrpcImpl(String host, int port, List<ClientInterceptor> clientInterceptorList, boolean isStateful, RpcGrpcClientProperties clientProperties) {
@@ -77,13 +77,13 @@ public class RpcCallClientGrpcImpl implements RpcClient {
     private void lookupCheckAddress() {
         if (!isStateful) {
             //无状态服务器才需要动态负载，有状态服务器都是发送到指定的pod
-            HomoTimerMgr.getInstance().schedule(new Runnable() {
+            HomoTimerMgr.getInstance().schedule("lookupCheckAddress", new Runnable() {
                 @Override
                 public void run() {
                     try {
                         InetAddress[] newAddress = InetAddress.getAllByName(host);
                         servicePodChanged = checkChannelChanged(newAddress);
-                        log.info("RpcCallClientGrpcImpl lookupCheckAddress service pod changed {} newAddress {}", servicePodChanged,newAddress);
+                        log.info("RpcCallClientGrpcImpl lookupCheckAddress service pod changed {} newAddress {}", servicePodChanged, newAddress);
                     } catch (Exception e) {
                         log.error("RpcCallClientGrpcImpl lookupCheckAddress parse service pod error,service {}", host);
                     }
@@ -260,9 +260,9 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                 HomoSink<Tuple2<String, ByteRpcContent>> sink = requestContextMap.get(reply.getReqId());
                 if (sink != null) {
                     log.info("asyncBytesStreamCall reply msgId {} contentSize {} ReqId {}", msgId, reply.getMsgContentCount(), reply.getReqId());
-                    log.info("requestContextMap remove sink timeout reqId {}",reply.getReqId());
+                    log.info("requestContextMap remove sink timeout reqId {}", reply.getReqId());
                     requestContextMap.remove(reply.getReqId());
-                    sink.success(Tuples.of(msgId, new ByteRpcContent(results, RpcContentType.BYTES,span)));
+                    sink.success(Tuples.of(msgId, new ByteRpcContent(results, RpcContentType.BYTES, span)));
                 }
             }
 
@@ -282,22 +282,22 @@ public class RpcCallClientGrpcImpl implements RpcClient {
 
     @Override
     public Homo<Tuple2<String, ByteRpcContent>> asyncBytesStreamCall(String reqId, StreamReq streamReq) {
-        log.info("asyncBytesStreamCall reqId {} call ",reqId);
+        log.info("asyncBytesStreamCall reqId {} call ", reqId);
         Homo<Tuple2<String, ByteRpcContent>> result = Homo.warp(new ConsumerEx<HomoSink<Tuple2<String, ByteRpcContent>>>() {
             @Override
             public void accept(HomoSink<Tuple2<String, ByteRpcContent>> sink) throws Exception {
-                log.info("requestContextMap put sink reqId {}",reqId);
+                log.info("requestContextMap put sink reqId {}", reqId);
                 requestContextMap.put(reqId, sink);//保存请求上下文
             }
         });
         //请求将在10秒后过期
-        HomoTimerMgr.getInstance().once("rpcTimeOuc",new Runnable() {
+        HomoTimerMgr.getInstance().once("rpcTimeOuc", new Runnable() {
             @Override
             public void run() {
-                log.info("asyncBytesStreamCall reqId {} timer run ",reqId);
+                log.info("asyncBytesStreamCall reqId {} timer run ", reqId);
                 ZipkinUtil.getTracing().tracer().currentSpan().tag("tag", "asyncBytesStreamCall");
                 if (requestContextMap.containsKey(reqId)) {
-                    log.info("requestContextMap remove sink timeout reqId {}",reqId);
+                    log.info("requestContextMap remove sink timeout reqId {}", reqId);
                     HomoSink<Tuple2<String, ByteRpcContent>> sink = requestContextMap.remove(reqId);
                     sink.error(HomoError.throwError(HomoError.rpcTimeOutException));
                 }
@@ -347,7 +347,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                     @Override
                     public void onCompleted() {
                         log.trace("asyncJsonCall onCompleted, serviceName {} msgId {}", host, msgId);
-                        sink.success(Tuples.of(msgId, new ByteRpcContent(results, RpcContentType.JSON,span)));
+                        sink.success(Tuples.of(msgId, new ByteRpcContent(results, RpcContentType.JSON, span)));
                         releaseChannel(channel);
                     }
                 };

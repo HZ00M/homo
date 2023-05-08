@@ -63,7 +63,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
         CallQueueMgr.getInstance().frameTask(new Runnable() {
             @Override
             public void run() {
-                HomoTimerMgr.getInstance().schedule(ServiceStateHandlerImpl.this, 0,
+                HomoTimerMgr.getInstance().schedule("ServiceStateHandlerImpl scheduleUpdate",ServiceStateHandlerImpl.this, 0,
                         serverStateProperties.getServiceStateUpdatePeriodMillSeconds(),
                         HomoTimerMgr.UNLESS_TIMES);
             }
