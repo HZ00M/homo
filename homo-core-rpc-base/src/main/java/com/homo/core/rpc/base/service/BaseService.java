@@ -49,7 +49,7 @@ public class BaseService implements Service, IEntityService {
         port = Integer.parseInt(split[1]);
         driverType = serviceExport.driverType();
         stateful = serviceExport.isStateful();
-        GetBeanUtil.getBean(ServiceStateMgr.class).setServiceNameTag(tagName, tagName);
+        GetBeanUtil.getBean(ServiceStateMgr.class).setServiceNameTag(tagName, tagName).start();
         rpcHandleInfo = new RpcHandlerInfoForServer(this.getClass());
         callDispatcher = new CallDispatcher(rpcHandleInfo);
         postInit();
@@ -127,12 +127,12 @@ public class BaseService implements Service, IEntityService {
     }
 
     @Override
-    public Homo entityCall(Integer podIndex, ParameterMsg parameterMsg, EntityRequest request) throws Exception {
+    public Homo entityCall(Integer podIndex,EntityRequest request) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("entityCall podIndex {} type {} id {} request {}", podIndex, request.getType(), request.getId(), request);
         }
         ZipkinUtil.getTracing().tracer().currentSpan().tag("entityCall", request.getFunName());
-        return callSystem.call(request.getSrcName(), request, podIndex, parameterMsg);
+        return callSystem.call(request.getSrcName(), request, podIndex, null);
     }
 
     @Override

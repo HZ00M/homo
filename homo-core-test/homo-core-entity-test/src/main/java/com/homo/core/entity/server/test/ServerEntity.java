@@ -1,12 +1,13 @@
 package com.homo.core.entity.server.test;
 
+import com.core.ability.base.AbstractAbilityEntity;
 import com.homo.core.entity.facade.IServerEntity;
 import com.homo.core.utils.rector.Homo;
 import io.homo.proto.entity.test.TestEntityRequest;
 import io.homo.proto.entity.test.TestEntityResponse;
 
 
-public class ServerEntity implements IServerEntity {
+public class ServerEntity  extends AbstractAbilityEntity  implements IServerEntity {
 
     @Override
     public Homo<TestEntityResponse> login(TestEntityRequest request) {

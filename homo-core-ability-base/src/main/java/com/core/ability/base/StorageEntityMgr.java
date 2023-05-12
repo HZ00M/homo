@@ -9,6 +9,7 @@ import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.utils.concurrent.lock.Locker;
+import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
@@ -115,8 +116,16 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
                                         log.info("asyncLoad entity.promiseInit finish, clazz_{} id_{} entity_{}", clazz, id, entity);
                                         return Homo.result(entity);
                                     });
+                                } else {
+                                    Func2Ex<Class<? extends AbilityEntity>, String, Homo<? extends AbilityEntity>> createFun = notFoundCreateFunMap.get(clazz);
+                                    if (createFun != null) {
+                                        //如果注册了创建函数，则调用默认创建函数
+                                        return (Homo<T>) createFun.apply(clazz, id);
+                                    } else {
+                                        return Homo.result(null);
+                                    }
                                 }
-                                return Homo.result(null);
+
                             }))
                     .finallySignal(signalType -> {
                         span.tag(ZipkinUtil.FINISH_TAG, "asyncLoad")

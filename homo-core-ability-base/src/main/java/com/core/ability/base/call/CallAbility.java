@@ -41,7 +41,7 @@ public class CallAbility extends AbstractAbility implements ICallAbility {
         callSystem.remove(this).start();
     }
 
-    public CallDispatcher getEntityCallDispatcher(Class<? extends AbilityEntity> entityClazz) {
+    public static CallDispatcher getEntityCallDispatcher(Class<?> entityClazz) {
         return entityDispatcherMap.computeIfAbsent(entityClazz, k -> {
             Class<?> entityInterface = HomoAnnotationUtil.findAnnotationInterface(entityClazz, EntityType.class);
             if (entityInterface == null) {

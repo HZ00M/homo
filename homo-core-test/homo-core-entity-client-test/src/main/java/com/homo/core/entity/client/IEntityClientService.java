@@ -6,16 +6,20 @@ import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.utils.rector.Homo;
 import io.homo.proto.client.ParameterMsg;
 import io.homo.proto.entity.EntityRequest;
+import io.homo.proto.entity.test.TestEntityRequest;
+import io.homo.proto.entity.test.TestEntityResponse;
 import io.homo.proto.entity.test.UserLoginRequest;
 import io.homo.proto.entity.test.UserLoginResponse;
 
-@ServiceExport(tagName = "entity-client:30012",isMainServer = true,isStateful = true,driverType = RpcType.grpc)
+@ServiceExport(tagName = "entity-client:30011",isMainServer = true,isStateful = true,driverType = RpcType.grpc)
 @RpcHandler
 public interface IEntityClientService {
 
     Homo<UserLoginResponse> login(Integer pod, ParameterMsg parameterMsg, UserLoginRequest request);
 
-    Homo<String> localEntityCall(ParameterMsg parameterMsg);
+    Homo<String> remoteEntityCall(ParameterMsg parameterMsg);
+
+    Homo<TestEntityResponse> remoteEntityCall(Integer pod, ParameterMsg parameterMsg, TestEntityRequest testEntityRequest);
 
     Homo<String> innerRpcCall(String param);
 

@@ -136,4 +136,9 @@ public class AbstractAbilityEntity implements AbilityEntity, SaveAble, TimeAble,
     public Integer getQueueId() {
         return queueId;
     }
+
+
+    public void setQueueId(Integer queueId) {
+        this.queueId = queueId;
+    }
 }

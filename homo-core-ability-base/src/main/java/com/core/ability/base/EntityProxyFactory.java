@@ -1,5 +1,6 @@
 package com.core.ability.base;
 
+import com.homo.core.facade.ability.EntityType;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
@@ -24,11 +25,12 @@ public class EntityProxyFactory {
         return getEntityProxy(ServiceUtil.getServiceTagName(serviceZz), entityHandler, id);
     }
 
-    public  <T> T getEntityProxy(String serviceName, Class<T> entityHandlerInterface, String id) {
+    public  <T> T getEntityProxy(String serverHostName, Class<T> entityHandlerInterface, String id) {
         ServiceMgr serviceMgr = GetBeanUtil.getBean(ServiceMgr.class);
         RpcClientMgr rpcClientMgr = GetBeanUtil.getBean(RpcClientMgr.class);
-        RpcAgentClient agentClient = rpcClientMgr.getRpcAgentClient(serviceMgr.getMainService().getTagName(), serviceMgr.getMainService().getHostName(), serviceMgr.getMainService().getType());
-        EntityRpcProxy entityRpcProxy = new EntityRpcProxy(agentClient, entityHandlerInterface,id,serviceName);
+        EntityType entityType = entityHandlerInterface.getAnnotation(EntityType.class);
+        RpcAgentClient agentClient = rpcClientMgr.getRpcAgentClient(entityType.type(), serverHostName, serviceMgr.getMainService().getType());
+        EntityRpcProxy entityRpcProxy = new EntityRpcProxy(agentClient, entityHandlerInterface,id, serverHostName);
         return (T)entityRpcProxy.getProxyInstance();
     }
 

@@ -50,7 +50,7 @@ public class HomoTimerTask extends AbstractHomoTimerTask<HomoTimerTask> {
 
     @Override
     public void doRun() {
-        log.info("HomoTimerTask doRun id {} hashCode {} currentTimes {} runTimes {} isCancel {}", id, this.hashCode(), currentTimes, runTimes, isCancel);
+        log.trace("HomoTimerTask doRun id {} hashCode {} currentTimes {} runTimes {} isCancel {}", id, this.hashCode(), currentTimes, runTimes, isCancel);
         currentTimes++;
         if (runTimes != ENDLESS && currentTimes >= runTimes) {
             future.cancel(true);

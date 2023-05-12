@@ -6,7 +6,7 @@ import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.service.ServiceMgr;
-import com.homo.core.rpc.client.ExportHostName;
+import com.homo.core.rpc.client.ExchangeHostName;
 import com.homo.core.rpc.client.RpcClientMgr;
 import com.homo.core.rpc.client.RpcHandlerInfoForClient;
 import com.homo.core.utils.exception.HomoError;
@@ -34,7 +34,6 @@ public class RpcProxy implements MethodInterceptor {
     private final String tagName;
     private final RpcType rpcType;
     private final RpcHandlerInfoForClient rpcHandlerInfoForClient;
-    private MultiFunA<String,Homo<String>> choiceHostFun = ExportHostName.STRATEGY0;
     public RpcProxy(RpcClientMgr rpcClientMgr, Class<?> interfaceType, ServiceMgr serviceMgr, ServiceStateMgr serviceStateMgr) throws Exception {
         this.rpcClientMgr = rpcClientMgr;
         this.interfaceType = interfaceType;
@@ -68,7 +67,7 @@ public class RpcProxy implements MethodInterceptor {
                 tagName,
                 methodName,
                 declaringClass.getSimpleName());
-        return choiceHostFun.apply(tagName,objects)
+        return ExchangeHostName.exchange(tagName,objects)
                 .nextDo(realHostName ->{
                     if (!StringUtils.isEmpty(realHostName)){
                         RpcContent callContent = rpcHandlerInfoForClient.serializeParamForInvoke(methodName,objects);

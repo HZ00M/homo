@@ -3,6 +3,7 @@ package com.homo.core.entity.client;
 import com.core.ability.base.EntityProxyFactory;
 import com.core.ability.base.StorageEntityMgr;
 import com.homo.core.entity.facade.IServerEntity;
+import com.homo.core.entity.facade.IServerEntityService;
 import com.homo.core.facade.ability.IEntityService;
 import com.homo.core.rpc.base.service.BaseService;
 import com.homo.core.utils.rector.Homo;
@@ -36,10 +37,16 @@ public class EntityClientService extends BaseService implements IEntityClientSer
     }
 
     @Override
-    public Homo<String> localEntityCall(ParameterMsg parameterMsg) {
+    public Homo<String> remoteEntityCall(ParameterMsg parameterMsg) {
         log.info("localEntityCall call {}", parameterMsg);
         IClientEntity clientEntity = entityProxyFactory.getEntityProxy(IEntityClientService.class, IClientEntity.class, parameterMsg.getUserId());
         return clientEntity.clientCall("success");
+    }
+
+    @Override
+    public Homo<TestEntityResponse> remoteEntityCall(Integer pod, ParameterMsg parameterMsg, TestEntityRequest testEntityRequest) {
+        IServerEntity serverEntity = entityProxyFactory.getEntityProxy(IServerEntityService.class, IServerEntity.class, parameterMsg.getUserId());
+        return serverEntity.login(testEntityRequest);
     }
 
     @Override
@@ -76,7 +83,7 @@ public class EntityClientService extends BaseService implements IEntityClientSer
     public Homo<String> entityServiceCall(EntityRequest param) throws Exception {
         EntityRequest entityRequest = EntityRequest.newBuilder().build();
         TestEntityRequest testEntityRequest = TestEntityRequest.newBuilder().setParam("123").build();
-        return entityCall(0, ParameterMsg.newBuilder().setUserId("123").build(), entityRequest)
+        return entityCall(0, entityRequest)
                 .nextDo(ret -> {
                     TestEntityResponse response = (TestEntityResponse) ret;
                     log.info("entityServiceCall response {}", response);

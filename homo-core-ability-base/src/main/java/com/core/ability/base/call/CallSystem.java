@@ -68,7 +68,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
             for (Method method : entityClazz.getMethods()) {
                 methodInvokeByQueueMap.put(getMethodInvokeByQueueMapKey(entityType.type(), method.getName()), method.getAnnotation(InvokeByQueue.class) != null);
             }
-            serviceStateMgr.setServiceNameTag(entityType.type(), mainService.getHostName())
+            serviceStateMgr.setServiceNameTag(entityType.type(), mainService.getTagName())
                     .catchError(throwable -> {
                         log.error("setServiceNameTag error entity {}", entityType.type(), throwable);
                     })

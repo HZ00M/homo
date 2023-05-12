@@ -36,6 +36,7 @@ public class RpcAgentClientImpl implements RpcAgentClient<ByteRpcContent> {
         this.srcIsStateFul = srcIsStateFul;
         this.targetIsStateful = targetIsStateful;
     }
+
     public String getSrcServiceName() {
         return srcServiceName;
     }
@@ -91,7 +92,7 @@ public class RpcAgentClientImpl implements RpcAgentClient<ByteRpcContent> {
                                 .setTraceId(span.context().traceId())
                                 .setSpanId(span.context().spanId())
                                 .setSample(span.context().sampled())
-                        .build()
+                                .build()
                 );
 
         if (data != null) {
@@ -107,7 +108,7 @@ public class RpcAgentClientImpl implements RpcAgentClient<ByteRpcContent> {
                 .append(":")
                 .append(RandomUtils.nextInt()).toString();
         StreamReq streamReqWithReqId = builder.setReqId(reqId).build();
-        return rpcClient.asyncBytesStreamCall(reqId,streamReqWithReqId);
+        return rpcClient.asyncBytesStreamCall(reqId, streamReqWithReqId);
     }
 
     private <RETURN> Homo<RETURN> asyncJsonCall(String funName, byte[][] data) {

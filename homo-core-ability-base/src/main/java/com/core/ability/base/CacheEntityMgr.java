@@ -5,6 +5,7 @@ import com.homo.core.facade.ability.AbilityEntityMgr;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
+import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.lang.KKMap;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
@@ -237,4 +238,6 @@ public class CacheEntityMgr implements AbilityEntityMgr {
     public void registerRemoveProcess(Class<?> clazz, Consumer<AbilityEntity> consumer) {
         removeProcess.put(clazz, consumer);
     }
+
+
 }

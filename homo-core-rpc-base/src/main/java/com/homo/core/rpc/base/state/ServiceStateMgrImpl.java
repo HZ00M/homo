@@ -83,7 +83,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         CallQueueMgr.getInstance().frameTask(new Runnable() {
             @Override
             public void run() {
-                HomoTimerMgr.getInstance().schedule("scheduleUpdateLoad",new Runnable() {
+                HomoTimerMgr.getInstance().schedule("scheduleUpdateLoad", new Runnable() {
                     @Override
                     public void run() {
                         long currentTime = System.currentTimeMillis();
@@ -342,18 +342,18 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         CallQueueMgr.getInstance().frameTask(new Runnable() {
             @Override
             public void run() {
-                HomoTimerMgr.getInstance().schedule("scheduleUpdateService",new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            log.debug("state cache update");
-                                                            if (goodServiceMap.size() == 0) {
-                                                                return;
-                                                            }
-                                                            for (String serviceName : goodServiceMap.keySet()) {
-                                                                updateSGoodServiceCache(serviceName).start();
-                                                            }
-                                                        }
-                                                    }, 0,
+                HomoTimerMgr.getInstance().schedule("scheduleUpdateService", new Runnable() {
+                            @Override
+                            public void run() {
+                                log.debug("state cache update");
+                                if (goodServiceMap.size() == 0) {
+                                    return;
+                                }
+                                for (String serviceName : goodServiceMap.keySet()) {
+                                    updateSGoodServiceCache(serviceName).start();
+                                }
+                            }
+                        }, 0,
                         serverStateProperties.getServiceStateUpdatePeriodMillSeconds(),
                         HomoTimerMgr.UNLESS_TIMES);
             }
@@ -409,7 +409,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                         byte[] bytes = ret.get(tag);
                         if (bytes == null) {
                             // 如果找不到tag先按原tag返回
-                            log.warn("tag_{} of service not found! return tag!", tag);
+                            log.warn("tag {} of service not found! return tag!", tag);
                             homoSink.success(tag);
                         }
                         String serviceName = new String(bytes, StandardCharsets.UTF_8);
@@ -418,17 +418,24 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                     })
                     .catchError(throwable -> {
                         log.error("get tag_{} error!", tag, throwable);
-                    });
+                    }).start();
         });
     }
 
     @Override
     public Homo<Boolean> setServiceNameTag(String tag, String serviceName) {
+        log.info("setServiceNameTag start tag {} serviceName {} ", tag, serviceName);
         setLocalServiceNameTag(tag, serviceName);
         return Homo.warp(homoSink -> {
-            Map<String, byte[]> saveMap = new HashMap<>();
-            saveMap.put(tag, serviceName.getBytes(StandardCharsets.UTF_8));
-            cacheDriver.asyncUpdate(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag, saveMap);
+            cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag)
+                    .nextDo(map->{
+                        map.put(tag, serviceName.getBytes(StandardCharsets.UTF_8));
+                        return cacheDriver.asyncUpdate(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag, map)
+                                .consumerValue(ret -> {
+                                    log.info("setServiceNameTag tag {} serviceName {} ret {}", tag, serviceName, ret);
+                                    homoSink.success(true);
+                                });
+                    }).start();
         });
     }
 

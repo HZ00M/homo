@@ -6,5 +6,5 @@ import com.homo.core.facade.service.ServiceExport;
 
 @ServiceExport(tagName = "entity-server:30012",isMainServer = true,isStateful = true,driverType = RpcType.grpc)
 @RpcHandler
-public interface IEntityService {
+public interface IServerEntityService {
 }

@@ -22,6 +22,14 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-facade</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-ability-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-server</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <extensions>
