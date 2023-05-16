@@ -8,6 +8,7 @@ import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.exception.HomoException;
+import com.homo.core.utils.rector.Homo;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ public class RpcClientMgr<T> implements ServiceModule, ApplicationContextAware {
         }
     }
 
+
     /**
      * 通过服务名获得 一种CallDriver实例
      *
@@ -52,14 +54,14 @@ public class RpcClientMgr<T> implements ServiceModule, ApplicationContextAware {
                 String host = ServiceUtil.getServiceHostName(hostname);
                 int port = ServiceUtil.getServicePort(hostname);
                 log.info(
-                        "new agent begin, tagName_{} hostname_{} port_{}",
+                        "new agent begin, tagName {} hostname {} port {}",
                         tagName,
                         hostname,
                         port);
 
-                RpcAgentClient<T> newAgent = rpcClientFactoryMap.get(rpcType).newAgent(host, port, serviceMgr.getServiceExportInfo(hostname).isStateful());
+                RpcAgentClient<T> newAgent = rpcClientFactoryMap.get(rpcType).newAgent(host, port, serviceMgr.getServiceExportInfo(tagName).isStateful());
                 log.info(
-                        "new agent finish, tagName_{} hostname_{} port_{}",
+                        "new agent finish, tagName {} hostname {} port {}",
                         tagName,
                         hostname,
                         port);

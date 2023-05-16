@@ -78,11 +78,11 @@ public class MysqlInfoHolder {
         log.info("mysql initPublicConfig {}", this);
 
         Config mysqlNsConfig = ConfigService.getConfig(privateMysqlNs);
-        dbUrl = mysqlNsConfig.getProperty("spring.datasource.url", "");
-        dbHost = mysqlNsConfig.getProperty("spring.datasource.host", "");
-        dbParam = mysqlNsConfig.getProperty("spring.datasource.param", "");
-        username = mysqlNsConfig.getProperty("spring.datasource.username", "");
-        password = mysqlNsConfig.getProperty("spring.datasource.password", "");
+        dbUrl = mysqlNsConfig.getProperty("homo.datasource.url", "");
+        dbHost = mysqlNsConfig.getProperty("homo.datasource.host", "");
+        dbParam = mysqlNsConfig.getProperty("homo.datasource.param", "");
+        username = mysqlNsConfig.getProperty("homo.datasource.username", "");
+        password = mysqlNsConfig.getProperty("homo.datasource.password", "");
         log.trace("user mysql: mysqlNS: {} userName: {}, password: {}", privateMysqlNs, username, password);
     }
 }

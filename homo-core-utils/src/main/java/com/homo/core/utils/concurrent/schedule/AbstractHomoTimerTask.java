@@ -97,8 +97,12 @@ public abstract class AbstractHomoTimerTask<T extends AbstractHomoTimerTask> ext
     public abstract void doRun();
 
     protected void addEvent(Event event) {
-
-        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("timer").tag("CallQueue", String.valueOf(callQueue.getId()));
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("timer");
+        if (callQueue != null) {
+            span.tag("CallQueue", String.valueOf(callQueue.getId()));
+        }else {
+            span.tag("CallQueue", Thread.currentThread().getName());
+        }
         try (Tracer.SpanInScope scope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)) {
             if (event instanceof BaseEvent) {
                 BaseEvent baseEvent = (BaseEvent) event;

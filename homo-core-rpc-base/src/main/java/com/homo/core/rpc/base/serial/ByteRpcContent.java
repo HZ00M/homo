@@ -30,7 +30,7 @@ public class ByteRpcContent implements RpcContent<byte[][]> {
 
     @Override
     public void setData(byte[][] data) {
-
+        this.data = data;
     }
 
     @Override

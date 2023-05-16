@@ -1,29 +1,33 @@
 package com.core.ability.base;
 
-import com.core.ability.base.call.CallAbility;
+import brave.Span;
+import brave.Tracer;
 import com.core.ability.base.call.CallSystem;
 import com.google.protobuf.ByteString;
 import com.homo.core.facade.ability.EntityType;
-import com.homo.core.facade.ability.ICallAbility;
 import com.homo.core.facade.ability.IEntityService;
-import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
-import com.homo.core.rpc.base.service.CallDispatcher;
+import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.client.ExchangeHostName;
+import com.homo.core.rpc.client.RpcClientMgr;
 import com.homo.core.rpc.client.RpcHandlerInfoForClient;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.entity.EntityRequest;
+import io.homo.proto.entity.EntityResponse;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,22 +40,27 @@ public class EntityRpcProxy implements MethodInterceptor {
     private String type;
     @Setter
     private String id;
-    private RpcAgentClient rpcAgentClient;
+    //    private RpcAgentClient rpcAgentClient;
     private Class<?> interfaceType;
     static Map<Class<?>, RpcHandlerInfoForClient> rpcHandlerInfoForClientMap = new ConcurrentHashMap<>();
     private CallSystem callSystem;
     private ServiceStateMgr serviceStateMgr;
-    RpcHandlerInfoForClient handleInfo;
+    private RpcClientMgr rpcClientMgr;
+    private ServiceMgr serviceMgr;
+    RpcHandlerInfoForClient logicHandlerInfo;
+    RpcHandlerInfoForClient serviceEntityRpcInfo;
 
-    public <T> EntityRpcProxy(RpcAgentClient rpcAgentClient, Class<T> entityHandlerInterface, String id, String serviceName) {
+    public <T> EntityRpcProxy(RpcClientMgr rpcClientMgr, Class<T> entityHandlerInterface, String id, String serviceName) {
         this.serviceName = serviceName;
         this.callSystem = GetBeanUtil.getBean(CallSystem.class);
         this.serviceStateMgr = GetBeanUtil.getBean(ServiceStateMgr.class);
-        this.rpcAgentClient = rpcAgentClient;
+        this.serviceMgr = GetBeanUtil.getBean(ServiceMgr.class);
+        this.rpcClientMgr = rpcClientMgr;
         this.type = entityHandlerInterface.getAnnotationsByType(EntityType.class)[0].type();
         this.id = id;
         this.interfaceType = entityHandlerInterface;
-        this.handleInfo = rpcHandlerInfoForClientMap.compute(entityHandlerInterface, (k, v) -> {
+        this.serviceEntityRpcInfo = new RpcHandlerInfoForClient(IEntityService.class);
+        this.logicHandlerInfo = rpcHandlerInfoForClientMap.compute(entityHandlerInterface, (k, v) -> {
             if (v == null) {
                 return new RpcHandlerInfoForClient(entityHandlerInterface);
             }
@@ -71,10 +80,10 @@ public class EntityRpcProxy implements MethodInterceptor {
     }
 
     @Override
-    public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+    public Homo intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
         if (!method.getDeclaringClass().isAssignableFrom(interfaceType)) {
             log.trace("intercept super invoke, method_{}", method);
-            return methodProxy.invokeSuper(o, objects);
+            return (Homo) methodProxy.invokeSuper(o, objects);
         }
 
         // 如果有CallSystemImpl实现类，且是本地服务的entity call，则使用本地call,否则用rpc call
@@ -99,32 +108,55 @@ public class EntityRpcProxy implements MethodInterceptor {
         return rpcCall(type, id, methodName, entityRequest);
     }
 
-    private Object rpcCall(String type, String id, String methodName, EntityRequest entityRequest) throws Exception {
-        CallDispatcher callDispatcher = CallAbility.getEntityCallDispatcher(interfaceType);
-        RpcContent rpcContent = callDispatcher.rpcHandleInfo.getMethodDispatchInfo(methodName).serializeParam(new Object[]{entityRequest});
+    private Homo rpcCall(String type, String id, String methodName, EntityRequest entityRequest) throws Exception {
+        Tracer tracer = ZipkinUtil.getTracing().tracer();
+        tracer.newTrace()
+                .tag("entityType", type)
+                .tag("entityId", id)
+                .tag("methodName", methodName)
+                .annotate(ZipkinUtil.CLIENT_SEND_TAG);
         return Homo.warp(homoSink -> {
-            ExchangeHostName.exchange(serviceName,entityRequest)
+            ExchangeHostName.exchange(serviceName, entityRequest)
                     .nextDo(name -> {
                         if (name == null) {
                             return serviceStateMgr.getServiceNameByTag(type)
                                     .consumerValue(serviceNameByTag -> {
                                         if (type.equals(serviceNameByTag)) {
-                                            log.error("entity proxy rpcClientCall getServiceNameByTag is null. type: {}, id: {}, funName: {}", type, id, methodName);
+                                            log.error("entity proxy rpcClientCall getServiceNameByTag is null. type {} id {} funName {}", type, id, methodName);
                                             homoSink.error(new Throwable("entity proxy rpcClientCall getServiceNameByTag is null"));
-                                        }else {
+                                        } else {
                                             serviceName = serviceNameByTag;
                                         }
                                     });
                         } else {
                             return Homo.result(name);
                         }
-                    }).consumerValue(name -> {
-                         rpcAgentClient.rpcCall(IEntityService.default_entity_call_method, rpcContent)
+                    }).nextDo(realName -> {
+                        RpcContent rpcContent = serviceEntityRpcInfo.serializeParamForInvoke(IEntityService.default_entity_call_method, new Object[]{-1,entityRequest});
+                        return rpcClientMgr.getRpcAgentClient(serviceName, realName, serviceMgr.getMainService().getType())
+                                .rpcCall(IEntityService.default_entity_call_method, rpcContent)
                                 .consumerValue(ret -> {
-                                    homoSink.success(ret);
-                                    ZipkinUtil.getTracing().tracer().currentSpan().tag("entityType", type)
+                                    Tuple2<String,RpcContent> msgIdAndContent = (Tuple2<String, RpcContent>) ret;
+                                    Object[] entityData = serviceEntityRpcInfo.unSerializeParamForCallback(IEntityService.default_entity_call_method,  msgIdAndContent.getT2());
+                                    EntityResponse entityResponse = (EntityResponse) entityData[0];
+                                    ByteRpcContent logicContent = new ByteRpcContent();
+                                    List<ByteString> contentList = entityResponse.getContentList();
+                                    byte[][] data = new byte[contentList.size()][];
+                                    for (int i = 0;i <contentList.size() ; i++) {
+                                        data[i] = contentList.get(i).toByteArray();
+                                    }
+                                    logicContent.setData(data);
+                                    Object[] dataObjs = rpcHandlerInfoForClientMap.get(interfaceType).unSerializeParamForCallback(methodName, logicContent);
+                                    tracer.nextSpan().tag("entityType", type)
                                             .tag("entityId", id)
                                             .tag("methodName", methodName);
+                                    if (dataObjs == null || dataObjs.length == 0){
+                                        homoSink.success(null);
+                                    }else if (dataObjs.length <=1){
+                                        homoSink.success(dataObjs[0]);
+                                    }else {
+                                        homoSink.success(Tuples.fromArray(dataObjs));
+                                    }
                                 });
                     }).start();
         });

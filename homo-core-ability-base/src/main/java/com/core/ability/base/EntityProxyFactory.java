@@ -29,8 +29,8 @@ public class EntityProxyFactory {
         ServiceMgr serviceMgr = GetBeanUtil.getBean(ServiceMgr.class);
         RpcClientMgr rpcClientMgr = GetBeanUtil.getBean(RpcClientMgr.class);
         EntityType entityType = entityHandlerInterface.getAnnotation(EntityType.class);
-        RpcAgentClient agentClient = rpcClientMgr.getRpcAgentClient(entityType.type(), serverHostName, serviceMgr.getMainService().getType());
-        EntityRpcProxy entityRpcProxy = new EntityRpcProxy(agentClient, entityHandlerInterface,id, serverHostName);
+//        RpcAgentClient agentClient = rpcClientMgr.getRpcAgentClient(entityType.type(), serverHostName, serviceMgr.getMainService().getType());
+        EntityRpcProxy entityRpcProxy = new EntityRpcProxy(rpcClientMgr,entityHandlerInterface,id, serverHostName);
         return (T)entityRpcProxy.getProxyInstance();
     }
 
@@ -61,7 +61,7 @@ public class EntityProxyFactory {
         RpcClientMgr rpcClientMgr = GetBeanUtil.getBean(RpcClientMgr.class);
         ServiceMgr serviceMgr = GetBeanUtil.getBean(ServiceMgr.class);
         entityRpcProxyMap.computeIfAbsent(entityHandlerInterface,clazz->{
-            EntityRpcProxy entityRpcProxy = new EntityRpcProxy(rpcClientMgr.getRpcAgentClient(serviceMgr.getMainService().getTagName(), serviceMgr.getMainService().getHostName(), serviceMgr.getMainService().getType()), entityHandlerInterface,id,serviceName);
+            EntityRpcProxy entityRpcProxy = new EntityRpcProxy(rpcClientMgr, entityHandlerInterface,id, serviceName);
             proxyInstanceMap.put(entityHandlerInterface,entityRpcProxy.getProxyInstance());
             return entityRpcProxy;
         }).setId(id);

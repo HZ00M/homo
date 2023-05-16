@@ -46,19 +46,19 @@ public class ServiceUtil {
 
     /**
      * 格式化有状态服务访问名称
-     * @param tagName 服务名
+     * @param hostName 服务名
      * @param podIndex pod index
      * @return 状态服务访问名称
      */
-    public String formatStatefulName(String tagName, Integer podIndex) {
+    public String formatStatefulName(String hostName, Integer podIndex) {
         //命名格式: [tagName]:[port]
-        String[] stringArray = tagName.split(":");
+        String[] stringArray = hostName.split(":");
         String serviceHost = stringArray[0];
         Integer port = Integer.parseInt(stringArray[stringArray.length - 1]);
 
-        String name = serviceHost + "-" + podIndex + "." + serviceHost + ":" + port;
+        String statefulHostName = serviceHost + "-" + podIndex + "." + serviceHost + ":" + port;
 //        String statefulName = String.format("%s-%d.%s:%d", serviceHost, podIndex, serviceHost, port);
-        log.debug("statefulName : {}", name);
-        return name;
+        log.debug("statefulName : {}", statefulHostName);
+        return statefulHostName;
     }
 }

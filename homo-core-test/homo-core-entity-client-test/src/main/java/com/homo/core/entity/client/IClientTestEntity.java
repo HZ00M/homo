@@ -8,6 +8,6 @@ import com.homo.core.utils.rector.Homo;
 @EntityType(type = "client")
 @StorageTime(10000)
 @CacheTime(10000)
-public interface IClientEntity {
+public interface IClientTestEntity {
     Homo<String> clientCall(String param);
 }

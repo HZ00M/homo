@@ -13,10 +13,18 @@ message EntityRequest{
   repeated bytes content = 6;
 }
 
-message PingRequest{
+message EntityResponse{
+  int64 session = 1;
+  string type = 2;
+  string id = 3;
+  string funName = 4;
+  repeated bytes content = 6;
+}
+
+message Ping{
   int64 time = 1;
 }
 
-message PongRequest{
+message Pong{
   int64 time = 1;
 }

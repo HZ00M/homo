@@ -14,8 +14,9 @@ import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.client.ParameterMsg;
 import io.homo.proto.entity.EntityRequest;
-import io.homo.proto.entity.PingRequest;
-import io.homo.proto.entity.PongRequest;
+import io.homo.proto.entity.EntityResponse;
+import io.homo.proto.entity.Ping;
+import io.homo.proto.entity.Pong;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -127,7 +128,7 @@ public class BaseService implements Service, IEntityService {
     }
 
     @Override
-    public Homo entityCall(Integer podIndex,EntityRequest request) throws Exception {
+    public Homo<EntityResponse> entityCall(Integer podIndex, EntityRequest request) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("entityCall podIndex {} type {} id {} request {}", podIndex, request.getType(), request.getId(), request);
         }
@@ -136,10 +137,10 @@ public class BaseService implements Service, IEntityService {
     }
 
     @Override
-    public Homo<PongRequest> ping(Integer podIndex, ParameterMsg parameterMsg, PingRequest request) {
+    public Homo<Pong> ping(Integer podIndex, ParameterMsg parameterMsg, Ping request) {
         if (log.isDebugEnabled()) {
             log.debug("ping podIndex {} request time {}", podIndex, request.getTime());
         }
-        return Homo.result(PongRequest.newBuilder().setTime(System.currentTimeMillis()).build());
+        return Homo.result(Pong.newBuilder().setTime(System.currentTimeMillis()).build());
     }
 }

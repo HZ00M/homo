@@ -63,11 +63,15 @@ public enum ExchangeHostName implements MultiFunA<String, Homo<String>> {
         @Override
         public Homo<String> apply(String tagName, Object... objs) throws Exception {
             for (Object obj : objs) {
-                if (obj instanceof EntityRequest){
+                if (obj instanceof EntityRequest) {
                     EntityRequest request = (EntityRequest) obj;
                     return GetBeanUtil.getBean(ServiceStateMgr.class)
                             .computeUserLinkedPodIfAbsent(request.getId(), tagName, false)
                             .nextDo(podId -> {
+                                if (podId == null) {
+                                    log.error("statefulChoiceForEntityLink tagName {} objs {} podId is null,exchange to 0 !", tagName, objs);
+                                    podId = 0;
+                                }
                                 String hostName = ServiceUtil.formatStatefulName(tagName, podId);
                                 return Homo.result(hostName);
                             });

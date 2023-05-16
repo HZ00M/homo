@@ -11,6 +11,9 @@ public class RpcHandleInfo {
 
 
     public void exportMethodInfos(Class<?> rpcClazz) {
+        if (!rpcClazz.isInterface()){
+            return;
+        }
         Method[] methods = rpcClazz.getMethods();
         for (Method method : methods) {
             String methodName = method.getName();

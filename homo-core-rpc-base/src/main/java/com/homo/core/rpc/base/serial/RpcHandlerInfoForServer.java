@@ -6,12 +6,20 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class RpcHandlerInfoForServer extends RpcHandleInfo {
     public RpcHandlerInfoForServer(Class<?> rpcClazz) {
+        exportInterfaceMethod(rpcClazz);
+    }
+
+    public void exportInterfaceMethod(Class<?> rpcClazz){
         if (rpcClazz.isInterface()){
             exportMethodInfos(rpcClazz);
         }
         Class<?>[] interfaces = rpcClazz.getInterfaces();
         for (Class<?> anInterface : interfaces) {
             exportMethodInfos(anInterface);
+        }
+        Class<?> superclass = rpcClazz.getSuperclass();
+        if (superclass != null){
+            exportInterfaceMethod(superclass);
         }
     }
 

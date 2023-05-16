@@ -15,7 +15,9 @@ import com.homo.core.utils.lang.KKMap;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
+import com.sun.org.apache.regexp.internal.RE;
 import io.homo.proto.entity.EntityRequest;
+import io.homo.proto.entity.EntityResponse;
 import lombok.extern.log4j.Log4j2;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +118,19 @@ public class CallSystem implements ICallSystem, ServiceModule {
                 .getEntityPromise(type, id)
                 .nextDo(abilityEntity -> {
                     CallAbility callAbility = abilityEntity.getAbility(CallAbility.class);
-                    return callAbility.callEntity(srcName, funName, paramArr, podId, parameterMsg, idCallQueue, abilityEntity.getQueueId());
+                    return callAbility.callEntity(srcName, funName, paramArr, podId, parameterMsg, idCallQueue, abilityEntity.getQueueId())
+                            .nextDo(logicData -> {
+                                byte[][] logicDataArr = (byte[][]) logicData;
+                                EntityResponse.Builder builder = EntityResponse.newBuilder();
+                                for (byte[] bytes : logicDataArr) {
+                                    builder.addContent(ByteString.copyFrom(bytes));
+                                }
+                                builder.setType(type)
+                                        .setId(id)
+                                        .setSession(entityRequest.getSession())
+                                        .setFunName(funName).build();
+                                return Homo.result(builder.build());
+                            });
                 });
     }
 
