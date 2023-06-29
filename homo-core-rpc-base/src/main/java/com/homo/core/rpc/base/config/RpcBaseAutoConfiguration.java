@@ -23,6 +23,7 @@ public class RpcBaseAutoConfiguration {
         return new ServiceMgr();
     }
 
+    @DependsOn("cacheDriver")
     @Bean("serviceStateHandler")
     public ServiceStateHandler serviceStateHandler(){
         log.info("register bean serviceStateHandler");

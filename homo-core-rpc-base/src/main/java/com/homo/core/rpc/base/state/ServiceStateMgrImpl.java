@@ -36,6 +36,11 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     private ServiceMgr serviceMgr;
     @Autowired(required = false)
     private StatefulDriver statefulDriver;
+    @Autowired
+    CacheDriver cacheDriver;
+    @Lazy
+    @Autowired(required = false)
+    private ServiceStateMgr stateMgr;
     boolean isStateful = false;
     //有状态服务当前状态（值越高代表压力越大）
     private int load;
@@ -308,11 +313,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     static final String SERVICE_NAME_TAG = "serviceNameTag";
     private Map<String, List<Integer>> goodServiceMap = new ConcurrentHashMap<>();
     private Map<String, List<Integer>> availableServiceMap = new ConcurrentHashMap<>();
-    @Autowired
-    CacheDriver cacheDriver;
-    @Lazy
-    @Autowired(required = false)
-    private ServiceStateMgr stateMgr;
+
     Map<String, String> tagToServiceNameMap = new ConcurrentHashMap<>();
 
     @Override

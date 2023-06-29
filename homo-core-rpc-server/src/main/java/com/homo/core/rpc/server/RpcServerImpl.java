@@ -17,7 +17,7 @@ public class RpcServerImpl implements RpcServer {
 
     private final Service actualService;
 
-    public static RpcServer doBind(Service actualService){
+    public static RpcServer doBind(Service actualService) {
         RpcServerImpl delegate = new RpcServerImpl(actualService);
         return delegate;
     }
@@ -47,8 +47,8 @@ public class RpcServerImpl implements RpcServer {
     }
 
     @Override
-    public  Homo onCall(String srcService, String funName, RpcContent param) throws Exception {
-        Span span = ZipkinUtil.currentSpan();
+    public Homo onCall(String srcService, String funName, RpcContent param) throws Exception {
+        Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.SERVER_RECEIVE_TAG);
         if (span != null) {
             span.name(funName);
         }

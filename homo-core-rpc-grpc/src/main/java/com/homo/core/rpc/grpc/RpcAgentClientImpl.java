@@ -72,6 +72,7 @@ public class RpcAgentClientImpl implements RpcAgentClient<ByteRpcContent> {
     }
 
     private <RETURN> Homo<RETURN> asyncBytesCall(String funName, byte[][] data) {
+        Span span = ZipkinUtil.currentSpan().name("asyncBytesCall");
         Req.Builder builder = Req.newBuilder().setSrcService(srcServiceName).setMsgId(funName);
         if (data != null) {
             for (byte[] datum : data) {
@@ -83,7 +84,7 @@ public class RpcAgentClientImpl implements RpcAgentClient<ByteRpcContent> {
     }
 
     private <RETURN> Homo<RETURN> asyncBytesStreamCall(String funName, byte[][] data) {
-        Span span = ZipkinUtil.currentSpan();
+        Span span = ZipkinUtil.currentSpan().name("asyncBytesStreamCall");
         StreamReq.Builder builder = StreamReq.newBuilder()
                 .setSrcService(srcServiceName)
                 .setMsgId(funName)
@@ -112,6 +113,7 @@ public class RpcAgentClientImpl implements RpcAgentClient<ByteRpcContent> {
     }
 
     private <RETURN> Homo<RETURN> asyncJsonCall(String funName, byte[][] data) {
+        Span span = ZipkinUtil.currentSpan().name("asyncJsonCall");
         JsonReq.Builder builder = JsonReq.newBuilder()
                 .setSrcService(srcServiceName)
                 .setMsgId(funName);

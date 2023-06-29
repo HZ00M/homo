@@ -36,6 +36,7 @@ public class ZipkinUtil implements SupportModule {
     public static final String SERVER_RECEIVE_TAG = "sr";
     public static final String SERVER_SEND_TAG = "ss";
     public static final String CLIENT_RECEIVE_TAG = "cr";
+    public static final String BEGIN_TAG = "begin";
     public static final String FINISH_TAG = "finish";
     private static Tracing tracing = null;
     private static RpcTracing rpcTracing;
@@ -65,7 +66,7 @@ public class ZipkinUtil implements SupportModule {
                 zipKinProperties.tracesPerSecond);
         Tracing.Builder tracingBuilder = Tracing.newBuilder();
         if (zipKinProperties.isOpen()) {
-            log.info("asyncReporter to {}", zipKinProperties.reportAddr);
+            log.info("zipkin report open {}", zipKinProperties.reportAddr);
             Sender sender = OkHttpSender.create(zipKinProperties.reportAddr);
             AsyncReporter<zipkin2.Span> reporter = AsyncReporter.create(sender);
             asyncReporter = reporter;
@@ -74,7 +75,7 @@ public class ZipkinUtil implements SupportModule {
                     .sampler(RateLimitingSampler.create(zipKinProperties.tracesPerSecond))
                     .supportsJoin(zipKinProperties.supportsJoin);
         } else {
-            log.info("stop zipkin report !!");
+            log.info("zipkin report close!!");
             tracingBuilder.sampler(Sampler.NEVER_SAMPLE);
         }
         tracing = tracingBuilder.build();

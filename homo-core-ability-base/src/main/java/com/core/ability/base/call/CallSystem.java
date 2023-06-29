@@ -113,7 +113,6 @@ public class CallSystem implements ICallSystem, ServiceModule {
         String type = entityRequest.getType();
         String id = entityRequest.getId();
         String funName = entityRequest.getFunName();
-        ZipkinUtil.getTracing().tracer().currentSpan().name(funName).tag("entityType", type).tag("entityId", id);
         return GetBeanUtil.getBean(AbilityEntityMgr.class)
                 .getEntityPromise(type, id)
                 .nextDo(abilityEntity -> {

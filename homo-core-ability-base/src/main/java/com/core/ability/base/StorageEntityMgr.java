@@ -101,7 +101,9 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
                     .tracer()
                     .nextSpan()
                     .name("asyncLoad")
-                    .annotate(ZipkinUtil.CLIENT_SEND_TAG);
+                    .tag(ZipkinUtil.BEGIN_TAG, id)
+                    .annotate(ZipkinUtil.CLIENT_SEND_TAG)
+                    .start();
             return storageSystem.loadEntity(clazz, id)
                     .nextDo(entity ->
                             locker.lockCallable(id, () -> {
@@ -128,9 +130,7 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
 
                             }))
                     .finallySignal(signalType -> {
-                        span.tag(ZipkinUtil.FINISH_TAG, "asyncLoad")
-                                .annotate(ZipkinUtil.CLIENT_RECEIVE_TAG)
-                                .finish();
+                        span.finish();
                     });
         }
     }

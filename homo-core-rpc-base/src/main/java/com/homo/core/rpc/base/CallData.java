@@ -1,5 +1,6 @@
 package com.homo.core.rpc.base;
 
+import brave.Span;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
@@ -18,17 +19,18 @@ public class CallData implements RpcInterceptor {
     private final Integer queueId;
     private final String srcName;
     private IdCallQueue idCallQueue;
-
-    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName) {
-        this(o, methodDispatchInfo, params, queueId, srcName, null);
+    private Span span;
+    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName,Span span) {
+        this(o, methodDispatchInfo, params, queueId, srcName, null,span);
     }
-    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName, IdCallQueue idCallQueue) {
+    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName, IdCallQueue idCallQueue,Span span) {
         this.o = o;
         this.methodDispatchInfo = methodDispatchInfo;
         this.params = params;
         this.queueId = queueId;
         this.srcName = srcName;
         this.idCallQueue = idCallQueue;
+        this.span =span;
     }
 
 

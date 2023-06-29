@@ -22,11 +22,11 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
     @Override
     public void process() {
         final long start = System.currentTimeMillis();
-        Span span = ZipkinUtil.currentSpan();
+        Span span = ZipkinUtil.getTracing().tracer().newChild(callData.getSpan().context()).start();
         if (span == null) {
             log.warn("o {} method {} form {} currentSpan is null!", callData.getO().getClass(), callData.getMethodDispatchInfo().getMethod(), callData);
         } else {
-            span.tag("callMethod", callData.getMethodDispatchInfo().getMethod().getName());
+            span.name("process").annotate(ZipkinUtil.SERVER_RECEIVE_TAG).tag("callMethod", callData.getMethodDispatchInfo().getMethod().getName());
         }
         String methodName = callData.getMethodDispatchInfo().getMethod().getName();
         Class<?> handlerClazz = callData.getO() == null ? null : callData.getO().getClass();
@@ -42,10 +42,16 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
                             log.debug("CallEvent consumerValue method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start, handlerClazz, methodName);
                             Object[] resParam = new Object[]{ret};
                             byte[][] bytes = callData.getMethodDispatchInfo().serializeReturn(resParam);
+                            if (span == null) {
+                                log.warn("o {} method {} form {} currentSpan is null!", callData.getO().getClass(), callData.getMethodDispatchInfo().getMethod(), callData);
+                            } else {
+                                span.finish();
+                            }
                             sink.success(bytes);
                         })
                         .catchError(throwable -> {
                             log.debug("CallEvent catchError method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start, handlerClazz, methodName);
+                            span.error(throwable);
                             sink.error(throwable);
                         })
                         .start();

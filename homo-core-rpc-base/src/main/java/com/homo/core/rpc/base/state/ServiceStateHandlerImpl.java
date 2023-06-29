@@ -29,7 +29,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
     private Map<String, List<Integer>> availableServiceMap = new ConcurrentHashMap<>();
     @Autowired(required = false)
     private ServerStateProperties serverStateProperties;
-    @Autowired
+    @Autowired(required = false)
     CacheDriver cacheDriver;
     @Lazy
     @Autowired(required = false)

@@ -30,6 +30,7 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-grpc</artifactId>
         </dependency>
+
         <!--        使用http-->
         <dependency>
             <groupId>com.homo</groupId>

@@ -15,11 +15,6 @@ public class ZipKinProperties {
     @Value(value = "${homo.zipkin.server.addr:127.0.0.1}")
     public String reportAddr ;
     /**
-     * 上报端口
-     */
-    @Value(value = "${homo.zipkin.server.port:9411}")
-    public String reportPort ;
-    /**
      * True表示跟踪系统支持在span.Kind之间共享span ID
      */
     @Value(value = "${homo.zipkin.server.supportsJoin:true}")

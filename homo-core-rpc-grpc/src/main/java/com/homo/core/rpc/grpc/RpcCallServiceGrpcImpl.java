@@ -155,10 +155,12 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
                     }
                     rpcServer.onCall(req.getSrcService(), req.getMsgId(),new ByteRpcContent(params, RpcContentType.BYTES,span))
                             .consumerValue(ret -> {
+                                span.finish();
                                 processStreamResult(responseObserver, req, (byte[][]) ret);
                             })
-                            .catchError(e -> {
-                                processStreamError(responseObserver, req, (Throwable) e);
+                            .catchError(err -> {
+                                span.error((Throwable) err);
+                                processStreamError(responseObserver, req, (Throwable) err);
                             }).start();
                 } catch (Exception e) {
                     log.error("streamCall SrcService {} MsgId {} error e",req.getSrcService(), req.getMsgId(), e);

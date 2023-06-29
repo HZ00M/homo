@@ -8,6 +8,7 @@ import io.grpc.*;
 import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.TraceInfo;
 import lombok.extern.log4j.Log4j2;
+import org.slf4j.MDC;
 
 @Log4j2
 public class SpanInterceptor implements ServerInterceptor {
@@ -28,6 +29,7 @@ public class SpanInterceptor implements ServerInterceptor {
             log.info("SpanInterceptor onMessage");
             if (message instanceof StreamReq) {
                 span = getSpan((StreamReq) message);
+                MDC.put("TRACE_ID", span.context().traceIdString());
             } else {
                 span = ZipkinUtil.getTracing().tracer().currentSpan();
             }
