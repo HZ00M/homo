@@ -13,12 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @Log4j2
-public class RpcClientFactoryGrpcImpl implements RpcClientFactory,Module {
+public class RpcClientFactoryGrpcImpl implements RpcClientFactory, Module {
 
     @Autowired(required = false)
     private List<ClientInterceptor> clientInterceptorList;
     @Autowired(required = false)
     private RpcGrpcClientProperties rpcGrpcClientProperties;
+
     @Override
     public RpcAgentClient newAgent(String hostname, int port, boolean isStateful) {
         RpcClient client = new RpcCallClientGrpcImpl(hostname, port, clientInterceptorList, isStateful, rpcGrpcClientProperties);

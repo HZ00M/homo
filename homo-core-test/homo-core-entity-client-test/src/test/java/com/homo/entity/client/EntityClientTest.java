@@ -40,7 +40,7 @@ public class EntityClientTest {
                         }))
                 .expectNext("success")
                 .verifyComplete();
-        Thread.currentThread().join(1000000);
+//        Thread.currentThread().join(1000000);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class EntityClientTest {
                         }))
                 .expectNext(0)
                 .verifyComplete();
-        Thread.currentThread().join(1000000);
+//        Thread.currentThread().join(1000000);
     }
 
     @Test
@@ -70,6 +70,6 @@ public class EntityClientTest {
                         }))
                 .expectNext(TestEntityResponse.newBuilder().setCode(1).build())
                 .verifyComplete();
-        Thread.currentThread().join(1000000);
+//        Thread.currentThread().join(1000000);
     }
 }

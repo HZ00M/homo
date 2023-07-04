@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Log4j2
 @ToString
-public class AbstractAbilityEntity implements AbilityEntity, SaveAble, TimeAble, CallAble {
+public class AbstractAbilityEntity implements AbilityEntity, TimeAble, CallAble {
     static Map<Class<?>, String> entityClazzToEntityTypeMap = new ConcurrentHashMap<>();
 
     protected String id;

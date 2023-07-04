@@ -14,10 +14,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Log4j2
 public class AbstractHttpMapping implements DriverModule {
@@ -50,7 +47,7 @@ public class AbstractHttpMapping implements DriverModule {
     }
 
     public static int exportPort(ServerHttpRequest request){
-        int port = request.getLocalAddress().getPort();
+        int port = Objects.requireNonNull(request.getLocalAddress()).getPort();
         return port;
     }
 

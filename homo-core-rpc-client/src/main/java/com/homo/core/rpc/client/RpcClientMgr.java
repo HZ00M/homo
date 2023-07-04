@@ -8,7 +8,6 @@ import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.exception.HomoException;
-import com.homo.core.utils.rector.Homo;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Log4j2
-public class RpcClientMgr<T> implements ServiceModule, ApplicationContextAware {
-    private Map<RpcType, RpcClientFactory<T>> rpcClientFactoryMap = new HashMap<>();
+public class RpcClientMgr implements ServiceModule, ApplicationContextAware {
+    private Map<RpcType, RpcClientFactory> rpcClientFactoryMap = new HashMap<>();
     @Autowired(required = false)
     private ServiceMgr serviceMgr;
-    private final Map<String, RpcAgentClient<T>> rpcAgentClientMap = new HashMap();
+    private final Map<String, RpcAgentClient> rpcAgentClientMap = new HashMap();
     private ApplicationContext applicationContext;
 
     @Override
@@ -42,8 +41,8 @@ public class RpcClientMgr<T> implements ServiceModule, ApplicationContextAware {
      * @param hostname 服务器域名 ip+port
      * @return RpcClientDriver 调用驱动器
      */
-    public RpcAgentClient<T> getRpcAgentClient(String tagName, String hostname, RpcType rpcType) throws HomoException {
-        RpcAgentClient<T> rpcAgentClient;
+    public RpcAgentClient getRpcAgentClient(String tagName, String hostname, RpcType rpcType) throws HomoException {
+        RpcAgentClient rpcAgentClient;
         if (!rpcClientFactoryMap.containsKey(rpcType)) {
             log.error("RpcAgent no support rpcType {} tagName {}", rpcType, tagName);
             throw HomoError.throwError(HomoError.rpcAgentTypeNotSupport, rpcType, tagName);
@@ -59,7 +58,7 @@ public class RpcClientMgr<T> implements ServiceModule, ApplicationContextAware {
                         hostname,
                         port);
 
-                RpcAgentClient<T> newAgent = rpcClientFactoryMap.get(rpcType).newAgent(host, port, serviceMgr.getServiceExportInfo(tagName).isStateful());
+                RpcAgentClient newAgent = rpcClientFactoryMap.get(rpcType).newAgent(host, port, serviceMgr.getServiceExportInfo(tagName).isStateful());
                 log.info(
                         "new agent finish, tagName {} hostname {} port {}",
                         tagName,

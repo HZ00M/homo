@@ -19,7 +19,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomUtils;
 
 @Log4j2
-public class RpcAgentClientImpl implements RpcAgentClient<ByteRpcContent> {
+public class RpcAgentClientImpl implements RpcAgentClient {
 
     private final RpcClient rpcClient;
     private final String srcServiceName;
@@ -46,7 +46,7 @@ public class RpcAgentClientImpl implements RpcAgentClient<ByteRpcContent> {
     }
 
     @Override
-    public <PARAM> Homo<ByteRpcContent> rpcCall(String funName, RpcContent<PARAM> param) {
+    public  Homo<ByteRpcContent> rpcCall(String funName, RpcContent param) {
         try (Tracer.SpanInScope ignored = ZipkinUtil.getTracing().tracer().withSpanInScope(ZipkinUtil.newCSSpan())) {
             if (param.getType().equals(RpcContentType.BYTES)) {
                 byte[][] data = (byte[][]) param.getData();
