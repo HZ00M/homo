@@ -56,14 +56,15 @@ public class ThreadPoolFactory {
 
             @Override
             public Thread newThread(Runnable r) {
-                String info = String.format("newHomoThreadFactory factoryName_[%s]:factoryIndex_[%d]:threadCount_[%d]", threadName, factoryIndex, threadCount++);
+                String name = threadName + "[" + threadCount + "]";
+                String info = String.format("newHomoThreadFactory factoryName_[%s]:factoryIndex_[%d]:threadCount_[%d]", name, factoryIndex, threadCount++);
                 log.warn("new thread [{}]", info);
                 Runnable warp = () -> {
                     log.warn("run task in {} >>> begin", info);
                     r.run();
                     log.warn("new task in {} >>> end", info);
                 };
-                Thread newThread = new Thread(warp, threadName+"["+threadCount+"]");
+                Thread newThread = new Thread(warp, name);
                 return newThread;
             }
         };

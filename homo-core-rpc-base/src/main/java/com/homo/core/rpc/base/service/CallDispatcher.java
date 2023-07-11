@@ -11,6 +11,7 @@ import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.exception.HomoException;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
+import io.homo.proto.client.ParameterMsg;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -19,7 +20,7 @@ public class CallDispatcher {
     protected RpcInterceptor interceptor;
 
     public Homo callFun(Object handler, String srcService, String funName, RpcContent rpcContent) throws HomoException {
-        return callFun(handler, srcService, funName, rpcContent, null, null);
+        return callFun(handler, srcService, funName, rpcContent, null, null, null, null);
     }
 
     public CallDispatcher(RpcHandlerInfoForServer rpcHandleInfo, RpcInterceptor interceptor) {
@@ -31,15 +32,15 @@ public class CallDispatcher {
         this(rpcHandleInfo, null);
     }
 
-    public Homo callFun(Object handler, String srcService, String funName, RpcContent rpcContent, IdCallQueue callQueue, Integer queueId) {
+    public Homo callFun(Object handler, String srcService, String funName, RpcContent rpcContent, IdCallQueue callQueue, Integer queueId, Integer podId, ParameterMsg parameterMsg) {
         MethodDispatchInfo methodDispatchInfo = rpcHandleInfo.getMethodDispatchInfo(funName);
         if (!methodDispatchInfo.isCallAllowed(srcService)) {
             log.error("callFun srcService {} funName {} not allow", srcService, funName);
             throw HomoError.throwError(HomoError.callAllow);
         }
         Span span = ZipkinUtil.currentSpan();
-        Object[] unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName, rpcContent);
-        Homo<CallData> callTask = Homo.result(new CallData(handler, methodDispatchInfo, unSerializeParam, queueId, srcService, callQueue,span));
+        Object[] unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName, rpcContent, podId, parameterMsg);
+        Homo<CallData> callTask = Homo.result(new CallData(handler, methodDispatchInfo, unSerializeParam, queueId, srcService, callQueue, span));
         Homo retPromise;
         if (interceptor != null) {
             retPromise = callTask.nextDo(call -> interceptor.onCall(handler, funName, unSerializeParam, call));

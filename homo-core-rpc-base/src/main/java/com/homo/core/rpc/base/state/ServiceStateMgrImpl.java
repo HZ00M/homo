@@ -3,7 +3,7 @@ package com.homo.core.rpc.base.state;
 import com.alibaba.fastjson.JSON;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.homo.core.common.module.RootModule;
+import com.homo.core.utils.module.RootModule;
 import com.homo.core.configurable.rpc.ServerStateProperties;
 import com.homo.core.facade.cache.CacheDriver;
 import com.homo.core.facade.service.ServiceStateMgr;
@@ -52,6 +52,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     private final String POD_INDEX_CACHE = "%s-%s";
     /**
      * (user+service) : podIndex
+     * 请求用户服务的用户和服务对应的podIndex
      */
     private Cache<String, Integer> localUserServicePodCache;
     private Supplier<Integer> loadFun = new Supplier<Integer>() {
@@ -198,9 +199,13 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         String key = String.format(POD_INDEX_CACHE, uid, serviceName);
         Integer userPodIndex = localUserServicePodCache.getIfPresent(key);
         if (userPodIndex != null) {
+            log.info("getLinkedPod getCache uid {} serviceName {} index {}", uid, serviceName, userPodIndex);
             return Homo.result(userPodIndex);
         }
-        return getUserLinkedPodNoCache(uid, serviceName);
+        return getUserLinkedPodNoCache(uid, serviceName)
+                .consumerValue(ret -> {
+                    log.info("getLinkedPod getCache uid {} serviceName {} index {}", uid, serviceName, ret);
+                });
     }
 
     @Override
@@ -316,10 +321,6 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
 
     Map<String, String> tagToServiceNameMap = new ConcurrentHashMap<>();
 
-    @Override
-    public void init() {
-        scheduleUpdateLoad();
-    }
 
     private BiFunction<String, List<Integer>, Integer> choiceFun = new BiFunction<String, List<Integer>, Integer>() {
         /**
@@ -429,11 +430,11 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         setLocalServiceNameTag(tag, serviceName);
         return Homo.warp(homoSink -> {
             cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag)
-                    .nextDo(map->{
+                    .nextDo(map -> {
                         map.put(tag, serviceName.getBytes(StandardCharsets.UTF_8));
                         return cacheDriver.asyncUpdate(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag, map)
                                 .consumerValue(ret -> {
-                                    log.info("setServiceNameTag tag {} serviceName {} ret {}", tag, serviceName, ret);
+                                    log.info("setServiceNameTag ret tag {} serviceName {} ret {}", tag, serviceName, ret);
                                     homoSink.success(true);
                                 });
                     }).start();

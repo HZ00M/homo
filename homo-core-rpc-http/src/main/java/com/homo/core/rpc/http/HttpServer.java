@@ -2,7 +2,6 @@ package com.homo.core.rpc.http;
 
 import brave.Span;
 import com.homo.core.facade.rpc.RpcServer;
-import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.log4j.Log4j2;
@@ -56,26 +55,23 @@ public class HttpServer {
         return rpcServer.getPort();
     }
 
-    public <T> Mono<DataBuffer> onCall(String msgId, byte[][] data,ServerHttpResponse response) throws Exception {
+    public <T> Mono<DataBuffer> onCall(String msgId, byte[][] data,ServerHttpResponse response) {
         Span span = ZipkinUtil.currentSpan();
-        ByteRpcContent rpcContent = new ByteRpcContent(data, RpcContentType.BYTES,span);
+        ByteRpcContent rpcContent = new ByteRpcContent(data, span);
         return rpcServer.onCall("HttpServer",msgId,rpcContent)
                 .nextDo(ret->{
-                    //todo 待验证优化
-                    byte[][] res = (byte[][]) ret;
+                    byte[][] res = ret;
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
                     DataBuffer buffer = dataBufferFactory.wrap(res[0]);
                     return Mono.just(buffer);
                 });
     }
 
-    public Mono<DataBuffer> onFileUpload(String msgId, FileRpcContent rpcContent,ServerHttpResponse response ) throws Exception {
+    public Mono<DataBuffer> onFileUpload(String msgId, FileRpcContent rpcContent,ServerHttpResponse response )  {
         return rpcServer.onCall("HttpServer",msgId,rpcContent)
                 .nextDo(ret->{
-                    //todo 待验证优化
-                    String res = (String) ret;
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
-                    DataBuffer buffer = dataBufferFactory.wrap(res.getBytes(StandardCharsets.UTF_8));
+                    DataBuffer buffer = dataBufferFactory.wrap("success".getBytes(StandardCharsets.UTF_8));
                     return Mono.just(buffer);
                 });
     }

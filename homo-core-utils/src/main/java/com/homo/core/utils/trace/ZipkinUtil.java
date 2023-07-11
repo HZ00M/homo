@@ -10,7 +10,7 @@ import brave.rpc.RpcTracing;
 import brave.sampler.RateLimitingSampler;
 import brave.sampler.Sampler;
 import brave.sampler.SamplerFunction;
-import com.homo.core.common.module.SupportModule;
+import com.homo.core.utils.module.SupportModule;
 import com.homo.core.configurable.zipkin.ZipKinProperties;
 import com.homo.core.utils.fun.ConsumerEx;
 import io.grpc.ClientInterceptor;

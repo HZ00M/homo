@@ -1,6 +1,10 @@
 package com.homo.core.rpc.base;
 
 import brave.Span;
+import com.homo.core.facade.rpc.RpcContent;
+import com.homo.core.facade.rpc.RpcContentType;
+import com.homo.core.rpc.base.serial.ByteRpcContent;
+import com.homo.core.rpc.base.serial.JsonRpcContent;
 import com.homo.core.utils.concurrent.event.AbstractBaseEvent;
 import com.homo.core.utils.concurrent.queue.CallQueueProducer;
 import com.homo.core.utils.exception.HomoError;
@@ -41,13 +45,15 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
                         .consumerValue(ret -> {
                             log.debug("CallEvent consumerValue method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start, handlerClazz, methodName);
                             Object[] resParam = new Object[]{ret};
-                            byte[][] bytes = callData.getMethodDispatchInfo().serializeReturn(resParam);
+                            RpcContentType rpcContentType = callData.getMethodDispatchInfo().getRpcContentType();
+                            RpcContent rpcContent = RpcContentType.BYTES.equals(rpcContentType) ? new ByteRpcContent() : new JsonRpcContent();//todo 待优化 去除if else,使用静态方法进行序列化
+                            Object serializeParamForBack = callData.getMethodDispatchInfo().serializeParam(resParam, rpcContent);
                             if (span == null) {
                                 log.warn("o {} method {} form {} currentSpan is null!", callData.getO().getClass(), callData.getMethodDispatchInfo().getMethod(), callData);
                             } else {
                                 span.finish();
                             }
-                            sink.success(bytes);
+                            sink.success(serializeParamForBack);
                         })
                         .catchError(throwable -> {
                             log.debug("CallEvent catchError method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start, handlerClazz, methodName);

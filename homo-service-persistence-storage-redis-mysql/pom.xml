@@ -29,10 +29,5 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-service-storage-dirty</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
-            <artifactId>homo-core-test</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>

@@ -1,6 +1,6 @@
 package com.homo.core.tread.processor;
 
-import com.homo.core.common.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.tread.processor.anotation.ResourceCheckMethod;
 import com.homo.core.facade.tread.processor.anotation.ResourceGetMethod;
 import com.homo.core.facade.tread.processor.anotation.ResourceSetMethod;

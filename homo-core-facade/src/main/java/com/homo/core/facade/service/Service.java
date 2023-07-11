@@ -1,6 +1,6 @@
 package com.homo.core.facade.service;
 
-import com.homo.core.common.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.utils.rector.Homo;
@@ -39,7 +39,7 @@ public interface Service extends Module {
      */
     boolean isStateful();
 
-    <RETURN> Homo<RETURN> callFun(String srcService, String funName, RpcContent param) throws Exception;
+     Homo callFun(String srcService, String funName, RpcContent param) ;
 
     ServiceExport getServiceExport();
 

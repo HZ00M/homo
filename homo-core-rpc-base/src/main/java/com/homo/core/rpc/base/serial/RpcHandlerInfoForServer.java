@@ -1,6 +1,7 @@
 package com.homo.core.rpc.base.serial;
 
 import com.homo.core.facade.rpc.RpcContent;
+import io.homo.proto.client.ParameterMsg;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -23,12 +24,12 @@ public class RpcHandlerInfoForServer extends RpcHandleInfo {
         }
     }
 
-    public byte[][] serializeForReturn(String funName, Object[] param) {
-        MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.serializeReturn(param);
-    }
+//    public byte[][] serializeForReturn(String funName, Object[] param) {
+//        MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
+//        return methodDispatchInfo.serializeReturn(param);
+//    }
 
-    public Object[] unSerializeParamForInvoke(String funName, RpcContent rpcContent) {
+    public Object[] unSerializeParamForInvoke(String funName, RpcContent rpcContent, Integer podId, ParameterMsg parameterMsg) {
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
         return methodDispatchInfo.unSerializeParam(rpcContent);
     }

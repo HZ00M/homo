@@ -5,22 +5,24 @@ import com.alibaba.fastjson.JSONObject;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.facade.rpc.SerializeInfo;
+import io.homo.proto.client.ParameterMsg;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ByteRpcContent implements RpcContent<byte[][]> {
     byte[][] data;
-    RpcContentType type;
     Span span;
 
 
     @Override
     public RpcContentType getType() {
-        return type;
+        return RpcContentType.BYTES;
     }
 
     @Override
@@ -34,12 +36,16 @@ public class ByteRpcContent implements RpcContent<byte[][]> {
     }
 
     @Override
-    public Object[] unSerializeParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
+    public Object[] unSerializeParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId , ParameterMsg parameterMsg) {
         int paramCount = paramSerializeInfoList.length;
         if (paramCount <= 0) {
             return null;
         }
         Object[] returnParams = new Object[paramCount];
+        if (frameParamOffset == 2){
+            returnParams[0] = podId;
+            returnParams[1] = parameterMsg;
+        }
         byte[][] data = getData();
         int dataIndex = 0;
         for (int i = frameParamOffset; i < paramSerializeInfoList.length; i++) {
@@ -52,7 +58,7 @@ public class ByteRpcContent implements RpcContent<byte[][]> {
 
     @Override
     public byte[][] serializeParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
-        if (paramSerializeInfoList == null || paramSerializeInfoList.length <= 0) {
+        if (paramSerializeInfoList == null || paramSerializeInfoList.length == 0) {
             return null;
         }
         byte[][] byteParams = new byte[paramSerializeInfoList.length][];
@@ -65,7 +71,4 @@ public class ByteRpcContent implements RpcContent<byte[][]> {
     }
 
 
-    public void setType(RpcContentType type) {
-        this.type = type;
-    }
 }

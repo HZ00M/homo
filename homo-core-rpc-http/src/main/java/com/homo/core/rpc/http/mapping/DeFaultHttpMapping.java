@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
-import com.homo.core.common.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.http.FileRpcContent;
 import com.homo.core.rpc.http.HttpServer;
@@ -15,6 +15,9 @@ import com.homo.core.utils.serial.FSTSerializationProcessor;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.rpc.HttpHeadInfo;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.MediaType;
@@ -25,6 +28,9 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.reactive.result.method.AbstractHandlerMethodMapping;
+import org.springframework.web.reactive.result.method.RequestMappingInfo;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -35,13 +41,21 @@ import java.util.stream.Collectors;
 
 @Log4j2
 @RestController
-public class DeFaultHttpMapping extends AbstractHttpMapping implements Module {
+public class DeFaultHttpMapping extends AbstractHttpMapping implements Module , ApplicationContextAware {
 
     private FSTSerializationProcessor defaultProcessor = new FSTSerializationProcessor();
+    private ApplicationContext applicationContext;
+
     @Override
     public void init() {
-        log.info("DeFaultHttpMapping init");
+        log.info("DeFaultHttpMapping init start");
         super.init();
+        AbstractHandlerMethodMapping<RequestMappingInfo> objHandlerMethodMapping = (AbstractHandlerMethodMapping<RequestMappingInfo>)applicationContext.getBean("requestMappingHandlerMapping");
+        Map<RequestMappingInfo, HandlerMethod> mapRet = objHandlerMethodMapping.getHandlerMethods();
+        for (RequestMappingInfo requestMappingInfo : mapRet.keySet()) {
+            log.info("DeFaultHttpMapping init requestMappingInfo {}",requestMappingInfo);
+        }
+        log.info("DeFaultHttpMapping init end");
     }
     /**
      * 健康检查
@@ -228,4 +242,8 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module {
         return response.writeAndFlushWith(resp);
     }
 
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
 }

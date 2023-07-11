@@ -1,10 +1,8 @@
 package com.homo.core.rpc.base.service;
 
-import com.homo.core.common.module.DriverModule;
-import com.homo.core.common.module.ServiceModule;
+import com.homo.core.utils.module.DriverModule;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
-import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import lombok.extern.log4j.Log4j2;
 import org.reflections.Reflections;
@@ -12,7 +10,6 @@ import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,8 +47,8 @@ public class ServiceMgr implements DriverModule {
                 }
             }
             if (service instanceof BaseService) {
-                log.info("service {} init start", service.getTagName());
                 ((BaseService) service).init(this);
+                log.info("service {} init start", service.getTagName());
                 localServiceMap.put(service.getTagName(), service);
             } else {
                 log.error("service must extend BaseService yet");

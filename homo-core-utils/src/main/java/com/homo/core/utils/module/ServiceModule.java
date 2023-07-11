@@ -1,4 +1,4 @@
-package com.homo.core.common.module;
+package com.homo.core.utils.module;
 
 public interface ServiceModule extends Module {
 

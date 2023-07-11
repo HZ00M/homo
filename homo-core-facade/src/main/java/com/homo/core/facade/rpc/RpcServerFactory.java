@@ -1,6 +1,6 @@
 package com.homo.core.facade.rpc;
 
-import com.homo.core.common.module.DriverModule;
+import com.homo.core.utils.module.DriverModule;
 
 
 public interface RpcServerFactory extends DriverModule {

@@ -1,4 +1,4 @@
-package com.homo.core.common.module;
+package com.homo.core.utils.module;
 
 import com.homo.core.common.apollo.ConfigDriver;
 import com.homo.core.configurable.module.ModuleProperties;

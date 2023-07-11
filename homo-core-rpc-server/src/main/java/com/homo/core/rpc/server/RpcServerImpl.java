@@ -47,7 +47,7 @@ public class RpcServerImpl implements RpcServer {
     }
 
     @Override
-    public Homo onCall(String srcService, String funName, RpcContent param) throws Exception {
+    public Homo onCall(String srcService, String funName, RpcContent param)  {
         Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.SERVER_RECEIVE_TAG);
         if (span != null) {
             span.name(funName);

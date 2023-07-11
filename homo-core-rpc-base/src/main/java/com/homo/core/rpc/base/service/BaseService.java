@@ -91,7 +91,7 @@ public class BaseService implements Service, IEntityService {
      * @return
      */
     @Override
-    public Homo callFun(String srcService, String funName, RpcContent param) throws Exception {
+    public Homo callFun(String srcService, String funName, RpcContent param) {
         return callDispatcher.callFun(this, srcService, funName, param);
     }
 

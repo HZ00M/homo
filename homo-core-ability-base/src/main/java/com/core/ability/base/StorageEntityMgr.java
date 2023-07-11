@@ -3,7 +3,7 @@ package com.core.ability.base;
 import brave.Span;
 import com.core.ability.base.storage.SaveAble;
 import com.core.ability.base.storage.StorageSystem;
-import com.homo.core.common.module.ServiceModule;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.facade.ability.AbilitySystem;

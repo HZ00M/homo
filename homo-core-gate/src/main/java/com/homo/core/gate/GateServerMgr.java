@@ -1,6 +1,6 @@
 package com.homo.core.gate;
 
-import com.homo.core.common.module.ServiceModule;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.configurable.gate.GateCommonProperties;
 import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.facade.gate.GateServer;

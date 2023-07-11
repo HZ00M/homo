@@ -25,5 +25,26 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-utils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-grpc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-service-persistence-storage-redis-mysql</artifactId>
+        </dependency>
+
     </dependencies>
 </project>

@@ -13,12 +13,12 @@ public class RpcHandlerInfoForClient extends RpcHandleInfo {
 
     public RpcContent serializeParamForInvoke(String funName, Object[] param) {
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.serializeParam(param);
+        return methodDispatchInfo.serializeParamContent(param);
     }
 
     public Object[] unSerializeParamForCallback(String funName,RpcContent rpcContent) {
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.unSerializeReturn(rpcContent);
+        return methodDispatchInfo.unSerializeParam(rpcContent);
     }
 
 }

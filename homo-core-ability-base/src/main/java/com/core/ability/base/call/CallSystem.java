@@ -3,7 +3,7 @@ package com.core.ability.base.call;
 import brave.Span;
 import brave.Tracer;
 import com.google.protobuf.ByteString;
-import com.homo.core.common.module.ServiceModule;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.*;
 import com.homo.core.facade.service.Service;
@@ -15,13 +15,12 @@ import com.homo.core.utils.lang.KKMap;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
-import com.sun.org.apache.regexp.internal.RE;
+import io.homo.proto.client.ParameterMsg;
 import io.homo.proto.entity.EntityRequest;
 import io.homo.proto.entity.EntityResponse;
 import lombok.extern.log4j.Log4j2;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -103,7 +102,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
     }
 
     @Override
-    public Homo call(String srcName, EntityRequest entityRequest, Integer podId, Object parameterMsg) throws Exception {
+    public Homo call(String srcName, EntityRequest entityRequest, Integer podId, ParameterMsg parameterMsg) throws Exception {
         List<ByteString> paramBytesList = entityRequest.getContentList();
         byte[][] paramArr = new byte[paramBytesList.size()][];
         for (int i = 0; i < paramBytesList.size(); i++) {

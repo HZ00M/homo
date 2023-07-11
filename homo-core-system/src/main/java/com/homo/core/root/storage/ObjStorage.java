@@ -1,6 +1,6 @@
 package com.homo.core.root.storage;
 
-import com.homo.core.common.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.storege.SaveObject;
 import com.homo.core.utils.lang.Pair;
 import com.homo.core.utils.rector.Homo;

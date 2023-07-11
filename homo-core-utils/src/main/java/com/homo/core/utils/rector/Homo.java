@@ -46,6 +46,11 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(Mono.empty());
     }
 
+    public final Homo<T> switchToCurrentThread() {
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        return switchThread(callQueue.getId());
+    }
+
     public final Homo<T> switchThread(int callQueueId) {
         CallQueue callQueue = CallQueueMgr.getInstance().getQueue(callQueueId);
         return nextDo(ret -> {
@@ -83,10 +88,10 @@ public class Homo<T> extends Mono<T> {
     }
 
     public static <T> Homo<T> warp(Supplier<Mono<T>> supplier) {
-        Supplier<Mono<T>> warp = ()->{
+        Supplier<Mono<T>> warp = () -> {
             try {
                 return supplier.get();
-            }catch (Exception e){
+            } catch (Exception e) {
                 return Homo.error(e);
             }
         };
@@ -141,11 +146,11 @@ public class Homo<T> extends Mono<T> {
                 }
                 R ret = null;
                 ret = mapper.apply(t);
-                if (ret == null){
-                    return Homo.result((R)Optional.empty());
+                if (ret == null) {
+                    return Homo.result((R) Optional.empty());
                 }
                 return Homo.result(ret);
-            }catch (Exception e){
+            } catch (Exception e) {
                 return Homo.error(e);
             }
         };
@@ -159,7 +164,7 @@ public class Homo<T> extends Mono<T> {
                     t = null;
                 }
                 onSuccess.accept(t);
-            }else{
+            } else {
                 onSuccess.accept(t);
             }
         };

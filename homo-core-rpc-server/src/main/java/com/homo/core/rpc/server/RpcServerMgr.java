@@ -1,6 +1,6 @@
 package com.homo.core.rpc.server;
 
-import com.homo.core.common.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.facade.rpc.RpcServerFactory;
 import com.homo.core.facade.rpc.RpcType;

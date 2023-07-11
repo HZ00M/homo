@@ -62,6 +62,7 @@ public class MethodDispatchInfo implements RpcSecurity {
                     serializationProcessor = new ProtoSerializationProcessor();
                 } else if (JSONObject.class.isAssignableFrom(clazz) || JSONArray.class.isAssignableFrom(clazz)) {
                     serializationProcessor = new JacksonSerializationProcessor();
+                    rpcContentType = RpcContentType.JSON;
                 } else {
                     serializationProcessor = new FSTSerializationProcessor();
                 }
@@ -119,62 +120,50 @@ public class MethodDispatchInfo implements RpcSecurity {
         return rpcSecurity.isCallAllowed(srcServiceName);
     }
 
-    public RpcContent serializeParam(Object[] params) {
-        if (paramSerializeInfos == null || paramSerializeInfos.length <= 0) {
-            return new ByteRpcContent();
-        }
-        RpcContentType type = RpcContentType.BYTES;
-        byte[][] byteParams = new byte[paramSerializeInfos.length][];
-        for (int i = 0; i < paramSerializeInfos.length; i++) {
-            Object obj = params[i];
-            byteParams[i] = paramSerializeInfos[i].processor.writeByte(obj);
-            if (obj instanceof JSONObject) {
-                type = RpcContentType.JSON;
-            }
-        }
-        return new ByteRpcContent(byteParams, type, null);
-    }
 
-
-    public Object[] unSerializeParam(RpcContent rpcContent) {
+    public Object[] unSerializeParam(Integer podId, ParameterMsg parameterMsg, RpcContent rpcContent) {
         int paramCount = paramSerializeInfos.length;
         if (paramCount <= 0) {
             return null;
         }
-        Object[] returnParams = new Object[paramCount];
-        byte[][] data = (byte[][]) rpcContent.getData();
-        for (int i = 0; i < paramSerializeInfos.length; i++) {
-            Object value = paramSerializeInfos[i].processor.readValue(data[i], paramSerializeInfos[i].paramType);
-            returnParams[i] = value;
-        }
-        return rpcContent.unSerializeParams(paramSerializeInfos, paddingOffset);
+        return rpcContent.unSerializeParams(paramSerializeInfos, paddingOffset, podId, parameterMsg);
     }
 
-    public byte[][] serializeReturn(Object[] params) {
-        if (returnSerializeInfos == null || returnSerializeInfos.length <= 0) {
-            return new byte[][]{};
-        }
-        byte[][] byteParams = new byte[returnSerializeInfos.length][];
-        for (int i = 0; i < returnSerializeInfos.length; i++) {
-            Object obj = params[i];
-            byteParams[i] = returnSerializeInfos[i].processor.writeByte(obj);
-        }
-        return byteParams;
+    public Object[] unSerializeParam(RpcContent rpcContent) {
+        return this.unSerializeParam(null, null, rpcContent);
     }
 
-    public Object[] unSerializeReturn(RpcContent rpcContent) {
-        int paramCount = returnSerializeInfos.length;
-        if (paramCount <= 0) {
-            return null;
+    public RpcContent serializeParamContent(Object[] params) {
+        if (paramSerializeInfos == null || paramSerializeInfos.length <= 0) {
+            return new ByteRpcContent();
         }
-        Object[] returnParams = new Object[paramCount];
-        byte[][] data = (byte[][]) rpcContent.getData();
-        for (int i = 0; i < returnSerializeInfos.length; i++) {
-            Object value = returnSerializeInfos[i].processor.readValue(data[i], returnSerializeInfos[i].paramType);
-            returnParams[i] = value;
+        if (rpcContentType.equals(RpcContentType.BYTES)) {
+            ByteRpcContent byteRpcContent = new ByteRpcContent();
+            byte[][] bytesData = serializeParam(params, byteRpcContent);
+            byteRpcContent.setData(bytesData);
+            return byteRpcContent;
+        } else if (rpcContentType.equals(RpcContentType.JSON)) {
+            JsonRpcContent jsonRpcContent = new JsonRpcContent();
+            String jsonData =  serializeParam(params, jsonRpcContent);
+            jsonRpcContent.setData(jsonData);
+            return jsonRpcContent;
         }
-        return returnParams;
+        return null;
     }
+
+    public <T> T serializeParam(Object[] params, RpcContent<T> rpcContent) {
+        T serializeData = null;
+        if (paramSerializeInfos == null || paramSerializeInfos.length <= 0) {
+            return serializeData;
+        }
+        if (rpcContentType.equals(RpcContentType.BYTES)) {
+            serializeData = rpcContent.serializeParams(params, paramSerializeInfos, paddingOffset);
+        } else if (rpcContentType.equals(RpcContentType.JSON)) {
+            serializeData = rpcContent.serializeParams(params, paramSerializeInfos, paddingOffset);
+        }
+        return serializeData;
+    }
+
 
     public Integer choicePodIndex(Object o, Method method, Object[] objects) {
         return null;

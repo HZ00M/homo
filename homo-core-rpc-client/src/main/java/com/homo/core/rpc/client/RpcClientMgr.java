@@ -1,6 +1,6 @@
 package com.homo.core.rpc.client;
 
-import com.homo.core.common.module.ServiceModule;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcType;
@@ -33,6 +33,22 @@ public class RpcClientMgr implements ServiceModule, ApplicationContextAware {
         }
     }
 
+    public RpcAgentClient getGrpcServerlessAgentClient(String hostname) throws HomoException {
+        RpcAgentClient rpcAgentClient;
+        synchronized (RpcAgentClient.class) {
+            //k8s域名格式: hostname(tagName带-n序号).tagName.namespaceId.svc.cluster.local
+            rpcAgentClient = rpcAgentClientMap.computeIfAbsent(hostname, s -> {
+                String host = ServiceUtil.getServiceHostName(hostname);
+                int port = ServiceUtil.getServicePort(hostname);
+                log.info("new agent begin  hostname {} port {}", hostname, port);
+
+                RpcAgentClient newAgent = rpcClientFactoryMap.get(RpcType.grpc).newAgent(host, port, false);
+                log.info("new agent finish  hostname {} port {}", hostname, port);
+                return newAgent;
+            });
+        }
+        return rpcAgentClient;
+    }
 
     /**
      * 通过服务名获得 一种CallDriver实例

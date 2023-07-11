@@ -14,6 +14,7 @@ import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
+import io.homo.proto.client.ParameterMsg;
 import io.homo.proto.entity.EntityResponse;
 import org.springframework.util.Assert;
 
@@ -61,11 +62,11 @@ public class CallAbility extends AbstractAbility implements ICallAbility {
         });
     }
 
-    public Homo callEntity(String srcName, String funName, byte[][] data, Integer podId, Object parameterMsg, IdCallQueue idCallQueue, Integer queueId) {
+    public Homo callEntity(String srcName, String funName, byte[][] data, Integer podId, ParameterMsg parameterMsg, IdCallQueue idCallQueue, Integer queueId) {
         CallDispatcher callDispatcher = getEntityCallDispatcher(getOwner().getClass());
         Assert.isTrue(callDispatcher != null, "CallAbility build callDispatcher is null ");
         Span span = ZipkinUtil.getTracing().tracer().currentSpan().tag("callEntity", funName);
-        return callDispatcher.callFun(getOwner(), srcName, funName, new ByteRpcContent(data, RpcContentType.BYTES, span), idCallQueue, queueId);
+        return callDispatcher.callFun(getOwner(), srcName, funName, new ByteRpcContent(data, span), idCallQueue, queueId, podId, parameterMsg);
 
     }
 

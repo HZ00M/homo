@@ -5,6 +5,7 @@ import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.facade.rpc.SerializeInfo;
 import com.homo.core.rpc.http.upload.UploadFile;
+import io.homo.proto.client.ParameterMsg;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,14 +35,14 @@ public class FileRpcContent implements RpcContent<UploadFile> {
     }
 
     @Override
-    public Object[] unSerializeParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
+    public Object[] unSerializeParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId , ParameterMsg parameterMsg) {
         Object[] objects = new Object[1];
         objects[0] = getData();
         return objects;
     }
 
     @Override
-    public byte[][] serializeParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
+    public UploadFile serializeParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
         return null;
     }
 

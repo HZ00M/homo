@@ -9,7 +9,7 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>homo-core-tread-test</artifactId>
+    <artifactId>homo-service-tread-test</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-tread</artifactId>
+            <artifactId>homo-service-tread</artifactId>
             <version>${revision}</version>
         </dependency>
     </dependencies>

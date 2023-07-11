@@ -8,6 +8,7 @@ import com.homo.core.facade.rpc.RpcClient;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
+import com.homo.core.rpc.base.serial.JsonRpcContent;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
@@ -46,10 +47,11 @@ public class RpcAgentClientImpl implements RpcAgentClient {
     }
 
     @Override
-    public  Homo<ByteRpcContent> rpcCall(String funName, RpcContent param) {
+    public Homo rpcCall(String funName, RpcContent param) {
         try (Tracer.SpanInScope ignored = ZipkinUtil.getTracing().tracer().withSpanInScope(ZipkinUtil.newCSSpan())) {
             if (param.getType().equals(RpcContentType.BYTES)) {
-                byte[][] data = (byte[][]) param.getData();
+                ByteRpcContent byteRpcContent = (ByteRpcContent) param;
+                byte[][] data = byteRpcContent.getData();
                 if (srcIsStateFul && targetIsStateful) {
                     log.debug("asyncBytesStreamCall {} {}", funName, param);
                     return asyncBytesStreamCall(funName, data);
@@ -59,7 +61,8 @@ public class RpcAgentClientImpl implements RpcAgentClient {
                     return asyncBytesCall(funName, data);
                 }
             } else if (param.getType().equals(RpcContentType.JSON)) {
-                byte[][] data = (byte[][]) param.getData();
+                JsonRpcContent jsonRpcContent = (JsonRpcContent) param;
+                String data = jsonRpcContent.getData();
                 return asyncJsonCall(funName, data);
             } else {
                 log.error("asyncCall contentType unknown, targetServiceName {} funName {} contentType_{}", targetServiceName, funName, param.getType());
@@ -71,7 +74,7 @@ public class RpcAgentClientImpl implements RpcAgentClient {
         }
     }
 
-    private <RETURN> Homo<RETURN> asyncBytesCall(String funName, byte[][] data) {
+    private  Homo asyncBytesCall(String funName, byte[][] data) {
         Span span = ZipkinUtil.currentSpan().name("asyncBytesCall");
         Req.Builder builder = Req.newBuilder().setSrcService(srcServiceName).setMsgId(funName);
         if (data != null) {
@@ -83,7 +86,7 @@ public class RpcAgentClientImpl implements RpcAgentClient {
         return rpcClient.asyncBytesCall(req);
     }
 
-    private <RETURN> Homo<RETURN> asyncBytesStreamCall(String funName, byte[][] data) {
+    private  Homo asyncBytesStreamCall(String funName, byte[][] data) {
         Span span = ZipkinUtil.currentSpan().name("asyncBytesStreamCall");
         StreamReq.Builder builder = StreamReq.newBuilder()
                 .setSrcService(srcServiceName)
@@ -112,16 +115,12 @@ public class RpcAgentClientImpl implements RpcAgentClient {
         return rpcClient.asyncBytesStreamCall(reqId, streamReqWithReqId);
     }
 
-    private <RETURN> Homo<RETURN> asyncJsonCall(String funName, byte[][] data) {
+    private  Homo asyncJsonCall(String funName, String data) {
         Span span = ZipkinUtil.currentSpan().name("asyncJsonCall");
         JsonReq.Builder builder = JsonReq.newBuilder()
                 .setSrcService(srcServiceName)
-                .setMsgId(funName);
-        if (data != null) {
-            for (byte[] datum : data) {
-                builder.addMsgContent(ByteString.copyFrom(datum));
-            }
-        }
+                .setMsgId(funName)
+                .setMsgContent(data);
 
         JsonReq jsonReq = builder.build();
         return rpcClient.asyncJsonCall(jsonReq);

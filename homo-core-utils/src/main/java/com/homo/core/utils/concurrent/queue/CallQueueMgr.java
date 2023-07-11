@@ -1,7 +1,7 @@
 package com.homo.core.utils.concurrent.queue;
 
 import brave.internal.Nullable;
-import com.homo.core.common.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.utils.concurrent.event.Event;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.utils.rector.Homo;
@@ -101,6 +101,7 @@ public class CallQueueMgr implements Module {
         int finishCount = 0;
         for (CallQueue callQueue : callQueues) {
             if (!callQueue.isRunning()) {
+                log.info("checkInitFinish callQueue {} not running!", callQueue.getId());
                 Timer timer = new Timer();
                 timer.scheduleAtFixedRate(new TimerTask() {
                     @Override
@@ -128,8 +129,8 @@ public class CallQueueMgr implements Module {
     }
 
     public void setLocalQueue(CallQueue callQueue) {
-        log.info("CallQueueMgr.setLocalQueue");
         localQueue.set(callQueue);
+        log.info("CallQueueMgr setLocalQueue currentThread {} queueId {}",Thread.currentThread().getName(),callQueue.getId());
     }
 
     public CallQueue getLocalQueue() {
