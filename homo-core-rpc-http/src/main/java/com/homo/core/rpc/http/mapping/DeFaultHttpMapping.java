@@ -35,13 +35,14 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Log4j2
 @RestController
-public class DeFaultHttpMapping extends AbstractHttpMapping implements Module , ApplicationContextAware {
+public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, ApplicationContextAware {
 
     private FSTSerializationProcessor defaultProcessor = new FSTSerializationProcessor();
     private ApplicationContext applicationContext;
@@ -50,13 +51,14 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module , 
     public void init() {
         log.info("DeFaultHttpMapping init start");
         super.init();
-        AbstractHandlerMethodMapping<RequestMappingInfo> objHandlerMethodMapping = (AbstractHandlerMethodMapping<RequestMappingInfo>)applicationContext.getBean("requestMappingHandlerMapping");
+        AbstractHandlerMethodMapping<RequestMappingInfo> objHandlerMethodMapping = (AbstractHandlerMethodMapping<RequestMappingInfo>) applicationContext.getBean("requestMappingHandlerMapping");
         Map<RequestMappingInfo, HandlerMethod> mapRet = objHandlerMethodMapping.getHandlerMethods();
         for (RequestMappingInfo requestMappingInfo : mapRet.keySet()) {
-            log.info("DeFaultHttpMapping init requestMappingInfo {}",requestMappingInfo);
+            log.info("DeFaultHttpMapping init requestMappingInfo {}", requestMappingInfo);
         }
         log.info("DeFaultHttpMapping init end");
     }
+
     /**
      * 健康检查
      *
@@ -79,9 +81,14 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module , 
         ServerHttpResponse response = exchange.getResponse();
         int port = exportPort(request);
         String msgId = exportMsgId(request);
+        //参数格式(formDataParams,headerInfo)
+        MultiValueMap<String, String> queryParams = request.getQueryParams();
+        Map<String, String> formDataParams = queryParams.toSingleValueMap();
         JSONObject headerInfo = exportHeaderInfo(request);
-        byte[][] msg = new byte[1][];
-        msg[0] = JSON.toJSONBytes(headerInfo);
+        List<Object> list = new ArrayList<>();
+        list.add(formDataParams);
+        list.add(headerInfo);
+        String msg = JSON.toJSONString(list);
         log.trace("getHandle begin, msgId_{} msg_{}", msgId, msg);
         HttpServer httpServer = routerHttpServerMap.get(port);
         Mono<DataBuffer> respBuffer = httpServer.onCall(msgId, msg, response);
@@ -95,7 +102,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module , 
      * @param exchange
      * @return
      */
-    @PostMapping(value = "/**", consumes =  MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/**", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<Void> httpJsonPost(ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
@@ -110,34 +117,27 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module , 
                                         dataBuffer.read(msgContent);
                                         DataBufferUtils.release(dataBuffer);
                                         String reqStr = new String(msgContent);
-                                        byte[][] msg;
+                                        String msg;
                                         JSONValidator.Type type = JSONValidator.from(reqStr).setSupportMultiValue(true).getType();
-                                        JSONObject headerInfo = exportHeaderInfo(request);
-                                        //todo 临时做转换，不通用，后面需要改造
-                                        if (type == JSONValidator.Type.Array) {
-                                            JSONArray queryParamArray = JSON.parseArray(reqStr);
-                                            msg = new byte[queryParamArray.size()][];
-//                                            for (int i = 0;i<queryParamArray.size();i++) {
-//                                                msg[i] = JSON.toJSONBytes(queryParamArray.get(i));
-//                                            }
-                                            msg[0] = JSON.toJSONBytes(headerInfo);
-                                            msg[1] = JSON.toJSONBytes(queryParamArray);
-                                            //msg = buildJsonListMsg(queryParamArray.toArray());
-                                        } else if (type == JSONValidator.Type.Object) {
-                                            JSONObject queryParam = JSON.parseObject(reqStr);
-                                            msg = new byte[2][];
-                                            msg[0] = JSON.toJSONBytes(headerInfo);
-                                            msg[1] = JSON.toJSONBytes(queryParam );
-                                            //msg = buildJsonListMsg(queryParam, headerInfo);
-                                        } else {
-                                            msg = new byte[2][];
-                                            msg[0] = JSON.toJSONBytes(headerInfo);
-//                                            msg[1] = reqStr.getBytes(StandardCharsets.UTF_8);
-                                            msg[1] = defaultProcessor.writeByte(reqStr);
-                                            //todo 这种情况还需要进一步处理
-                                            //msg = buildJsonListMsg(reqStr, exportHeaderInfo(request));
-                                        }
+                                        List<Object> list = new ArrayList<>();
 
+                                        if (type == JSONValidator.Type.Array) {
+                                            //参数是列表(json1,json2,...,headerInfo)
+                                            JSONArray queryParamArray = JSON.parseArray(reqStr);
+                                            for (Object item : queryParamArray) {
+                                                list.add(item);
+                                            }
+                                        } else if (type == JSONValidator.Type.Object) {
+                                            //参数是单个json (json,headerInfo)
+                                            JSONObject queryParam = JSON.parseObject(reqStr);
+                                            list.add(queryParam);
+                                        } else {
+                                            //参数是字符串(reqStr,headerInfo)
+                                            list.add(reqStr);
+                                        }
+                                        JSONObject headerInfo = exportHeaderInfo(request);
+                                        list.add(headerInfo);
+                                        msg = JSON.toJSONString(list);
                                         HttpServer httpServer = routerHttpServerMap.get(port);
                                         Mono<DataBuffer> bufferMono = httpServer.onCall(msgId, msg, response);
                                         monoSink.success(bufferMono);
@@ -167,9 +167,10 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module , 
                             try {
                                 checkDataBufferSize(dataBuffer);
                                 byte[] msgContent = new byte[dataBuffer.readableByteCount()];
+                                //参数格式 (pb协议,http头信息)
                                 HttpHeadInfo httpHeadInfo = HttpHeadInfo.newBuilder()
                                         .putAllHeaders(request.getHeaders().toSingleValueMap()).build();
-                                byte[][] msg = {httpHeadInfo.toByteArray(),msgContent};
+                                byte[][] msg = {msgContent,httpHeadInfo.toByteArray()};
                                 dataBuffer.read(msgContent);
                                 HttpServer httpServer = routerHttpServerMap.get(port);
                                 Mono<DataBuffer> bufferMono = httpServer.onCall(msgId, msg, response);
@@ -220,17 +221,17 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module , 
                                         return linkMap;
                                     })
                             ).flatMap(linkMap ->
-                            multipartData.map(map -> {
-                                        linkMap.putAll(map);
-                                        return linkMap;
-                                    }
-                            )
-                    );
+                                    multipartData.map(map -> {
+                                                linkMap.putAll(map);
+                                                return linkMap;
+                                            }
+                                    )
+                            );
             Map<String, String> headers = request.getHeaders().toSingleValueMap();
             String filename = filePart.filename();
             Flux<DataBuffer> content = filePart.content();
             Span span = ZipkinUtil.nextOrCreateSRSpan();
-            UploadFile uploadFile = new DefaultUploadFile(filename,headers,queryParams,finalFormData,content);
+            UploadFile uploadFile = new DefaultUploadFile(filename, headers, queryParams, finalFormData, content);
             FileRpcContent byteRpcContent = new FileRpcContent(uploadFile, RpcContentType.FILE, span);
             try {
                 Mono<DataBuffer> dataBufferMono = routerHttpServerMap.get(port).onFileUpload(msgId, byteRpcContent, response);//todo 处理文件类型请求

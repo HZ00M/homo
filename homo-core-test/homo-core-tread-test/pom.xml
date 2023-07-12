@@ -23,5 +23,9 @@
             <artifactId>homo-service-tread</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-utils</artifactId>
+        </dependency>
     </dependencies>
 </project>

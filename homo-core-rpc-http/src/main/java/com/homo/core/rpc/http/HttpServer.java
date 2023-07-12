@@ -1,13 +1,19 @@
 package com.homo.core.rpc.http;
 
 import brave.Span;
+import com.alibaba.fastjson.JSON;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
+import com.homo.core.rpc.base.serial.JsonRpcContent;
+import com.homo.core.rpc.http.dto.ResponseMsg;
+import com.homo.core.utils.exception.HomoException;
+import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -55,6 +61,14 @@ public class HttpServer {
         return rpcServer.getPort();
     }
 
+    /**
+     * for proto
+     * @param msgId
+     * @param data
+     * @param response
+     * @return
+     * @param <T>
+     */
     public <T> Mono<DataBuffer> onCall(String msgId, byte[][] data,ServerHttpResponse response) {
         Span span = ZipkinUtil.currentSpan();
         ByteRpcContent rpcContent = new ByteRpcContent(data, span);
@@ -67,6 +81,39 @@ public class HttpServer {
                 });
     }
 
+    /**
+     * for jsonData
+     * @param msgId
+     * @param data
+     * @param response
+     * @return
+     * @param <T>
+     */
+    public <T> Mono<DataBuffer> onCall(String msgId, String data,ServerHttpResponse response) {
+        Span span = ZipkinUtil.currentSpan();
+        JsonRpcContent rpcContent = new JsonRpcContent(data);
+        return rpcServer.onCall("HttpServer",msgId,rpcContent)
+                .nextDo(ret->{
+                    ResponseMsg responseMsg = ResponseMsg.builder().msgId(msgId).msg("ok").msgContent(ret).code(HttpStatus.OK.value()).build();
+                    String resStr = JSON.toJSONString(responseMsg);
+                    NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
+                    DataBuffer buffer = dataBufferFactory.wrap(resStr.getBytes(StandardCharsets.UTF_8));
+                    return Mono.just(buffer);
+                })
+                .onErrorContinue(throwable -> {
+                    response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+                    return Homo.error(throwable);
+                })
+                ;
+    }
+
+    /**
+     * for upload file
+     * @param msgId
+     * @param rpcContent
+     * @param response
+     * @return
+     */
     public Mono<DataBuffer> onFileUpload(String msgId, FileRpcContent rpcContent,ServerHttpResponse response )  {
         return rpcServer.onCall("HttpServer",msgId,rpcContent)
                 .nextDo(ret->{

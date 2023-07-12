@@ -107,6 +107,7 @@ public class CallQueueMgr implements Module {
                     @Override
                     public void run() {
                         try {
+                            log.info("checkInitFinish callQueue {} checkInitFinish!", callQueue.getId());
                             checkInitFinish();
                         } catch (Throwable throwable) {
                             log.error("checkInitFinish error!", throwable);

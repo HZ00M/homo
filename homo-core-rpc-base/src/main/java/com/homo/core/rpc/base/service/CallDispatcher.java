@@ -34,6 +34,10 @@ public class CallDispatcher {
 
     public Homo callFun(Object handler, String srcService, String funName, RpcContent rpcContent, IdCallQueue callQueue, Integer queueId, Integer podId, ParameterMsg parameterMsg) {
         MethodDispatchInfo methodDispatchInfo = rpcHandleInfo.getMethodDispatchInfo(funName);
+        if (methodDispatchInfo == null){
+            log.error("callFun srcService {} funName {} not found", srcService, funName);
+            throw HomoError.throwError(HomoError.callMethodNotFound);
+        }
         if (!methodDispatchInfo.isCallAllowed(srcService)) {
             log.error("callFun srcService {} funName {} not allow", srcService, funName);
             throw HomoError.throwError(HomoError.callAllow);

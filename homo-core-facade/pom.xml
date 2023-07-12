@@ -19,10 +19,6 @@
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
             <artifactId>homo-core-proto</artifactId>
         </dependency>
     </dependencies>

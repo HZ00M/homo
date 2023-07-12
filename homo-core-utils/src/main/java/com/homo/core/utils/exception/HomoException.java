@@ -1,5 +1,8 @@
 package com.homo.core.utils.exception;
 
+import lombok.Data;
+
+@Data
 public class HomoException extends RuntimeException{
     private int code;
     private String msg;

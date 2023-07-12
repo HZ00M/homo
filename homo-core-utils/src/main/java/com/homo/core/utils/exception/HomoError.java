@@ -18,7 +18,9 @@ public enum HomoError implements HomoThrowable {
     rpcAgentTypeNotSupport(108, "RpcAgent no support rpcType %s tagName %s"),
     gateError(109, "gateError %s"),
     broadcastError(110, "broadcastError"),
-    spanError(111, "spanError");
+    spanError(111, "spanError"),
+    callMethodNotFound(112, "call fun not found"),
+    ;
     private int code;
     private String message;
     private static final Map<Integer, String> errorDefineMap = new ConcurrentHashMap<>();
