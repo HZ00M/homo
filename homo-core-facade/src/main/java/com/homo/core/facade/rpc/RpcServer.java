@@ -34,6 +34,6 @@ public interface RpcServer {
      * @param funName 函数名
      * @param param 参数
      */
-     <T> Homo<T> onCall(String srcService, String funName, RpcContent<T> param) ;
+     <T,R> Homo<R> onCall(String srcService, String funName, RpcContent<T,R> param) ;
 
 }

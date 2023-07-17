@@ -1,7 +1,6 @@
 package com.homo.core.utils.concurrent.queue;
 
 import brave.internal.Nullable;
-import com.homo.core.utils.module.Module;
 import com.homo.core.utils.concurrent.event.Event;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.utils.rector.Homo;
@@ -22,8 +21,8 @@ import java.util.function.BiFunction;
  * 事件处理管理器
  */
 @Log4j2
-public class CallQueueMgr implements Module {
-    public static final String DEFAULT_TYPE = "defaultPloyType";
+public class CallQueueMgr  {
+    public static final String DEFAULT_CHOICE_THREAD_STRATEGY = "defaultPloyType";
     private volatile static CallQueueMgr instance = null;
     private static final int queueCount = Integer.parseInt(System.getProperty("call.queue.count", "4"));
     private static final int waitNum = Integer.parseInt(System.getProperty("call.queue.maxWaitNum", "10000"));
@@ -41,17 +40,19 @@ public class CallQueueMgr implements Module {
         public Integer apply(Event event, Object param) {
             if (param instanceof CallQueueProducer){
                 Integer queueId = ((CallQueueProducer) param).getQueueId();
-                if (queueId == null) {
-                    log.error("getQueueId error in param [{}] :", param);
+                if (queueId != null) {
+                    return queueId;
+                }else {
+                    log.warn("getQueueId warn in param [{}] :", param);
                 }
-                return queueId;
             }
             if (event instanceof CallQueueProducer){
-                Integer queueId = ((CallQueueProducer) param).getQueueId();
-                if (queueId == null) {
-                    log.error("getQueueId error in event [{}] :", param);
+                Integer queueId = ((CallQueueProducer) event).getQueueId();
+                if (queueId != null) {
+                    return queueId;
+                } else {
+                    log.warn("getQueueId warn in event [{}] :", param);
                 }
-                return queueId;
             }
             if (index >= queueCount) {
                 //绕开主线程 0 和框架线程 1 //todo 分队列优先级
@@ -66,7 +67,7 @@ public class CallQueueMgr implements Module {
     private CallQueueMgr() {
     }
 
-    public  void init() {
+    public void init() {
         log.debug("CallQueueMgr init");
         getInstance();
     }
@@ -86,7 +87,7 @@ public class CallQueueMgr implements Module {
 
     private void start(BiFunction<Event, Object, Integer> ployFun) {
         callQueues = new CallQueue[queueCount];
-        registerPloy(DEFAULT_TYPE, robinPloyFun);
+        registerPloy(DEFAULT_CHOICE_THREAD_STRATEGY, robinPloyFun);
         executorService = ThreadPoolFactory.newThreadPool("CallQueueMgrPool", queueCount, keepLive);
         for (int i = 0; i < queueCount; i++) {
             CallQueue callQueue = new CallQueue(i, waitNum);
@@ -180,7 +181,7 @@ public class CallQueueMgr implements Module {
     }
 
     public void addEvent(Event e) {
-        addEvent(DEFAULT_TYPE, e);
+        addEvent(DEFAULT_CHOICE_THREAD_STRATEGY, e);
     }
 
     public void addEvent(String ployType, Event e) {
@@ -188,7 +189,7 @@ public class CallQueueMgr implements Module {
     }
 
     public void addEvent(Event e, Object param) {
-        addEvent(DEFAULT_TYPE, e, param);
+        addEvent(DEFAULT_CHOICE_THREAD_STRATEGY, e, param);
     }
 
     public void addEvent(String ployType, Event e, Object param) {

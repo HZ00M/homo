@@ -1,10 +1,10 @@
 package com.homo.core.gate;
 
-import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.configurable.gate.GateCommonProperties;
 import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.facade.gate.GateServer;
 import com.homo.core.utils.exception.HomoError;
+import com.homo.core.facade.module.ServiceModule;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 

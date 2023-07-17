@@ -1,5 +1,8 @@
-package com.homo.core.utils.module;
+package com.homo.core.common.module;
 
+import com.homo.core.facade.module.Module;
+import com.homo.core.facade.module.ModuleMgr;
+import com.homo.core.facade.module.RootModule;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;

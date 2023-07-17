@@ -1,6 +1,5 @@
 package com.core.ability.base;
 
-import brave.Span;
 import brave.Tracer;
 import com.core.ability.base.call.CallSystem;
 import com.google.protobuf.ByteString;

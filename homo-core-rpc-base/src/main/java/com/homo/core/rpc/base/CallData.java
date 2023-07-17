@@ -8,8 +8,7 @@ import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import lombok.Data;
-
-import java.util.concurrent.Callable;
+import org.springframework.util.StringUtils;
 
 @Data
 public class CallData implements RpcInterceptor {
@@ -20,19 +19,25 @@ public class CallData implements RpcInterceptor {
     private final String srcName;
     private IdCallQueue idCallQueue;
     private Span span;
-    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName,Span span) {
-        this(o, methodDispatchInfo, params, queueId, srcName, null,span);
+    private boolean needInsertQueue;
+    private String choiceThreadStrategy;
+
+    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName, Span span) {
+        this(o, methodDispatchInfo, params, queueId, srcName, null, span, false, null);
     }
-    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName, IdCallQueue idCallQueue,Span span) {
+
+
+    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName, IdCallQueue idCallQueue, Span span, boolean needInsertQueue, String choiceThreadStrategyKey) {
         this.o = o;
         this.methodDispatchInfo = methodDispatchInfo;
         this.params = params;
         this.queueId = queueId;
         this.srcName = srcName;
         this.idCallQueue = idCallQueue;
-        this.span =span;
+        this.span = span;
+        this.needInsertQueue = needInsertQueue;
+        this.choiceThreadStrategy = choiceThreadStrategyKey;
     }
-
 
 
     public Object invoke(Object o, Object[] param) throws Throwable {
@@ -50,13 +55,19 @@ public class CallData implements RpcInterceptor {
     }
 
     @Override
-    public Homo onCall(Object handle, String funName, Object[] params,CallData callData) {
+    public Homo onCall(Object handle, String funName, Object[] params, CallData callData) {
         return Homo.warp(new ConsumerEx<HomoSink<Homo>>() {
             @Override
             public void accept(HomoSink<Homo> homoSink) throws Exception {
                 CallEvent callEvent = new CallEvent(CallData.this, homoSink);
                 if (queueId != null) {
                     CallQueueMgr.getInstance().addEvent(queueId, callEvent);
+                } else if (needInsertQueue) {
+                    if (!StringUtils.isEmpty(choiceThreadStrategy)){
+                        CallQueueMgr.getInstance().addEvent(choiceThreadStrategy, callEvent);
+                    }else {
+                        CallQueueMgr.getInstance().addEvent(CallQueueMgr.DEFAULT_CHOICE_THREAD_STRATEGY, callEvent);
+                    }
                 } else {
                     callEvent.process();
                 }

@@ -21,5 +21,13 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-proto</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-properties</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-utils</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -1,6 +1,6 @@
 package com.homo.core.rpc.client;
 
-import com.homo.core.utils.module.ServiceModule;
+import com.homo.core.facade.module.ServiceModule;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcType;

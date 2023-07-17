@@ -1,6 +1,6 @@
 package com.homo.core.facade.service;
 
-import com.homo.core.utils.module.Module;
+import com.homo.core.facade.module.Module;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.utils.rector.Homo;

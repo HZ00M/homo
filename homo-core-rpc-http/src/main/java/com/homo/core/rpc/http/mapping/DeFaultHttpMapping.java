@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
-import com.homo.core.utils.module.Module;
+import com.homo.core.facade.module.Module;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.http.FileRpcContent;
 import com.homo.core.rpc.http.HttpServer;
@@ -54,7 +54,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         AbstractHandlerMethodMapping<RequestMappingInfo> objHandlerMethodMapping = (AbstractHandlerMethodMapping<RequestMappingInfo>) applicationContext.getBean("requestMappingHandlerMapping");
         Map<RequestMappingInfo, HandlerMethod> mapRet = objHandlerMethodMapping.getHandlerMethods();
         for (RequestMappingInfo requestMappingInfo : mapRet.keySet()) {
-            log.info("DeFaultHttpMapping init requestMappingInfo {}", requestMappingInfo);
+            log.info("requestMappingInfo {}", requestMappingInfo);
         }
         log.info("DeFaultHttpMapping init end");
     }
@@ -89,7 +89,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         list.add(formDataParams);
         list.add(headerInfo);
         String msg = JSON.toJSONString(list);
-        log.trace("getHandle begin, msgId_{} msg_{}", msgId, msg);
+        log.info("httpGet begin port {} msgId {} msg {}", port, msgId, msg);
         HttpServer httpServer = routerHttpServerMap.get(port);
         Mono<DataBuffer> respBuffer = httpServer.onCall(msgId, msg, response);
         return response.writeAndFlushWith(Mono.just(respBuffer));
@@ -123,14 +123,14 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
 
                                         if (type == JSONValidator.Type.Array) {
                                             //参数是列表(json1,json2,...,headerInfo)
-                                            JSONArray queryParamArray = JSON.parseArray(reqStr);
-                                            for (Object item : queryParamArray) {
+                                            JSONArray bodyArr = JSON.parseArray(reqStr);
+                                            for (Object item : bodyArr) {
                                                 list.add(item);
                                             }
                                         } else if (type == JSONValidator.Type.Object) {
                                             //参数是单个json (json,headerInfo)
-                                            JSONObject queryParam = JSON.parseObject(reqStr);
-                                            list.add(queryParam);
+                                            JSONObject bodyJson = JSON.parseObject(reqStr);
+                                            list.add(bodyJson);
                                         } else {
                                             //参数是字符串(reqStr,headerInfo)
                                             list.add(reqStr);
@@ -138,6 +138,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                                         JSONObject headerInfo = exportHeaderInfo(request);
                                         list.add(headerInfo);
                                         msg = JSON.toJSONString(list);
+                                        log.info("httpJsonPost begin port {} msgId {} msg {}", port, msgId, msg);
                                         HttpServer httpServer = routerHttpServerMap.get(port);
                                         Mono<DataBuffer> bufferMono = httpServer.onCall(msgId, msg, response);
                                         monoSink.success(bufferMono);
@@ -170,7 +171,8 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                                 //参数格式 (pb协议,http头信息)
                                 HttpHeadInfo httpHeadInfo = HttpHeadInfo.newBuilder()
                                         .putAllHeaders(request.getHeaders().toSingleValueMap()).build();
-                                byte[][] msg = {msgContent,httpHeadInfo.toByteArray()};
+                                byte[][] msg = {msgContent, httpHeadInfo.toByteArray()};
+                                log.info("httpProtoPost begin port {} msgId {} ", port, msgId);
                                 dataBuffer.read(msgContent);
                                 HttpServer httpServer = routerHttpServerMap.get(port);
                                 Mono<DataBuffer> bufferMono = httpServer.onCall(msgId, msg, response);

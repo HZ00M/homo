@@ -1,6 +1,6 @@
 package com.homo.core.facade.service;
 
-import com.homo.core.utils.module.ServiceModule;
+import com.homo.core.facade.module.ServiceModule;
 import com.homo.core.utils.rector.Homo;
 
 import java.util.List;

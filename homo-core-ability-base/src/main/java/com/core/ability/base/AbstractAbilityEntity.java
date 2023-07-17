@@ -1,8 +1,6 @@
 package com.core.ability.base;
 
 import com.core.ability.base.call.CallAble;
-import com.core.ability.base.notify.ListenerAble;
-import com.core.ability.base.storage.SaveAble;
 import com.core.ability.base.timer.TimeAble;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.homo.core.facade.ability.Ability;

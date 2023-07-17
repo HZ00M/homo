@@ -19,7 +19,15 @@
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-auto-configurable</artifactId>
+            <artifactId>homo-core-properties</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-facade</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-utils</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -1,8 +1,8 @@
 package com.homo.core.rpc.base.state;
 
-import com.homo.core.utils.module.Module;
 import com.homo.core.configurable.rpc.ServerStateProperties;
 import com.homo.core.facade.cache.CacheDriver;
+import com.homo.core.facade.module.Module;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;

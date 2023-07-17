@@ -1,11 +1,11 @@
 package com.homo.core.gate.tcp;
 
-import com.homo.core.utils.module.DriverModule;
 import com.homo.core.configurable.gate.GateCommonProperties;
 import com.homo.core.configurable.gate.GateTcpProperties;
 import com.homo.core.facade.gate.GateClient;
 import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.facade.gate.GateServer;
+import com.homo.core.facade.module.DriverModule;
 import com.homo.core.gate.tcp.handler.AbstractLogicHandler;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.utils.exception.HomoError;

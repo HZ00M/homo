@@ -1,6 +1,5 @@
 package com.homo.core.tread.processor;
 
-import com.homo.core.utils.module.Module;
 import com.homo.core.facade.tread.processor.anotation.ResourceCheckMethod;
 import com.homo.core.facade.tread.processor.anotation.ResourceGetMethod;
 import com.homo.core.facade.tread.processor.anotation.ResourceSetMethod;
@@ -8,6 +7,7 @@ import com.homo.core.tread.processor.exception.CheckOpException;
 import com.homo.core.tread.processor.exception.GetOpException;
 import com.homo.core.tread.processor.exception.SetOpException;
 import com.homo.core.tread.processor.op.*;
+import com.homo.core.facade.module.Module;
 import com.homo.core.utils.rector.Homo;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;

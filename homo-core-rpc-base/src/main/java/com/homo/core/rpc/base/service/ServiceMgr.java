@@ -1,6 +1,6 @@
 package com.homo.core.rpc.base.service;
 
-import com.homo.core.utils.module.DriverModule;
+import com.homo.core.facade.module.DriverModule;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceStateMgr;

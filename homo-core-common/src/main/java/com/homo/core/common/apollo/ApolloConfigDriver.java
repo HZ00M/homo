@@ -9,8 +9,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-;
-
 @Log4j2
 public class ApolloConfigDriver implements ConfigDriver {
     private Map<String, Config> configMap = new ConcurrentHashMap<>();

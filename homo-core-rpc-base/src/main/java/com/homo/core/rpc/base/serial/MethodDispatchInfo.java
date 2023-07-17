@@ -8,10 +8,7 @@ import com.homo.core.facade.rpc.SerializeInfo;
 import com.homo.core.facade.security.RpcSecurity;
 import com.homo.core.rpc.base.security.AccessControl;
 import com.homo.core.utils.reflect.HomoTypeUtil;
-import com.homo.core.utils.serial.FSTSerializationProcessor;
-import com.homo.core.utils.serial.HomoSerializationProcessor;
-import com.homo.core.utils.serial.JacksonSerializationProcessor;
-import com.homo.core.utils.serial.ProtoSerializationProcessor;
+import com.homo.core.utils.serial.*;
 import io.homo.proto.client.ParameterMsg;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
@@ -29,13 +26,15 @@ public class MethodDispatchInfo implements RpcSecurity {
     private SerializeInfo[] paramSerializeInfos;
     private SerializeInfo[] returnSerializeInfos;
     private RpcSecurity rpcSecurity;
-    private RpcContentType rpcContentType = RpcContentType.BYTES;
+    private RpcContentType paramContentType = RpcContentType.BYTES;
+    private static ByteRpcContent bytesRpcContent = new ByteRpcContent();
+    private static JsonRpcContent jsonRpcContent = new JsonRpcContent();
     // 向参数数组中填充podId和parameterMsg的标志
     private boolean paddingParams = false;
     private int paddingOffset;
-    private final BiPredicate<Object, Object> needFillParamsPredicate = (o1, o2) -> {
+    private final BiPredicate<Class<?>, Class<?>> needFillParamsPredicate = (o1, o2) -> {
         // 如果方法的参数列表第一个是Integer类型，第二个是是ParameterMsg，则设置填充参数标志为true
-        return o1.getClass().isAssignableFrom(Integer.class) && o2.getClass().isAssignableFrom(ParameterMsg.class);
+        return o1.isAssignableFrom(Integer.class) && o2.isAssignableFrom(ParameterMsg.class);
     };
 
     private MethodDispatchInfo(Method method) {
@@ -45,11 +44,12 @@ public class MethodDispatchInfo implements RpcSecurity {
 
     private void init() {
         this.paramCount = exportParamCount();
-        this.paramSerializeInfos = exportSerializeInfos(method.getParameterTypes());
-        this.returnSerializeInfos = exportSerializeInfos(getTypeParamsByType(method.getGenericReturnType()));
+        this.paramSerializeInfos = exportSerializeInfo(method.getParameterTypes());
+        this.returnSerializeInfos = exportSerializeInfo(getTypeParamsByType(method.getGenericReturnType()));
     }
 
-    private SerializeInfo[] exportSerializeInfos(Class<?>[] classes) {
+
+    private SerializeInfo[] exportSerializeInfo(Class<?>[] classes) {
         if (classes == null) {
             return null;
         }
@@ -57,12 +57,12 @@ public class MethodDispatchInfo implements RpcSecurity {
             SerializeInfo[] serializeInfos = new SerializeInfo[classes.length];
             for (int i = 0; i < classes.length; i++) {
                 Class<?> clazz = classes[i];
-                HomoSerializationProcessor serializationProcessor = null;
+                HomoSerializationProcessor serializationProcessor;
                 if (com.google.protobuf.GeneratedMessageV3.class.isAssignableFrom(clazz)) {
                     serializationProcessor = new ProtoSerializationProcessor();
                 } else if (JSONObject.class.isAssignableFrom(clazz) || JSONArray.class.isAssignableFrom(clazz)) {
-                    serializationProcessor = new JacksonSerializationProcessor();
-                    rpcContentType = RpcContentType.JSON;
+                    serializationProcessor = new FastjsonSerializationProcessor();
+                    paramContentType = RpcContentType.JSON;
                 } else {
                     serializationProcessor = new FSTSerializationProcessor();
                 }
@@ -74,7 +74,7 @@ public class MethodDispatchInfo implements RpcSecurity {
             }
             return serializeInfos;
         } catch (Exception e) {
-            log.error("exportSerializeInfos error", e);
+            log.error("exportSerializeInfo error", e);
             return null;
         }
     }
@@ -129,7 +129,7 @@ public class MethodDispatchInfo implements RpcSecurity {
         return rpcContent.unSerializeParams(paramSerializeInfos, paddingOffset, podId, parameterMsg);
     }
 
-    public Object[] unSerializeParam(RpcContent rpcContent) {
+    public Object[] unSerializeParam(RpcContent rpcContent,Integer podId, ParameterMsg parameterMsg) {
         return this.unSerializeParam(null, null, rpcContent);
     }
 
@@ -137,29 +137,43 @@ public class MethodDispatchInfo implements RpcSecurity {
         if (paramSerializeInfos == null || paramSerializeInfos.length <= 0) {
             return new ByteRpcContent();
         }
-        if (rpcContentType.equals(RpcContentType.BYTES)) {
+        if (paramContentType.equals(RpcContentType.BYTES)) {
             ByteRpcContent byteRpcContent = new ByteRpcContent();
             byte[][] bytesData = serializeParam(params, byteRpcContent);
             byteRpcContent.setData(bytesData);
             return byteRpcContent;
-        } else if (rpcContentType.equals(RpcContentType.JSON)) {
+        } else if (paramContentType.equals(RpcContentType.JSON)) {
             JsonRpcContent jsonRpcContent = new JsonRpcContent();
-            String jsonData =  serializeParam(params, jsonRpcContent);
+            String jsonData = serializeParam(params, jsonRpcContent);
             jsonRpcContent.setData(jsonData);
             return jsonRpcContent;
         }
         return null;
     }
 
-    public <T> T serializeParam(Object[] params, RpcContent<T> rpcContent) {
-        T serializeData = null;
+    public <T, R> R serializeParam(Object[] params, RpcContent<T, R> rpcContent) {
+        R serializeData = null;
         if (paramSerializeInfos == null || paramSerializeInfos.length <= 0) {
             return serializeData;
         }
-        if (rpcContentType.equals(RpcContentType.BYTES)) {
+        if (paramContentType.equals(RpcContentType.BYTES)) {
             serializeData = rpcContent.serializeParams(params, paramSerializeInfos, paddingOffset);
-        } else if (rpcContentType.equals(RpcContentType.JSON)) {
+        } else if (paramContentType.equals(RpcContentType.JSON)) {
             serializeData = rpcContent.serializeParams(params, paramSerializeInfos, paddingOffset);
+        }
+        return serializeData;
+    }
+
+    public Object serializeForReturn(Object[] params) {
+        Object serializeData = null;
+        if (returnSerializeInfos == null || returnSerializeInfos.length <= 0) {
+            return serializeData;
+        }
+        if (params[0] instanceof String){
+            //todo 还没想好，如果返回值是String 先用jsonContent处理处理序列化
+            serializeData = jsonRpcContent.serializeParams(params, returnSerializeInfos, 0);
+        }else {
+            serializeData = bytesRpcContent.serializeParams(params, returnSerializeInfos, 0);
         }
         return serializeData;
     }

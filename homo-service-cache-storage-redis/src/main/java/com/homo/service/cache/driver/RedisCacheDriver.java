@@ -10,7 +10,6 @@ import io.lettuce.core.KeyValue;
 import io.lettuce.core.RedisFuture;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.nio.charset.StandardCharsets;

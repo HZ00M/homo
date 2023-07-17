@@ -2,7 +2,7 @@ package com.homo.core.common.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
-import com.homo.core.common.facade.Driver;
+import com.homo.core.facade.Driver;
 
 import java.util.function.Consumer;
 

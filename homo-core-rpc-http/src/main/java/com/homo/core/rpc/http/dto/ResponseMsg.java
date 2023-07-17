@@ -4,10 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
 @Builder
 @AllArgsConstructor
-public class ResponseMsg {
+public class ResponseMsg implements Serializable {
     /**
      * 转发消息的结果，200代表成功，其他表示失败
      */

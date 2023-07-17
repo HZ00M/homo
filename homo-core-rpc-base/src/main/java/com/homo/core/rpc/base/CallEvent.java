@@ -45,9 +45,7 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
                         .consumerValue(ret -> {
                             log.debug("CallEvent consumerValue method ret, take {} milliseconds, o_{}, methodName_{}", System.currentTimeMillis() - start, handlerClazz, methodName);
                             Object[] resParam = new Object[]{ret};
-                            RpcContentType rpcContentType = callData.getMethodDispatchInfo().getRpcContentType();
-                            RpcContent rpcContent = RpcContentType.BYTES.equals(rpcContentType) ? new ByteRpcContent() : new JsonRpcContent();//todo 待优化 去除if else,使用静态方法进行序列化
-                            Object serializeParamForBack = callData.getMethodDispatchInfo().serializeParam(resParam, rpcContent);
+                            Object serializeParamForBack = callData.getMethodDispatchInfo().serializeForReturn(resParam);
                             if (span == null) {
                                 log.warn("o {} method {} form {} currentSpan is null!", callData.getO().getClass(), callData.getMethodDispatchInfo().getMethod(), callData);
                             } else {

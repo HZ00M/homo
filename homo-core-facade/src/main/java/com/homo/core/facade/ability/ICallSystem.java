@@ -1,6 +1,5 @@
 package com.homo.core.facade.ability;
 
-import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.utils.rector.Homo;
 import io.homo.proto.client.ParameterMsg;
 import io.homo.proto.entity.EntityRequest;

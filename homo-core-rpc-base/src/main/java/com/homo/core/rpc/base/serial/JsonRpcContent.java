@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class JsonRpcContent implements RpcContent<String> {
+public class JsonRpcContent implements RpcContent<String, String> {
     private String data;
 
     @Override
@@ -50,19 +50,44 @@ public class JsonRpcContent implements RpcContent<String> {
         JSONValidator.Type type = JSONValidator.from(jsonStr).setSupportMultiValue(true).getType();
         if (type == JSONValidator.Type.Array) {
             JSONArray jsonArray = JSON.parseArray(jsonStr);
-            for (int i = 0; i < paramSerializeInfoList.length; i++) {
-                Object obj = jsonArray.get(i);
-                if (obj instanceof JSONObject) {
-                    obj = ((JSONObject) obj).toJavaObject(paramSerializeInfoList[i + frameParamOffset].getParamType());
-                    returnParams[i + frameParamOffset] = obj;
+            for (int i = 0; i < paramSerializeInfoList.length - frameParamOffset; i++) {
+                int paramIndex = i + frameParamOffset;
+                Class<?> paramType = paramSerializeInfoList[paramIndex].getParamType();
+                Object arrItem = jsonArray.get(i);
+                Object obj = null;
+                if (arrItem != null && arrItem.getClass().isAssignableFrom(paramType)) {
+                    obj = arrItem;
+                } else if (arrItem instanceof JSONObject) {
+                    obj = ((JSONObject) arrItem).toJavaObject(paramType);
+                } else if (arrItem instanceof String) {
+                    String arrItemStr = (String) arrItem;
+                    JSONValidator.Type itemJsonType = JSONValidator.from(arrItemStr).setSupportMultiValue(true).getType();
+                    if (itemJsonType == JSONValidator.Type.Object && JSONObject.class.isAssignableFrom(paramType)) {
+                        obj = JSON.parseObject(arrItemStr, paramType);
+                    } else if (itemJsonType == JSONValidator.Type.Array && JSONArray.class.isAssignableFrom(paramType)) {
+                        obj = JSON.parseArray(arrItemStr, paramType);
+                    }else if (itemJsonType == JSONValidator.Type.Value && String.class.isAssignableFrom(paramType)) {
+                        obj = arrItemStr;
+                    }
                 }
+                returnParams[paramIndex] = obj;
             }
         } else if (type == JSONValidator.Type.Object) {
             JSONObject jsonObject = JSON.parseObject(jsonStr);
-            Object object = jsonObject.toJavaObject(paramSerializeInfoList[frameParamOffset].getParamType());
-            returnParams[frameParamOffset] = object;
-        }else {
-            returnParams[frameParamOffset] = jsonStr;
+            Object obj;
+            Class<?> paramType = paramSerializeInfoList[frameParamOffset].getParamType();
+            if (jsonObject.getClass().isAssignableFrom(paramType)) {
+                obj = jsonObject;
+            } else {
+                obj = jsonObject.toJavaObject(paramType);
+            }
+            returnParams[frameParamOffset] = obj;
+        } else {
+            Object obj = null;
+            if (jsonStr.getClass().isAssignableFrom(paramSerializeInfoList[frameParamOffset].getParamType())) {
+                obj = jsonStr;
+            }
+            returnParams[frameParamOffset] = obj;
         }
         return returnParams;
     }

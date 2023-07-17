@@ -31,6 +31,6 @@ public class RpcHandlerInfoForServer extends RpcHandleInfo {
 
     public Object[] unSerializeParamForInvoke(String funName, RpcContent rpcContent, Integer podId, ParameterMsg parameterMsg) {
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.unSerializeParam(rpcContent);
+        return methodDispatchInfo.unSerializeParam(rpcContent,podId,parameterMsg);
     }
 }

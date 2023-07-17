@@ -17,7 +17,7 @@
         <module>homo-core-test</module>
         <module>homo-core-facade</module>
         <module>homo-core-module</module>
-        <module>homo-core-auto-configurable</module>
+        <module>homo-core-properties</module>
         <module>homo-core-common</module>
         <module>homo-service-entity-storage-mongo</module>
         <module>homo-service-lock-redis</module>
@@ -45,7 +45,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>1.0.0</revision>
+        <revision>1.0.0.0</revision>
         <spring.boot.version>2.3.12.RELEASE</spring.boot.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -194,7 +194,7 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-auto-configurable</artifactId>
+                <artifactId>homo-core-properties</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

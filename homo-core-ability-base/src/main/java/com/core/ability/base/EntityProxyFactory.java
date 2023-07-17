@@ -1,7 +1,6 @@
 package com.core.ability.base;
 
 import com.homo.core.facade.ability.EntityType;
-import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.rpc.client.RpcClientMgr;

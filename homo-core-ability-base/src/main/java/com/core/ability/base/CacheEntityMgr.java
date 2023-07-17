@@ -5,7 +5,6 @@ import com.homo.core.facade.ability.AbilityEntityMgr;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
-import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.lang.KKMap;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
@@ -13,9 +12,7 @@ import com.homo.core.utils.reflect.HomoInterfaceUtil;
 import com.homo.core.utils.spring.GetBeanUtil;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Component;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.Callable;

@@ -1,7 +1,7 @@
 package com.homo.service.dirty;
 
-import com.homo.core.utils.module.Module;
 import com.homo.core.configurable.dirty.DirtyProperties;
+import com.homo.core.facade.module.Module;
 import com.homo.core.facade.storege.dirty.DirtyDriver;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import lombok.extern.log4j.Log4j2;

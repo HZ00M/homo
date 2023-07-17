@@ -1,13 +1,15 @@
-package com.homo.core.utils.module;
+package com.homo.core.common.module;
 
 import com.homo.core.common.apollo.ConfigDriver;
 import com.homo.core.configurable.module.ModuleProperties;
+import com.homo.core.facade.module.RootModule;
+import com.homo.core.facade.module.ServerInfo;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 @Log4j2
-public class RootModuleImpl implements RootModule{
+public class RootModuleImpl implements RootModule {
     @Autowired(required = false)
     ModuleProperties moduleProperties;
     public static String SERVER_POD_NAME = "POD_NAME";

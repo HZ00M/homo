@@ -6,7 +6,6 @@ import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.serial.JsonRpcContent;
 import com.homo.core.rpc.http.dto.ResponseMsg;
-import com.homo.core.utils.exception.HomoException;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.log4j.Log4j2;
@@ -96,12 +95,14 @@ public class HttpServer {
                 .nextDo(ret->{
                     ResponseMsg responseMsg = ResponseMsg.builder().msgId(msgId).msg("ok").msgContent(ret).code(HttpStatus.OK.value()).build();
                     String resStr = JSON.toJSONString(responseMsg);
+                    log.info("onCall success msgId {} responseMsg {}", msgId, resStr);
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
                     DataBuffer buffer = dataBufferFactory.wrap(resStr.getBytes(StandardCharsets.UTF_8));
                     return Mono.just(buffer);
                 })
                 .onErrorContinue(throwable -> {
                     response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+                    log.info("onCall begin msgId {} throwable", msgId, throwable);
                     return Homo.error(throwable);
                 })
                 ;

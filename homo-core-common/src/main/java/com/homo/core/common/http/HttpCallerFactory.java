@@ -1,4 +1,4 @@
-package com.homo.core.utils.http;
+package com.homo.core.common.http;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.DefaultHttpHeaders;

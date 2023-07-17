@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FileRpcContent implements RpcContent<UploadFile> {
+public class FileRpcContent implements RpcContent<UploadFile,byte[]> {
     UploadFile data;
     RpcContentType type;
     Span span;
@@ -42,7 +42,7 @@ public class FileRpcContent implements RpcContent<UploadFile> {
     }
 
     @Override
-    public UploadFile serializeParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
+    public byte[] serializeParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
         return null;
     }
 

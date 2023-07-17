@@ -3,7 +3,6 @@ package com.homo.core.rpc.grpc;
 import brave.Span;
 import com.google.protobuf.ByteString;
 import com.homo.core.facade.rpc.RpcServer;
-import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.serial.JsonRpcContent;
 import com.homo.core.rpc.grpc.proccessor.CallErrorProcessor;

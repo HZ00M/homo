@@ -1,6 +1,6 @@
 package com.homo.core.root.storage;
 
-import com.homo.core.utils.module.Module;
+import com.homo.core.facade.module.Module;
 import com.homo.core.facade.storege.SaveObject;
 import com.homo.core.utils.lang.Pair;
 import com.homo.core.utils.rector.Homo;
@@ -67,7 +67,7 @@ public class ObjStorage implements Module {
        return storage.get( appId, regionId, logicType, ownerId, key)
                .nextDo(ret-> {
                    if (ret == null){
-                       return Homo.empty();
+                       return Homo.result(null);
                    }else {
                        return Homo.result(serializationProcessor.readValue(ret,clazz));
                    }

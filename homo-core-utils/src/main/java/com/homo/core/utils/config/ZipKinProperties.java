@@ -1,4 +1,4 @@
-package com.homo.core.configurable.zipkin;
+package com.homo.core.utils.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Configurable;

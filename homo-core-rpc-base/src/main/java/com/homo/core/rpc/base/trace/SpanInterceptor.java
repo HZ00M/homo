@@ -26,7 +26,7 @@ public class SpanInterceptor implements ServerInterceptor {
 
         @Override
         public void onMessage(IN message) {
-            log.info("SpanInterceptor onMessage");
+            log.info("SpanInterceptor message IN");
             if (message instanceof StreamReq) {
                 span = getSpan((StreamReq) message);
                 MDC.put("TRACE_ID", span.context().traceIdString());
@@ -47,7 +47,7 @@ public class SpanInterceptor implements ServerInterceptor {
 
         @Override
         public void sendMessage(OUT message) {
-            log.info("SpanInterceptor sendMessage");
+            log.info("SpanInterceptor message OUT");
             //发送到客户端
             span.tag(ZipkinUtil.FINISH_TAG, "sendMessage")
                     .annotate(ZipkinUtil.SERVER_SEND_TAG)

@@ -1,7 +1,6 @@
 package com.homo.core.rpc.base.serial;
 
 import brave.Span;
-import com.alibaba.fastjson.JSONObject;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.facade.rpc.SerializeInfo;
@@ -15,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ByteRpcContent implements RpcContent<byte[][]> {
+public class ByteRpcContent implements RpcContent<byte[][],byte[][]> {
     byte[][] data;
     Span span;
 

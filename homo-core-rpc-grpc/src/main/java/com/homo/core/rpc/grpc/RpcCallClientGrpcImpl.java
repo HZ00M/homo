@@ -3,7 +3,6 @@ package com.homo.core.rpc.grpc;
 import brave.Span;
 import com.homo.core.configurable.rpc.RpcGrpcClientProperties;
 import com.homo.core.facade.rpc.RpcClient;
-import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.serial.JsonRpcContent;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
@@ -88,12 +87,16 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                     try {
                         InetAddress[] newAddress = InetAddress.getAllByName(host);
                         servicePodChanged = checkChannelChanged(newAddress);
-                        log.info("RpcCallClientGrpcImpl lookupCheckAddress service pod changed {} newAddress {}", servicePodChanged, newAddress);
+                        if (servicePodChanged){
+                            log.info("RpcCallClientGrpcImpl lookupCheckAddress service pod changed {} newAddress {}", servicePodChanged, newAddress);
+                        }else {
+                            log.trace("RpcCallClientGrpcImpl lookupCheckAddress service pod changed {} newAddress {}", servicePodChanged, newAddress);
+                        }
                     } catch (Exception e) {
                         log.error("RpcCallClientGrpcImpl lookupCheckAddress parse service pod error,service {}", host);
                     }
                 }
-            }, checkDelay, checkPeriod, 0);
+            }, checkDelay * 1000L, checkPeriod * 1000L, 0);
         }
     }
 
@@ -196,6 +199,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
 
     @Override
     public Homo<Tuple2<String, ByteRpcContent>> asyncBytesCall(Req req) {
+        log.info("asyncBytesCall req {}",req);
         ManagedChannel callChannel = getChannel(true);
         RpcCallServiceGrpc.RpcCallServiceStub stub = RpcCallServiceGrpc.newStub(getChannel(true));//多路复用
         Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.CLIENT_SEND_TAG).tag("reqId", req.getMsgId());
@@ -329,6 +333,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
 
     @Override
     public Homo<Tuple2<String, JsonRpcContent>> asyncJsonCall(JsonReq jsonReq) {
+        log.info("asyncJsonCall jsonReq {}",jsonReq);
         ManagedChannel channel = getChannel(true);
         RpcCallServiceGrpc.RpcCallServiceStub stub = RpcCallServiceGrpc.newStub(channel);
         Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.CLIENT_SEND_TAG).tag("reqId", jsonReq.getMsgId());

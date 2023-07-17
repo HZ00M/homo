@@ -1,4 +1,4 @@
-package com.homo.core.common.facade;
+package com.homo.core.facade;
 
 /**
  * 驱动接口

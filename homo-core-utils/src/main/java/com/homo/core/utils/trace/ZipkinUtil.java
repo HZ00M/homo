@@ -10,8 +10,7 @@ import brave.rpc.RpcTracing;
 import brave.sampler.RateLimitingSampler;
 import brave.sampler.Sampler;
 import brave.sampler.SamplerFunction;
-import com.homo.core.utils.module.SupportModule;
-import com.homo.core.configurable.zipkin.ZipKinProperties;
+import com.homo.core.utils.config.ZipKinProperties;
 import com.homo.core.utils.fun.ConsumerEx;
 import io.grpc.ClientInterceptor;
 import io.grpc.ServerInterceptor;
@@ -31,7 +30,7 @@ import java.util.function.Consumer;
  * zipkin追踪流程  clientSend->serverReceiver->serverSend->clientReceive
  */
 @Log4j2
-public class ZipkinUtil implements SupportModule {
+public class ZipkinUtil  {
     public static final String CLIENT_SEND_TAG = "cs";
     public static final String SERVER_RECEIVE_TAG = "sr";
     public static final String SERVER_SEND_TAG = "ss";
@@ -41,14 +40,13 @@ public class ZipkinUtil implements SupportModule {
     private static Tracing tracing = null;
     private static RpcTracing rpcTracing;
 
-    @Autowired(required = false)
     private ZipKinProperties zipKinProperties;
 
     //要与brave.Span区别开，Brave是Java版的Zipkin客户端
     private AsyncReporter<zipkin2.Span> asyncReporter;
 
-    @Override
-    public void init() {
+    public void init(ZipKinProperties zipKinProperties) {
+        this.zipKinProperties = zipKinProperties;
         if (tracing != null) {
             log.info("tracing close");
             tracing.close();
@@ -57,12 +55,12 @@ public class ZipkinUtil implements SupportModule {
             log.info("asyncReporter close");
             asyncReporter.close();
         }
-        String localServiceName = getServerInfo().serverName;
+//        String localServiceName = serviceName;
         log.info(
                 "zipkin 开关 [{}] 上报地址:[{}] ，本地服务名:{} 每秒采样次数:{}",
                 zipKinProperties.isOpen,
                 zipKinProperties.reportAddr,
-                localServiceName,
+//                localServiceName,
                 zipKinProperties.tracesPerSecond);
         Tracing.Builder tracingBuilder = Tracing.newBuilder();
         if (zipKinProperties.isOpen()) {
@@ -71,7 +69,7 @@ public class ZipkinUtil implements SupportModule {
             AsyncReporter<zipkin2.Span> reporter = AsyncReporter.create(sender);
             asyncReporter = reporter;
             tracingBuilder.addSpanHandler(ZipkinSpanHandler.create(reporter))
-                    .localServiceName(localServiceName)
+//                    .localServiceName(localServiceName)
                     .sampler(RateLimitingSampler.create(zipKinProperties.tracesPerSecond))
                     .supportsJoin(zipKinProperties.supportsJoin);
         } else {

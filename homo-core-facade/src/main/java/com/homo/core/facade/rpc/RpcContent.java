@@ -2,13 +2,13 @@ package com.homo.core.facade.rpc;
 
 import io.homo.proto.client.ParameterMsg;
 
-public interface RpcContent<T> {
+public interface RpcContent<P,R> {
     RpcContentType getType();
 
-    T getData();
-    void setData(T data);
+    P getData();
+    void setData(P data);
 
     Object[] unSerializeParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId , ParameterMsg parameterMsg);
 
-    T serializeParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset);
+    R serializeParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset);
 }
