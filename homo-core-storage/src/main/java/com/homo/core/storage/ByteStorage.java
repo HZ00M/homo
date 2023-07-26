@@ -1,4 +1,4 @@
-package com.homo.core.root.storage;
+package com.homo.core.storage;
 
 import com.homo.core.facade.module.Module;
 import com.homo.core.facade.storege.StorageDriver;

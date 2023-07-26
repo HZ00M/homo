@@ -1,7 +1,7 @@
 package com.homo.core.storage.test;
 
 import com.homo.core.facade.module.RootModule;
-import com.homo.core.root.storage.ByteStorage;
+import com.homo.core.storage.ByteStorage;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
 import lombok.extern.log4j.Log4j2;

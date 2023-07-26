@@ -1,4 +1,4 @@
-package com.core.ability.base.storage;
+package com.homo.core.facade.ability;
 
 import com.homo.core.facade.ability.AbilityAble;
 import com.homo.core.facade.ability.Entity;

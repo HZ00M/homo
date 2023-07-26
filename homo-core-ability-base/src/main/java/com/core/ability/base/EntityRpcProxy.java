@@ -118,21 +118,22 @@ public class EntityRpcProxy implements MethodInterceptor {
             ExchangeHostName.exchange(serviceName, entityRequest)
                     .nextDo(name -> {
                         if (name == null) {
-                            return serviceStateMgr.getServiceNameByTag(type)
-                                    .consumerValue(serviceNameByTag -> {
-                                        if (type.equals(serviceNameByTag)) {
+                            return serviceStateMgr.getServiceInfo(type)
+                                    .nextValue(serviceInfo -> {
+                                        if (serviceInfo ==  null) {
                                             log.error("entity proxy rpcClientCall getServiceNameByTag is null. type {} id {} funName {}", type, id, methodName);
                                             homoSink.error(new Throwable("entity proxy rpcClientCall getServiceNameByTag is null"));
                                         } else {
-                                            serviceName = serviceNameByTag;
+                                            serviceName = serviceInfo.getServiceTag();
                                         }
+                                        return serviceName;
                                     });
                         } else {
                             return Homo.result(name);
                         }
                     }).nextDo(realName -> {
                         RpcContent rpcContent = serviceEntityRpcInfo.serializeParamForInvoke(IEntityService.default_entity_call_method, new Object[]{-1,entityRequest});
-                        return rpcClientMgr.getRpcAgentClient(serviceName, realName, serviceMgr.getMainService().getType())
+                        return rpcClientMgr.getFacadeRpcClient(serviceName, realName)
                                 .rpcCall(IEntityService.default_entity_call_method, rpcContent)
                                 .consumerValue(ret -> {
                                     Tuple2<String,RpcContent> msgIdAndContent = (Tuple2<String, RpcContent>) ret;

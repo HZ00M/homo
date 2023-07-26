@@ -1,7 +1,7 @@
 package com.homo.core.entity.facade;
 
-import com.core.ability.base.storage.CacheTime;
-import com.core.ability.base.storage.StorageTime;
+import com.homo.core.facade.ability.CacheTime;
+import com.homo.core.facade.ability.StorageTime;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.utils.rector.Homo;
 import io.homo.proto.entity.test.TestEntityRequest;

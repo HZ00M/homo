@@ -129,8 +129,11 @@ public class MethodDispatchInfo implements RpcSecurity {
         return rpcContent.unSerializeParams(paramSerializeInfos, paddingOffset, podId, parameterMsg);
     }
 
+    public Object[] unSerializeParam(RpcContent rpcContent) {
+        return rpcContent.unSerializeParams(paramSerializeInfos, 0, null, null);
+    }
     public Object[] unSerializeParam(RpcContent rpcContent,Integer podId, ParameterMsg parameterMsg) {
-        return this.unSerializeParam(null, null, rpcContent);
+        return this.unSerializeParam(podId, parameterMsg, rpcContent);
     }
 
     public RpcContent serializeParamContent(Object[] params) {

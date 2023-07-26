@@ -115,7 +115,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
             //如果当前channel被使用，就先放入releaseMap打上标记,如果没有被使用，则关闭当前channel
             if (servicePodChanged && playload && channel != null) {
                 Integer refCount = channelReferenceMap.get(channel);
-                if (refCount != null && refCount < 0) {
+                if (refCount != null && refCount <= 0) {
                     channel.shutdown();
                 } else {
                     channelReleaseMap.put(channel, true);
@@ -126,6 +126,8 @@ public class RpcCallClientGrpcImpl implements RpcClient {
             if (channel != null && (channel.isTerminated() || channel.isShutdown())) {
                 channelReferenceMap.remove(channel);
                 channelReleaseMap.remove(channel);
+                isShutdown = true;
+
             }
             //如果channel不存在，或者channel已经被标记清除，或者channel已经断开，重新建立channel
             if (channel == null || channelReleaseMap.get(channel) != null || isShutdown) {
@@ -201,7 +203,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
     public Homo<Tuple2<String, ByteRpcContent>> asyncBytesCall(Req req) {
         log.info("asyncBytesCall req {}",req);
         ManagedChannel callChannel = getChannel(true);
-        RpcCallServiceGrpc.RpcCallServiceStub stub = RpcCallServiceGrpc.newStub(getChannel(true));//多路复用
+        RpcCallServiceGrpc.RpcCallServiceStub stub = RpcCallServiceGrpc.newStub(callChannel);//多路复用
         Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.CLIENT_SEND_TAG).tag("reqId", req.getMsgId());
         MDC.put("TRACE_ID", span.context().traceIdString());
         Homo<Tuple2<String, ByteRpcContent>> result = Homo.warp(new ConsumerEx<HomoSink<Tuple2<String, ByteRpcContent>>>() {

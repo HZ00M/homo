@@ -1,7 +1,7 @@
 package com.core.ability.base;
 
-import com.core.ability.base.call.CallAble;
-import com.core.ability.base.timer.TimeAble;
+import com.homo.core.facade.ability.CallAble;
+import com.homo.core.facade.ability.TimeAble;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.homo.core.facade.ability.Ability;
 import com.homo.core.facade.ability.AbilityEntity;

@@ -13,7 +13,7 @@ import com.homo.core.rpc.http.upload.DefaultUploadFile;
 import com.homo.core.rpc.http.upload.UploadFile;
 import com.homo.core.utils.serial.FSTSerializationProcessor;
 import com.homo.core.utils.trace.ZipkinUtil;
-import io.homo.proto.rpc.HttpHeadInfo;
+import io.homo.proto.client.ClientRouterHeader;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -169,9 +169,9 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                                 checkDataBufferSize(dataBuffer);
                                 byte[] msgContent = new byte[dataBuffer.readableByteCount()];
                                 //参数格式 (pb协议,http头信息)
-                                HttpHeadInfo httpHeadInfo = HttpHeadInfo.newBuilder()
+                                ClientRouterHeader routerHeader = ClientRouterHeader.newBuilder()
                                         .putAllHeaders(request.getHeaders().toSingleValueMap()).build();
-                                byte[][] msg = {msgContent, httpHeadInfo.toByteArray()};
+                                byte[][] msg = {msgContent, routerHeader.toByteArray()};
                                 log.info("httpProtoPost begin port {} msgId {} ", port, msgId);
                                 dataBuffer.read(msgContent);
                                 HttpServer httpServer = routerHttpServerMap.get(port);

@@ -1,8 +1,8 @@
 package com.homo.core.entity.client;
 
 import com.core.ability.base.AbstractAbilityEntity;
-import com.core.ability.base.storage.SaveAble;
-import com.core.ability.base.timer.TimeAble;
+import com.homo.core.facade.ability.SaveAble;
+import com.homo.core.facade.ability.TimeAble;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.log4j.Log4j2;
 

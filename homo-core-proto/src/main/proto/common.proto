@@ -6,19 +6,25 @@ option java_outer_classname = "CommonProto";
 
 package msg;
 
-//message ClientRouterMsg {
-//  string serviceName   = 1;
-//  string token         = 2;
-//  string userid        = 3;
-//  string channlId      = 4;
-//  string msgId         = 5;
-//  bytes msgContent     = 6;
-//}
-//
-//RpcHandler
-//message ClientAuthMsg {
-//  string token        = 1;
-//  string userid         = 2;
+message ClientRouterMsg {
+  string appId =1;
+  string srcService = 2;
+  string token = 3;
+  string userId = 4;
+  string channelId = 5;
+  string msgId = 6;
+  string sign = 7;
+  string entityType = 8;
+  repeated bytes msgContent = 9;
+}
+//message ClientEntityRouterMsg {
+//  string entityType =1;
+//  string token = 2;
+//  string userId = 3;
+//  string channelId = 4;
+//  string msgId = 5;
+//  repeated bytes msgContent = 6;
+//  repeated bytes extraContent = 7;
 //}
 
 message ParameterMsg {
@@ -26,39 +32,13 @@ message ParameterMsg {
   string channelId     = 2;
 }
 
-//message ToClientReq {
-//  string clientid    = 1;
-//  string msgType     = 2;
-//  bytes msgContent   = 3;
-//}
-//
-//message RouterMsgReq {
-//  string serviceName   = 1;
-//  string msgId         = 2;
-//  string msgType       = 3;
-//  bytes msgContent     = 4;
-//}
-//
-//
-//message LoginMsgReq {
-//  string token          = 1;
-//  string userId         = 2;
-//  string channelId      = 3;
-//}
-//
-//message LoginMsgResp {
-//  string errorMsg     = 1;
-//}
-//
-////有状态proxy错误码
-//message ProxyErrorMsg {
-//  enum ErrorType //枚举消息类型
-//  {
-//    OK = 0;
-//    ERROR = 1;
-//    USER_NOT_FOUND = 2;
-//    PODID_IS_NULL = 3;
-//  }
-//  int32 errorCode = 1;
-//  string info = 2;
-//}
+message ClientRouterHeader{
+  map<string,string> headers = 1;
+}
+
+message Msg{
+  string msgId        = 1;   //消息id
+  bytes msgContent   = 2;   //业务返回的结构
+  int32 code = 3;//错误码
+  string codeDesc = 4; //错误描述
+}

@@ -1,12 +1,9 @@
-package com.core.ability.base.storage;
+package com.homo.core.facade.ability;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-/**
- * 二级缓存时间
- */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CacheTime {
+public @interface StorageTime {
     long value() default 0;
 }

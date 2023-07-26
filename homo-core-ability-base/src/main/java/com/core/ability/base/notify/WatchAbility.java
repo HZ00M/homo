@@ -2,6 +2,7 @@ package com.core.ability.base.notify;
 
 import com.core.ability.base.AbstractAbility;
 import com.homo.core.facade.ability.AbilityEntity;
+import com.homo.core.facade.ability.ListenerAble;
 
 import java.util.ArrayList;
 import java.util.HashMap;

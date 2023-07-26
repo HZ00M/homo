@@ -2,6 +2,7 @@ package com.core.ability.base.timer;
 
 import com.homo.core.facade.ability.AbilityEntityMgr;
 import com.homo.core.facade.ability.AbilitySystem;
+import com.homo.core.facade.ability.TimeAble;
 import lombok.extern.log4j.Log4j2;
 
 /**

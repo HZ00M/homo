@@ -1,10 +1,10 @@
-package com.homo.core.root.config;
+package com.homo.core.storage.config;
 
 import com.homo.core.facade.document.EntityStorageDriver;
-import com.homo.core.root.storage.ByteStorage;
-import com.homo.core.root.storage.EntityStorage;
-import com.homo.core.root.storage.ObjStorage;
-import com.homo.core.root.storage.RectorEntityStorage;
+import com.homo.core.storage.ByteStorage;
+import com.homo.core.storage.EntityStorage;
+import com.homo.core.storage.ObjStorage;
+import com.homo.core.storage.RectorEntityStorage;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +15,7 @@ import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 @Log4j2
-public class CoreAutoConfiguration {
+public class StorageAutoConfiguration {
 
     @Bean("byteStorage")
     @DependsOn("storageDriver")

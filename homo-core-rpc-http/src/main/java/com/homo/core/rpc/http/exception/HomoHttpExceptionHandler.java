@@ -1,6 +1,7 @@
 package com.homo.core.rpc.http.exception;
 
 import com.alibaba.fastjson.JSON;
+
 import com.homo.core.rpc.http.dto.ResponseMsg;
 import com.homo.core.utils.exception.HomoException;
 import lombok.extern.log4j.Log4j2;
@@ -26,14 +27,14 @@ public class HomoHttpExceptionHandler implements WebExceptionHandler {
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
         log.error("HomoHttpExceptionHandler exchange {} error", request.getId(), throwable);
-        ResponseMsg responseMsg;
+        ResponseMsg msg;
         if (throwable instanceof HomoException){
             HomoException homoException = (HomoException) throwable;
-            responseMsg = ResponseMsg.builder().msg(homoException.getMessage()).code(homoException.getCode()).build();
+            msg = ResponseMsg.builder().codeDesc(homoException.getMessage()).code(homoException.getCode()).build();
         }else {
-            responseMsg = ResponseMsg.builder().msg(throwable.getMessage()).code(HttpStatus.INTERNAL_SERVER_ERROR.value()).build();
+            msg = ResponseMsg.builder().codeDesc(throwable.getMessage()).code(HttpStatus.INTERNAL_SERVER_ERROR.value()).build();
         }
-        String repStr = JSON.toJSONString(responseMsg);
+        String repStr = JSON.toJSONString(msg);
 
         NettyDataBufferFactory dataBufferFactory =
                 (NettyDataBufferFactory) response.bufferFactory();

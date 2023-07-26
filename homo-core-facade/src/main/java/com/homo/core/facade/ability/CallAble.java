@@ -1,4 +1,4 @@
-package com.core.ability.base.call;
+package com.homo.core.facade.ability;
 
 import com.homo.core.facade.ability.AbilityAble;
 

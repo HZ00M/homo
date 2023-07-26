@@ -1,9 +1,13 @@
 package com.homo.core.rpc.base.serial;
 
+import com.homo.core.facade.ability.EntityType;
+import com.homo.core.facade.ability.IEntityService;
+import com.homo.core.facade.service.InnerService;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import lombok.extern.log4j.Log4j2;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,13 +18,17 @@ public class RpcHandleInfo {
 
     public void exportMethodInfos(Class<?> rpcClazz) {
         if (!rpcClazz.isInterface()){
+            //只暴露接口方法
             return;
         }
-        Class<?> annotationInterface = HomoAnnotationUtil.findAnnotationInterface(rpcClazz, ServiceExport.class);
-        if (annotationInterface == null){
+        Map<Class<?>, Annotation> annotations = HomoAnnotationUtil.findAnnotations(rpcClazz);
+        if (!annotations.containsKey(ServiceExport.class) &&
+                !annotations.containsKey(InnerService.class) &&
+                !annotations.containsKey(EntityType.class)){
+            //只暴露指定注解的接口
             return;
         }
-        Method[] methods = annotationInterface.getMethods();
+        Method[] methods = rpcClazz.getMethods();
         for (Method method : methods) {
             String methodName = method.getName();
             try {

@@ -6,6 +6,7 @@ import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
+import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.RpcInterceptor;
 import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
@@ -50,7 +51,7 @@ public class BaseService implements Service, IEntityService {
         port = Integer.parseInt(split[1]);
         driverType = serviceExport.driverType();
         stateful = serviceExport.isStateful();
-        GetBeanUtil.getBean(ServiceStateMgr.class).setServiceNameTag(tagName, tagName).start();
+        GetBeanUtil.getBean(ServiceStateMgr.class).setServiceInfo(hostName, new ServiceInfo(tagName, stateful ? 1 : 0)).start();
         rpcHandleInfo = new RpcHandlerInfoForServer(this.getClass());
         callDispatcher = new CallDispatcher(rpcHandleInfo);
         postInit();
@@ -128,12 +129,12 @@ public class BaseService implements Service, IEntityService {
     }
 
     @Override
-    public Homo<EntityResponse> entityCall(Integer podIndex, EntityRequest request) throws Exception {
+    public Homo<EntityResponse> entityCall(Integer podIndex,ParameterMsg parameterMsg, EntityRequest request) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("entityCall podIndex {} type {} id {} request {}", podIndex, request.getType(), request.getId(), request);
         }
         ZipkinUtil.getTracing().tracer().currentSpan().tag("entityCall", request.getFunName());
-        return callSystem.call(request.getSrcName(), request, podIndex, null);
+        return callSystem.call(request.getSrcName(), request, podIndex, parameterMsg);
     }
 
     @Override

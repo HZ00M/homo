@@ -21,7 +21,7 @@ public class CallDispatcher {
     protected RpcInterceptor interceptor;
 
     public Homo callFun(Object handler, String srcService, String funName, RpcContent rpcContent) throws HomoException {
-        return callFun(handler, srcService, funName, rpcContent, null, null, null, null);
+        return callFun(handler, srcService, funName, rpcContent,null,null,null,null);
     }
 
     public CallDispatcher(RpcHandlerInfoForServer rpcHandleInfo, RpcInterceptor interceptor) {
@@ -37,14 +37,19 @@ public class CallDispatcher {
         MethodDispatchInfo methodDispatchInfo = rpcHandleInfo.getMethodDispatchInfo(funName);
         if (methodDispatchInfo == null){
             log.error("callFun srcService {} funName {} not found", srcService, funName);
-            throw HomoError.throwError(HomoError.callMethodNotFound);
+            return Homo.error(HomoError.throwError(HomoError.callMethodNotFound));
         }
         if (!methodDispatchInfo.isCallAllowed(srcService)) {
             log.error("callFun srcService {} funName {} not allow", srcService, funName);
-            throw HomoError.throwError(HomoError.callAllow);
+            return Homo.error(HomoError.throwError(HomoError.callAllow));
         }
         Span span = ZipkinUtil.currentSpan();
-        Object[] unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName, rpcContent, podId, parameterMsg);
+        Object[] unSerializeParam;
+        if (podId == null && parameterMsg == null){//如果填充参数是空，则不填充
+            unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName, rpcContent);
+        }else {
+            unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName, rpcContent, podId, parameterMsg);
+        }
         Homo<CallData> callTask = Homo.result(new CallData(handler, methodDispatchInfo, unSerializeParam, queueId, srcService, locKQueue, span,true, CallQueueMgr.DEFAULT_CHOICE_THREAD_STRATEGY));
         Homo retPromise;
         if (interceptor != null) {

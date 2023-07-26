@@ -84,7 +84,8 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
             public void accept(HomoSink<Integer> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(statefulGetLink, keys, args)
                         .subscribe(ret -> {
-                            Integer rel = (Integer) ret;
+                            String podIdStr = (String) ((List) ret).get(0);
+                            Integer rel = Integer.valueOf(podIdStr);
                             log.trace("getLinkedPod  appId {} regionId {} logicType {} serviceName {} uid {} rel {}", appId, regionId, logicType, serviceName, uid, rel);
                             homoSink.success(rel);
                         });

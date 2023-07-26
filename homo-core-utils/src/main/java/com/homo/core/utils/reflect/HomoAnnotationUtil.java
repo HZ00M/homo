@@ -22,13 +22,15 @@ public class HomoAnnotationUtil {
         }
         T annotation = typeClazz.getAnnotation(annotationClazz);
         if (annotation != null) {
-            log.trace("getAnnotation typeClass {} {} find !", typeClazz, annotationClazz);
+            log.info("getAnnotation typeClass {} {} find !", typeClazz, annotationClazz);
+            annotationClassMap.put(annotationClazz,annotation);
             return annotation;
         }
         for (Class<?> anInterface : typeClazz.getInterfaces()) {
             annotation = findAnnotation(anInterface, annotationClazz);
             if (annotation != null) {
-                log.trace("getAnnotation typeClass {} {} find !", typeClazz, annotationClazz);
+                log.info("getAnnotation typeClass {} {} find !", typeClazz, annotationClazz);
+                annotationClassMap.put(annotationClazz,annotation);
                 return annotation;
             }
         }
@@ -36,13 +38,13 @@ public class HomoAnnotationUtil {
         if (supper != null) {
             return findAnnotation(supper, annotationClazz);
         }
-        log.trace("getAnnotation typeClass {} {} not find !", typeClazz, annotationClazz);
+        log.info("getAnnotation typeClass {} {} not find !", typeClazz, annotationClazz);
         return null;
     }
 
     public <T extends Annotation> Map<Class<?>, Annotation> findAnnotations(Class<?> typeClazz) {
         if (annotationCache.containsKey(typeClazz)) {
-            return  annotationCache.get(typeClazz);
+            return annotationCache.get(typeClazz);
         }
         Map<Class<?>, Annotation> annotationClassMap = annotationCache.computeIfAbsent(typeClazz, k -> new HashMap<>());
 

@@ -6,7 +6,6 @@ import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
-import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.exception.HomoException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeansException;
@@ -34,16 +33,20 @@ public class RpcClientMgr implements ServiceModule, ApplicationContextAware {
     }
 
     public RpcAgentClient getGrpcServerlessAgentClient(String hostname) throws HomoException {
+        return getGrpcAgentClient(hostname, false);
+    }
+
+    public RpcAgentClient getGrpcAgentClient(String hostname, boolean isStateful) throws HomoException {
         RpcAgentClient rpcAgentClient;
         synchronized (RpcAgentClient.class) {
             //k8s域名格式: hostname(tagName带-n序号).tagName.namespaceId.svc.cluster.local
             rpcAgentClient = rpcAgentClientMap.computeIfAbsent(hostname, s -> {
                 String host = ServiceUtil.getServiceHostName(hostname);
                 int port = ServiceUtil.getServicePort(hostname);
-                log.info("new agent begin  hostname {} port {}", hostname, port);
+                log.info("new agent begin  hostname {} port {} isStateful {}", hostname, port, isStateful);
 
-                RpcAgentClient newAgent = rpcClientFactoryMap.get(RpcType.grpc).newAgent(host, port, false);
-                log.info("new agent finish  hostname {} port {}", hostname, port);
+                RpcAgentClient newAgent = rpcClientFactoryMap.get(RpcType.grpc).newAgent(host, port, isStateful);
+                log.info("new agent finish  hostname {} port {} isStateful {}", hostname, port, isStateful);
                 return newAgent;
             });
         }
@@ -57,33 +60,9 @@ public class RpcClientMgr implements ServiceModule, ApplicationContextAware {
      * @param hostname 服务器域名 ip+port
      * @return RpcClientDriver 调用驱动器
      */
-    public RpcAgentClient getRpcAgentClient(String tagName, String hostname, RpcType rpcType) throws HomoException {
-        RpcAgentClient rpcAgentClient;
-        if (!rpcClientFactoryMap.containsKey(rpcType)) {
-            log.error("RpcAgent no support rpcType {} tagName {}", rpcType, tagName);
-            throw HomoError.throwError(HomoError.rpcAgentTypeNotSupport, rpcType, tagName);
-        }
-        synchronized (RpcAgentClient.class) {
-            //k8s域名格式: hostname(tagName带-n序号).tagName.namespaceId.svc.cluster.local
-            rpcAgentClient = rpcAgentClientMap.computeIfAbsent(hostname, s -> {
-                String host = ServiceUtil.getServiceHostName(hostname);
-                int port = ServiceUtil.getServicePort(hostname);
-                log.info(
-                        "new agent begin, tagName {} hostname {} port {}",
-                        tagName,
-                        hostname,
-                        port);
-
-                RpcAgentClient newAgent = rpcClientFactoryMap.get(rpcType).newAgent(host, port, serviceMgr.getServiceExportInfo(tagName).isStateful());
-                log.info(
-                        "new agent finish, tagName {} hostname {} port {}",
-                        tagName,
-                        hostname,
-                        port);
-                return newAgent;
-            });
-        }
-        return rpcAgentClient;
+    public RpcAgentClient getFacadeRpcClient(String tagName, String hostname) throws HomoException {
+        boolean isStateful = serviceMgr.getServiceExportInfo(tagName).isStateful();
+        return getGrpcAgentClient(hostname, isStateful);
     }
 
     @Override

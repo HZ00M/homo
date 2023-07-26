@@ -3,6 +3,7 @@ package com.homo.core.rpc.client.proxy;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.service.ServiceExport;
+import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.service.ServiceMgr;
@@ -49,7 +50,9 @@ public class RpcProxy implements MethodInterceptor {
         ServiceExport export = interfaceType.getAnnotation(ServiceExport.class);
         if (export != null){
             String tag = export.tagName();
-            serviceStateMgr.setLocalServiceNameTag(tag, tagName);
+            Integer stateful = export.isStateful()?1:0;
+            ServiceInfo serviceInfo = new ServiceInfo(tag,stateful);
+            serviceStateMgr.setLocalServiceInfo(tag, serviceInfo);
         }
     }
 
@@ -71,7 +74,7 @@ public class RpcProxy implements MethodInterceptor {
                     if (!StringUtils.isEmpty(realHostName)){
                         RpcContent callContent = rpcHandlerInfoForClient.serializeParamForInvoke(methodName,objects);
                         return rpcClientMgr
-                                .getRpcAgentClient(tagName, realHostName,rpcType)
+                                .getFacadeRpcClient(tagName, realHostName)
                                 .rpcCall(methodName, callContent)
                                 .nextDo(ret-> {
                                     return processReturn(methodName, (Tuple2<String, ByteRpcContent>) ret);
@@ -82,7 +85,7 @@ public class RpcProxy implements MethodInterceptor {
                                 })
                                 ;
                     }else {
-                        throw HomoError.throwError(HomoError.hostNotFound,tagName);
+                        return Homo.result(HomoError.throwError(HomoError.hostNotFound,tagName));
                     }
                 });
 
@@ -94,7 +97,7 @@ public class RpcProxy implements MethodInterceptor {
         String msgId = retTuple.getT1();
         ByteRpcContent rpcContent = retTuple.getT2();
         if (!msgId.equals(methodName)){//返回的msgId不等于方法名  抛出异常
-            throw HomoError.throwError(Integer.parseInt(msgId),msgId);
+            return Homo.error(HomoError.throwError(Integer.parseInt(msgId),msgId));
         }
         Object[] param = rpcHandlerInfoForClient.unSerializeParamForCallback(methodName, rpcContent);
         Homo returnHomo;

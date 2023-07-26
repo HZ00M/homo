@@ -95,6 +95,8 @@ public interface ServiceStateMgr extends ServiceModule {
     Homo<Map<String,Integer>> getAllUserLinkInfo(String uid);
 
 
+    Homo<ServiceInfo> getServiceInfo(String tag) ;
+
     /**
      * 获取目标服务所有Pod状态
      * @param serviceName
@@ -102,11 +104,9 @@ public interface ServiceStateMgr extends ServiceModule {
      */
     Homo<Map<Integer,Integer>> geAllStateInfo(String serviceName);
 
-    Homo<String> getServiceNameByTag(String tag) ;
+    Homo<Boolean> setServiceInfo(String tag, ServiceInfo serviceInfo);
 
-    Homo<Boolean> setServiceNameTag(String tag, String serviceName);
-
-    void setLocalServiceNameTag(String tag, String serviceName);
+    void setLocalServiceInfo(String tag, ServiceInfo serviceInfo);
 
     boolean isPodAvailable(String serviceName, Integer userPodIndex);
 

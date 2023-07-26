@@ -28,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-system</artifactId>
+            <artifactId>homo-core-storage</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>

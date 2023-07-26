@@ -84,7 +84,7 @@ public class EntityClientService extends BaseService implements IEntityClientSer
     public Homo<String> entityServiceCall(EntityRequest param) throws Exception {
         EntityRequest entityRequest = EntityRequest.newBuilder().build();
         TestEntityRequest testEntityRequest = TestEntityRequest.newBuilder().setParam("123").build();
-        return entityCall(0, entityRequest)
+        return entityCall(0, ParameterMsg.newBuilder().build(),entityRequest)
                 .nextDo(ret -> {
                     EntityResponse response = ret;
                     log.info("entityServiceCall response {}", response);

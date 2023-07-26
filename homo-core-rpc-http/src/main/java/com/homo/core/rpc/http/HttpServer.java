@@ -93,8 +93,8 @@ public class HttpServer {
         JsonRpcContent rpcContent = new JsonRpcContent(data);
         return rpcServer.onCall("HttpServer",msgId,rpcContent)
                 .nextDo(ret->{
-                    ResponseMsg responseMsg = ResponseMsg.builder().msgId(msgId).msg("ok").msgContent(ret).code(HttpStatus.OK.value()).build();
-                    String resStr = JSON.toJSONString(responseMsg);
+                    ResponseMsg msg = ResponseMsg.builder().msgId(msgId).codeDesc("ok").msgContent(ret).code(HttpStatus.OK.value()).build();
+                    String resStr = JSON.toJSONString(msg);
                     log.info("onCall success msgId {} responseMsg {}", msgId, resStr);
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
                     DataBuffer buffer = dataBufferFactory.wrap(resStr.getBytes(StandardCharsets.UTF_8));

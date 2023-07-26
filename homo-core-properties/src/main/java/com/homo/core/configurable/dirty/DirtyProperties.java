@@ -48,6 +48,6 @@ public class DirtyProperties {
     /**
      * 落地间隔时间
      */
-    @Value("${homo.dirty.landing.delayTime:10}")
-    private long delayTime;
+    @Value("${homo.dirty.landing.delayTime:10000}")
+    private long delayTimeMillSecond;
 }

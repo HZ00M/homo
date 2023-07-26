@@ -17,7 +17,7 @@ public class ResponseMsg implements Serializable {
     /**
      * 失败原因，code不等于1时msg字段的值有意义
      */
-    private String msg;
+    private String codeDesc;
     /**
      * 消息id
      */

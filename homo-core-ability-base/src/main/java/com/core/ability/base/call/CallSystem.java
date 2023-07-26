@@ -7,6 +7,7 @@ import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.*;
 import com.homo.core.facade.module.ServiceModule;
 import com.homo.core.facade.service.Service;
+import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
@@ -69,7 +70,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
             for (Method method : entityClazz.getMethods()) {
                 methodInvokeByQueueMap.put(getMethodInvokeByQueueMapKey(entityType.type(), method.getName()), method.getAnnotation(InvokeByQueue.class) != null);
             }
-            serviceStateMgr.setServiceNameTag(entityType.type(), mainService.getTagName())
+            serviceStateMgr.setServiceInfo(entityType.type(), new ServiceInfo(mainService.getTagName(), mainService.isStateful() ? 1 : 0))
                     .catchError(throwable -> {
                         log.error("setServiceNameTag error entity {}", entityType.type(), throwable);
                     })

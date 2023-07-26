@@ -37,6 +37,7 @@
         <module>homo-core-gate</module>
         <module>homo-service-tread</module>
         <module>homo-core-ability-base</module>
+        <module>homo-core-storage</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -145,6 +146,11 @@
             </dependency>
             <dependency>
                 <artifactId>homo-core-ability-base</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-storage</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
