@@ -73,7 +73,7 @@ public class DirtyHelper {
         if (hashCode<0){
             hashCode = - hashCode;
         }
-        return "slug:{"+dirtyProperties.getTablePrefix()+":"+hashCode%dirtyProperties.getTableNum()+"}";
+        return "slug-persist:{"+dirtyProperties.getTablePrefix()+":"+hashCode%dirtyProperties.getTableNum()+"}";
     }
 
     public static String chooseDirtyMap(Integer key){
