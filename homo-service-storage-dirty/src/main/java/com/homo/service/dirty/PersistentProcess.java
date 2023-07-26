@@ -38,6 +38,6 @@ public class PersistentProcess implements Module {
                     log.info("landingTask unlock dirtyName end{} ",dirtyName);
                     init();
                 }
-            }, dirtyProperties.getDelayTime());
+            }, dirtyProperties.getDelayTimeMillSecond());
     }
 }
