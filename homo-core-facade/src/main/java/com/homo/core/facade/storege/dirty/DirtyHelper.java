@@ -15,7 +15,7 @@ public class DirtyHelper {
     public static  String ERROR_SUFFIX = "errorFlag";
     public static  String DEL_SUFFIX = ":delFlag";
     public static  String DIRTY_DELIMITER = "&";
-    public static final String REDIS_KEY_TMPL = "slug:{%s:%s:%s:%s}";
+//    public static final String REDIS_KEY_TMPL = "slug-data:{%s:%s:%s:%s}";
 
     public static DirtyProperties dirtyProperties;
     public static String APP_ID = "dirty1";
@@ -77,7 +77,7 @@ public class DirtyHelper {
     }
 
     public static String chooseDirtyMap(Integer key){
-        return "slug:{"+dirtyProperties.getTablePrefix()+":"+key+"}";
+        return "slug-persist:{"+dirtyProperties.getTablePrefix()+":"+key+"}";
     }
 
     public static String buildDirtyKey(String queryKey, String field) {

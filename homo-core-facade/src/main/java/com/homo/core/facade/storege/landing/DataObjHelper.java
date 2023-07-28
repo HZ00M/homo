@@ -1,5 +1,6 @@
 package com.homo.core.facade.storege.landing;
 
+import com.homo.core.facade.storege.StorageDriver;
 import com.homo.core.facade.storege.dirty.DirtyHelper;
 
 public class DataObjHelper extends DirtyHelper {
@@ -17,7 +18,7 @@ public class DataObjHelper extends DirtyHelper {
     }
 
     public static String buildTableName(String appId, String regionId, String logicType, String ownerId){
-        return String.format(REDIS_KEY_TMPL,appId,regionId,logicType,ownerId);
+        return String.format(StorageDriver.REDIS_KEY_TMPL,appId,regionId,logicType,ownerId);
     }
 
     public static String buildPrimaryKey(String logicType, String ownerId, String key) {

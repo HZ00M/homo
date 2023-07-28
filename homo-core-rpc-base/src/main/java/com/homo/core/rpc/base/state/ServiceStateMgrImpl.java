@@ -321,7 +321,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                 });
     }
 
-    static final String SERVICE_NAME_TAG = "serviceNameTag";
+    static final String SERVICE_INFO_LOGIC_TYPE = "serverInfo";
     static final String SERVICE_IS_STATEFUL = "stateful";
     private Map<String, List<Integer>> goodServiceMap = new ConcurrentHashMap<>();
     private Map<String, List<Integer>> availableServiceMap = new ConcurrentHashMap<>();
@@ -413,7 +413,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         return Homo.warp(homoSink -> {
 //            ArrayList<String> fields = new ArrayList<>();
 //            fields.add(tag);
-            cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag)
+            cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, tag)
                     .consumerValue(ret -> {
                         Map<String, byte[]> stringMap = ret;
 
@@ -445,12 +445,12 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
 
         setLocalServiceInfo(tag, serviceInfo);
         return Homo.warp(homoSink -> {
-            cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag)
+            cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, tag)
                     .nextDo(map -> {
                         map.put(SERVICE_TAG, serviceTag.getBytes(StandardCharsets.UTF_8));
                         byte[] statefulBytes = homoSerializationProcessor.writeByte(isStateful);
                         map.put(SERVICE_IS_STATEFUL, statefulBytes);
-                        return cacheDriver.asyncUpdate(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag, map)
+                        return cacheDriver.asyncUpdate(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, tag, map)
                                 .consumerValue(ret -> {
                                     log.info("setServiceNameTag ret tag {} serviceName {} ret {}", tag, serviceTag, ret);
                                     homoSink.success(true);

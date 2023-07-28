@@ -133,7 +133,7 @@ public class EntityRpcProxy implements MethodInterceptor {
                         }
                     }).nextDo(realName -> {
                         RpcContent rpcContent = serviceEntityRpcInfo.serializeParamForInvoke(IEntityService.default_entity_call_method, new Object[]{-1,entityRequest});
-                        return rpcClientMgr.getFacadeRpcClient(serviceName, realName)
+                        return rpcClientMgr.getGrpcAgentClient(realName,true)
                                 .rpcCall(IEntityService.default_entity_call_method, rpcContent)
                                 .consumerValue(ret -> {
                                     Tuple2<String,RpcContent> msgIdAndContent = (Tuple2<String, RpcContent>) ret;

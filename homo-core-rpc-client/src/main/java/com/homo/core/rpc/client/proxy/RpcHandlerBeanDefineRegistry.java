@@ -25,7 +25,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Log4j2
-@Component
 public class RpcHandlerBeanDefineRegistry implements BeanDefinitionRegistryPostProcessor, ResourceLoaderAware, ApplicationContextAware, EnvironmentAware {
     private ApplicationContext applicationContext;
     private ResourcePatternResolver resourcePatternResolver;

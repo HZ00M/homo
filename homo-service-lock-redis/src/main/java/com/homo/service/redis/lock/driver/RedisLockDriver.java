@@ -19,7 +19,7 @@ public class RedisLockDriver implements LockDriver {
     @Qualifier("homoRedisPool")
     private HomoAsyncRedisPool redisPool;
 
-    private static final String REDIS_LOCK_TMPL = "slug:{%s:%s:%s:%s:lock}";
+    private static final String REDIS_LOCK_TMPL = "slug-lock:{%s:%s:%s:%s:lock}";
 
     @Override
     public void asyncLock(String appId, String regionId, String logicType, String ownerId, String lockField,Integer expireTime, CallBack<Boolean> callBack) {

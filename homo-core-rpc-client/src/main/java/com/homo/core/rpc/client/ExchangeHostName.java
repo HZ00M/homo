@@ -1,5 +1,6 @@
 package com.homo.core.rpc.client;
 
+import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
@@ -25,9 +26,13 @@ public enum ExchangeHostName implements MultiFunA<String, Homo<String>> {
     statefulLess {
         @Override
         public Homo<String> apply(String tagName, Object... o) throws Exception {
-            boolean stateful = GetBeanUtil.getBean(ServiceMgr.class).getServiceExportInfo(tagName).isStateful();
+            ServiceExport serviceExportInfo = GetBeanUtil.getBean(ServiceMgr.class).getServiceExportInfo(tagName);
+            boolean stateful = false;
+            if (serviceExportInfo!= null){
+                stateful = serviceExportInfo.isStateful();
+            }
             if (!stateful) {
-                return Homo.result(ServiceUtil.getServiceHostName(tagName));
+                return Homo.result(tagName);
             }
             return Homo.result(null);
         }

@@ -40,9 +40,12 @@ public enum HomoError implements HomoThrowable {
         Assert.isNull(errorDefineMap.get(code), "code repeat");
         errorDefineMap.put(code, message);
     }
-
     public static HomoException throwError(HomoThrowable type, Object... args) {
-        return new HomoException(type.getCode(), type.msgFormat(args));
+        if (args.length>0){
+            return new HomoException(type.getCode(), type.msgFormat(args));
+        }else {
+            return new HomoException(type.getCode(), type.message());
+        }
     }
 
     public static HomoException throwError(int errorCode, Object... args) {

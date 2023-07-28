@@ -38,7 +38,7 @@ import java.util.*;
 @Log4j2
 public class MysqlRedisStorageDriverImpl implements StorageDriver {
 
-    private static final String REDIS_KEY_TMPL = "slug-data:{%s:%s:%s:%s}";
+//    private static final String REDIS_KEY_TMPL = "slug-data:{%s:%s:%s:%s}";
     private static final String REDIS_EXIST_KEY_TMPL = "slug-exist:{%s:%s:%s:%s:exist}";
 
     @Autowired(required = false)

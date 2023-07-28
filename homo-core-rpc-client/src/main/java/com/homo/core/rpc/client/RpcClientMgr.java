@@ -53,17 +53,7 @@ public class RpcClientMgr implements ServiceModule, ApplicationContextAware {
         return rpcAgentClient;
     }
 
-    /**
-     * 通过服务名获得 一种CallDriver实例
-     *
-     * @param tagName  服务标记名
-     * @param hostname 服务器域名 ip+port
-     * @return RpcClientDriver 调用驱动器
-     */
-    public RpcAgentClient getFacadeRpcClient(String tagName, String hostname) throws HomoException {
-        boolean isStateful = serviceMgr.getServiceExportInfo(tagName).isStateful();
-        return getGrpcAgentClient(hostname, isStateful);
-    }
+
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

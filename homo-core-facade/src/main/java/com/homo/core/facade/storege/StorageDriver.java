@@ -9,7 +9,7 @@ import java.util.Map;
 
 
 public interface StorageDriver extends Driver {
-
+    String REDIS_KEY_TMPL = "slug-data:{%s:%s:%s:%s}";
     /**
      * 通过key列表获取value
      * @param appId     appid

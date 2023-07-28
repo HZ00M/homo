@@ -65,6 +65,7 @@ public class ByteRpcContent implements RpcContent<byte[][],byte[][]> {
         for (int i = frameParamOffset; i < paramSerializeInfoList.length; i++) {
             Object obj = params[dataIndex];
             byteParams[i] = paramSerializeInfoList[i].processor.writeByte(obj);
+            dataIndex ++;
         }
         return byteParams;
     }

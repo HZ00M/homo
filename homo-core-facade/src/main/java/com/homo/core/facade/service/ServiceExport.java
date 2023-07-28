@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 
 /**
  * 暴露一个接口类为服务接口
+ * http服务返回值只能是string
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

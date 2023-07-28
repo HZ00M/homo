@@ -17,13 +17,10 @@ public class RpcHandlerInfoForClient extends RpcHandleInfo {
         return methodDispatchInfo.serializeParamContent(param);
     }
 
-    public Object[] unSerializeParamForCallback(String funName, RpcContent rpcContent){
-        return unSerializeParamForCallback(funName,rpcContent,-1,null);
-    }
 
-    public Object[] unSerializeParamForCallback(String funName, RpcContent rpcContent, Integer podId, ParameterMsg parameterMsg) {
+    public Object[] unSerializeParamForCallback(String funName, RpcContent rpcContent) {
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.unSerializeParam(rpcContent,podId,parameterMsg);
+        return methodDispatchInfo.unSerializeReturn(rpcContent);
     }
 
 }

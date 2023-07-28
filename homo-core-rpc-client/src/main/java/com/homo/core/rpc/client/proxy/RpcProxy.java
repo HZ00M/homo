@@ -74,7 +74,7 @@ public class RpcProxy implements MethodInterceptor {
                     if (!StringUtils.isEmpty(realHostName)){
                         RpcContent callContent = rpcHandlerInfoForClient.serializeParamForInvoke(methodName,objects);
                         return rpcClientMgr
-                                .getFacadeRpcClient(tagName, realHostName)
+                                .getGrpcServerlessAgentClient(realHostName)
                                 .rpcCall(methodName, callContent)
                                 .nextDo(ret-> {
                                     return processReturn(methodName, (Tuple2<String, ByteRpcContent>) ret);
