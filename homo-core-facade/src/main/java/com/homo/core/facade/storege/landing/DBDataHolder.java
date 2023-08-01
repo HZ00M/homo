@@ -7,7 +7,7 @@ import java.util.List;
 public interface DBDataHolder<T> {
     Homo<Boolean> hotAllField(String appId, String regionId, String logicType, String ownerId, String redisKey);
 
-    Homo<List<T>> hotFields(String appId, String regionId, String logicType, String ownerId, String redisKey, List<String> fields) ;
+    Homo<List<T>> hotFields(String appId, String regionId, String logicType, String ownerId, String redisKey, List<String> fields);
 
     boolean batchLanding(String dirtyTableName, List<String> dirtyList);
 

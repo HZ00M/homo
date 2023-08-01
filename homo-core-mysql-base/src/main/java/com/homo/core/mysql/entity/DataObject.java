@@ -12,28 +12,24 @@ import org.apache.ibatis.type.JdbcType;
 public class DataObject {
     @TableField(value = "primary_key", type = JdbcType.VARCHAR,id = true)
     private String primaryKey;
-
     @TableField(value = "logic_type", type = JdbcType.VARCHAR)
     private String logicType;
-
     @TableField(value = "owner_id", type = JdbcType.VARCHAR)
     private String ownerId;
-
     @TableField(type = JdbcType.VARCHAR,length = 100)
     private String key;
-
     @TableField(type = JdbcType.BLOB)
     private byte[] value;
-
     @TableField(value = "up_version", type = JdbcType.BIGINT)
     private Long upVersion;
-
     @TableField(value = "is_del", type = JdbcType.INTEGER)
     private Integer isDel;
-
-    @TableField(value = "del_time", type = JdbcType.BIGINT)
+    @TableField(value = "del_time", type = JdbcType.BIGINT,defaultValue = "0")
     private Long delTime;
-
+    @TableField(value = "create_time", type = JdbcType.BIGINT,defaultValue = "0")
+    private Long createTime;
+    @TableField(value = "update_time", type = JdbcType.BIGINT,defaultValue = "0")
+    private Long updateTime;
     @TableField(value = "query_all_key", type = JdbcType.VARCHAR)
     private String queryAllKey;
 

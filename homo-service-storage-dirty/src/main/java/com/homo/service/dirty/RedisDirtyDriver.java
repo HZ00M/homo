@@ -50,10 +50,10 @@ public class RedisDirtyDriver implements DirtyDriver {
     }
 
     @Override
-    public String chooseDirtyMap(){
+    public String chooseDirtyMap() {
         // 尝试找到一个没有锁的DirtyMsp
         for (; ; ) {
-            int key = seed%dirtyProperties.getTableNum();
+            int key = seed % dirtyProperties.getTableNum();
             String currentDirtyName = DirtyHelper.chooseDirtyMap(key);
             // 尝试去锁这个表
             log.info("try to lock {} {}", currentDirtyName, seed);
@@ -64,8 +64,8 @@ public class RedisDirtyDriver implements DirtyDriver {
             }
             try {
                 Thread.sleep(1000);
-            }catch (Exception e){
-                log.error("chooseDirtyMap error",e);
+            } catch (Exception e) {
+                log.error("chooseDirtyMap error", e);
             }
         }
     }
@@ -87,20 +87,21 @@ public class RedisDirtyDriver implements DirtyDriver {
         do {
             log.info("landing batch dirtySaving {} begin----------------", dirtySaving);
             // 一次取一批数据吗？
-            List iterationList = getDirtyList(dirtySaving,index,dirtyProperties.getBatchNum());
+            List iterationList = getDirtyList(dirtySaving, index, dirtyProperties.getBatchNum());
             if (iterationList.isEmpty()) {
                 log.info("no data needs to land");
                 return true;
             }
             // 取出这一批要落地的数据
             List<String> dirtyList = (List<String>) iterationList.get(1);
-            boolean batchLandingResult = DBDataHolder.batchLanding(dirtyTableName,dirtyList);
+            boolean batchLandingResult = false;
+            batchLandingResult = DBDataHolder.batchLanding(dirtyTableName, dirtyList);
             log.info("batchUpdate result is {}", batchLandingResult);
-            if(!batchLandingResult){
+            if (!batchLandingResult) {
                 // 保持失败了，开始单个保存
                 log.info("single update begin");
                 boolean singleLandingResult = DBDataHolder.singleLanding(dirtyList, dirtyTableName);
-                log.info("single update end singleLandingResult {}",singleLandingResult);
+                log.info("single update end singleLandingResult {}", singleLandingResult);
             }
             index = (String) iterationList.get(0);
         } while (!"0".equals(index));
@@ -123,8 +124,8 @@ public class RedisDirtyDriver implements DirtyDriver {
         //同步的方法
         Object object = redisPool.eval(dirtyKeyScript, keyList, args);
         List list = new ArrayList<>();
-        if(!Collections.emptyList().equals(object)){
-            list = (List)object;
+        if (!Collections.emptyList().equals(object)) {
+            list = (List) object;
         }
         return list;
     }
@@ -141,16 +142,16 @@ public class RedisDirtyDriver implements DirtyDriver {
 
         //如果存在错误落地的key，追加在这次落地中， 这里可能有问题
         String dirtyError = DirtyHelper.getErrorName(dirtyName);
-        if(redisPool.exists(dirtyError)){
+        if (redisPool.exists(dirtyError)) {
             // 有错误的数据
             // 获取所有错误数据
             Map<String, String> errorKeys = redisPool.hgetAll(dirtyError);
             // 这里只打key
             log.info("errorKeys [{}]", errorKeys);
-            for(String key: errorKeys.keySet()){
+            for (String key : errorKeys.keySet()) {
                 log.warn("error key is {}", key);
                 // 写入带保存脏表，为什么要设删除标志？
-                redisPool.hset(dirtySaving, key,DirtyHelper.DEL_SUFFIX);
+                redisPool.hset(dirtySaving, key, DirtyHelper.DEL_SUFFIX);
             }
             // 删除错误数据
             redisPool.del(dirtyError);

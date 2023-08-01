@@ -168,7 +168,7 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
                     mark(tableName);
                 }
                 log.info("begin save {} >>>> {}", tableName, dataObject);
-                int executeResult = schemeMapper.add(dataObject,tableName);
+                int executeResult = schemeMapper.update(dataObject,tableName);
                 log.info("{} single Update result is {}", tableName, result);
                 if(executeResult<=0){
                     log.error("{} {} execute result is false", tableName, dataObject);

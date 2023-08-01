@@ -1,5 +1,6 @@
 package com.homo.core.mysql.annotation;
 
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.jdbc.SQL;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
@@ -98,44 +99,7 @@ public class SQLGen<T> {
         }}.toString();
     }
 
-    public static <T> String update(T obj, String tableName) {
-        return new SQL() {{
-            String finalTableName = obj.getClass().getSimpleName();
-            if (!StringUtils.isEmpty(tableName)) {
-                finalTableName = tableName;
-            } else {
-                TableName annoTableName = AnnotationUtils.findAnnotation(obj.getClass(), TableName.class);
-                if (annoTableName != null) {
-                    finalTableName = annoTableName.value();
-                }
-            }
-            UPDATE(finalTableName);
-            String fieldId = "id";
-            String entityId = "id";
-            try {
-                Field[] fields = obj.getClass().getDeclaredFields();
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    Object v = field.get(obj);
-                    Id id = AnnotationUtils.findAnnotation(field, Id.class);
-                    if (id != null) {
-                        fieldId = id.value();
-                        entityId = field.getName();
-                    }
-                    if (v != null) {
-                        String fieldName = SQLUtil.humpToLine(field.getName());
-                        String entityName = field.getName();
-                        SET(fieldName + "=#{" + entityName + "}");
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            WHERE(fieldId + "= #{" + entityId + "}");
-        }}.toString();
-    }
-
-    public static <T> String insert(T obj, String tableName) {
+    public static <T> String insert(@Param("model") T obj,@Param("tableName") String tableName) {
         return new SQL() {{
             String finalTableName = obj.getClass().getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
@@ -168,7 +132,47 @@ public class SQLGen<T> {
         }}.toString();
     }
 
-    public static <T> String delete(Class<T> entity, String tableName) {
+    public static <T> String update(@Param("model")T obj,@Param("tableName") String tableName) {
+        return new SQL() {{
+            String finalTableName = obj.getClass().getSimpleName();
+            if (!StringUtils.isEmpty(tableName)) {
+                finalTableName = tableName;
+            } else {
+                TableName annoTableName = AnnotationUtils.findAnnotation(obj.getClass(), TableName.class);
+                if (annoTableName != null) {
+                    finalTableName = annoTableName.value();
+                }
+            }
+            UPDATE(finalTableName);
+            String fieldId = "id";
+            String entityId = "id";
+            try {
+                Field[] fields = obj.getClass().getDeclaredFields();
+                for (Field field : fields) {
+                    field.setAccessible(true);
+                    Object v = field.get(obj);
+                    TableField tableField = AnnotationUtils.findAnnotation(field, TableField.class);
+                    if (tableField != null){
+                        if (tableField.id()) {
+                            fieldId = tableField.value();
+                            entityId = field.getName();
+                        }else {
+                            if (v != null) {
+                                String entityFieldName = SQLUtil.humpToLine(field.getName());
+                                SET("`" + entityFieldName + "` =#{model." + field.getName() + "}");
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            WHERE(fieldId + "=#{model." + entityId + "}");
+        }}.toString();
+    }
+
+    public static <T> String delete(@Param("model")T obj,@Param("tableName") String tableName) {
+        Class<?> entity = obj.getClass();
         return new SQL() {{
             String finalTableName = entity.getSimpleName();
             if (!StringUtils.isEmpty(tableName)) {
@@ -184,7 +188,7 @@ public class SQLGen<T> {
                 Field[] fields = entity.getDeclaredFields();
                 for (Field field : fields) {
                     field.setAccessible(true);
-                    Object v = field.get(entity);
+                    Object v = field.get(obj);
                     if (v != null) {
                         //进行字段映射处理
                         String entityFieldName = field.getName();
@@ -196,7 +200,7 @@ public class SQLGen<T> {
                         if (v instanceof String && ((String) v).contains("%")) {
                             WHERE(colName + " like '" + v + "'");
                         } else {
-                            WHERE(colName + "= '" + entityFieldName + "'");
+                            WHERE(colName + "= '" + v + "'");
                         }
                     }
                 }

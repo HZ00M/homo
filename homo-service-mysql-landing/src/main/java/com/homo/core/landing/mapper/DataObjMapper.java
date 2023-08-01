@@ -7,6 +7,7 @@ import com.homo.core.mysql.entity.DataObject;
 import lombok.extern.log4j.Log4j2;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.jdbc.SQL;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +27,8 @@ public interface DataObjMapper extends GeneralMapper {
      */
     @Transactional
     @InsertProvider(type = DataObjectGen.class, method = "batchUpdate")
-    Integer batchUpdate(String tableName, List<DataObject> list);
+    Integer batchUpdate(@Param("tableName") String tableName, @Param("list") List<DataObject> list);
+
     /**
      * 捞取用户所有field的数据
      *
@@ -38,7 +40,7 @@ public interface DataObjMapper extends GeneralMapper {
      */
     @Transactional
     @SelectProvider(type = DataObjectProvider.class, method = "loadTableData")
-     List<DataObject> loadAllDataObject(String appId, String regionId, String logicType, String ownerId);
+    List<DataObject> loadAllDataObject(String appId, String regionId, String logicType, String ownerId);
 
     /**
      * 捞取用户指定field的数据
@@ -52,7 +54,7 @@ public interface DataObjMapper extends GeneralMapper {
      */
     @Transactional
     @SelectProvider(type = DataObjectProvider.class, method = "loadDataObjectsByField")
-    List<DataObject>  loadDataObjectsByField(String appId, String regionId, String logicType, String ownerId, List<String> keys);
+    List<DataObject> loadDataObjectsByField(String appId, String regionId, String logicType, String ownerId, List<String> keys);
 
     @Log4j2
     class DataObjectProvider<T> {
@@ -75,7 +77,7 @@ public interface DataObjMapper extends GeneralMapper {
 
                 for (String key : keys) {
                     inBuilder.append("'");
-                    inBuilder.append(DataObjHelper.buildPrimaryKey(logicType,ownerId,key));
+                    inBuilder.append(DataObjHelper.buildPrimaryKey(logicType, ownerId, key));
                     inBuilder.append("',");
                 }
                 inBuilder.deleteCharAt(inBuilder.length() - 1);
@@ -85,7 +87,8 @@ public interface DataObjMapper extends GeneralMapper {
             }}.toString();
         }
     }
-    class DataObjectGen{
+
+    class DataObjectGen {
         static String INSERT_SQL_TMPL = "INSERT INTO `%s` (" +
                 "`primary_key`," +
                 "`logic_type`," +
@@ -106,7 +109,7 @@ public interface DataObjMapper extends GeneralMapper {
                 "`del_time` = VALUES(`del_time`), " +
                 "`update_time` = VALUES(`update_time`)";
 
-        public static String batchUpdate(String tableName, List<DataObject> list) {
+        public static String batchUpdate(@Param("tableName")String tableName,@Param("list")  List<DataObject> list) {
             StringBuilder sqlBuilder = new StringBuilder();
 
             MessageFormat messageFormat = new MessageFormat("({0}, #'{'list[{1}].logicType}," +

@@ -15,4 +15,5 @@ public @interface TableField {
     boolean notNull() default false;
     boolean autoInr() default false;
     boolean id() default false;
+    String defaultValue() default "";
 }

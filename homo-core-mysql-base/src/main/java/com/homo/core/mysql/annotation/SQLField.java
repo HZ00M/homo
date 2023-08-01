@@ -1,6 +1,7 @@
 package com.homo.core.mysql.annotation;
 
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.JdbcType;
 
 import java.lang.reflect.Field;
@@ -16,35 +17,40 @@ public class SQLField {
     String isIdField;
     String increment;
     String notNull;
-    private SQLField(){}
+    String defaultValue;
+
+    private SQLField() {
+    }
+
     public static class Builder {
-        public static SQLField create(Field field,Object target){
+        public static SQLField create(Field field, Object target) {
             SQLField sqlField = new SQLField();
             sqlField.field = field;
-            if (target!=null){
+            if (target != null) {
                 try {
                     sqlField.value = field.get(target);
                 } catch (IllegalAccessException e) {
                     sqlField.value = "";
-                    log.error("SQLField create error",e);
+                    log.error("SQLField create error", e);
                 }
             }
             TableField tableField = field.getAnnotation(TableField.class);
             sqlField.tableField = tableField;
-            if (tableField!=null){
-                sqlField.name = tableField.value().equals("") ?SQLUtil.humpToLine(field.getName()):tableField.value();
-                sqlField.type = tableField.type().equals(JdbcType.VARCHAR)?tableField.type()+"("+tableField.length()+")":tableField.type().name();
+            if (tableField != null) {
+                sqlField.name = tableField.value().equals("") ? SQLUtil.humpToLine(field.getName()) : tableField.value();
+                sqlField.type = tableField.type().equals(JdbcType.VARCHAR) ? tableField.type() + "(" + tableField.length() + ")" : tableField.type().name();
                 sqlField.comment = tableField.comment();
-                sqlField.notNull = tableField.notNull()?" not null ":"";
-                sqlField.isIdField = tableField.id()?" primary key ":"";
-                sqlField.increment = tableField.autoInr()?" auto_increment = 1 ":"";
+                sqlField.notNull = tableField.notNull() ? " not null " : "";
+                sqlField.isIdField = tableField.id() ? " primary key " : "";
+                sqlField.increment = tableField.autoInr() ? " auto_increment = 1 " : "";
+                sqlField.defaultValue = tableField.defaultValue();
             }
             return sqlField;
         }
     }
 
     public String toCreateString() {
-        if (tableField == null){
+        if (tableField == null) {
             return "";
         }
         StringBuilder builder = new StringBuilder();
@@ -53,6 +59,8 @@ public class SQLField {
                 .append(name)
                 .append("` ")
                 .append(type)
+                .append(" ")
+                .append(StringUtils.isEmpty(defaultValue) ? "" : "DEFAULT " + defaultValue)
                 .append(" ")
                 .append(comment)
                 .append(notNull)
@@ -63,7 +71,7 @@ public class SQLField {
     }
 
     public String toDuplicateString() {
-        if (tableField == null){
+        if (tableField == null) {
             return "";
         }
         StringBuilder builder = new StringBuilder();
