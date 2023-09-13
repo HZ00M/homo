@@ -2,6 +2,7 @@ package com.homo.core.gate.tcp.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.homo.core.facade.gate.GateClient;
+import com.homo.core.facade.gate.GateMessage;
 import com.homo.core.gate.tcp.GateMessagePackage;
 import com.homo.core.gate.tcp.MessageType;
 import com.homo.core.gate.tcp.TcpGateDriver;

@@ -56,6 +56,7 @@ public class DecoderHandler extends ByteToMessageDecoder {
         long clientSendTime = in.readLong();
         short sessionId = in.readShort();
         short sendSeq = in.readShort();
+        short recvReq = in.readShort();
         byte[] logicBytes = new byte[bodySize];
         /**
          * 将sessionId和packType信息保存起来
@@ -63,7 +64,7 @@ public class DecoderHandler extends ByteToMessageDecoder {
         ctx.channel().attr(TcpGateDriver.sessionIdKey).setIfAbsent(sessionId);
         ctx.channel().attr(TcpGateDriver.packType).set(packType);
         in.readBytes(logicBytes);
-        GateMessagePackage messagePackage = new GateMessagePackage(logicBytes,version,packType,clientSendTime,sessionId,sendSeq);
+        GateMessagePackage messagePackage = new GateMessagePackage(logicBytes,version,packType,clientSendTime,sessionId,sendSeq,recvReq);
         nextIn.add(messagePackage);
     }
 }

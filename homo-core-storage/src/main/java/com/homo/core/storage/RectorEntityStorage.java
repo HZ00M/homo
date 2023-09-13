@@ -363,50 +363,17 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
 
     public Homo<Boolean> asyncLock(String logicType, String ownerId,
                                          String lockField,Integer expireTime) {
-        return Homo.warp(monoSink -> storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, expireTime, new CallBack<Boolean>() {
-            @Override
-            public void onBack(Boolean aBoolean) {
-                monoSink.success(aBoolean);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                monoSink.error(throwable);
-            }
-        }));
+        return storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, expireTime);
     }
 
     public Homo<Boolean> asyncLock(String logicType, String ownerId,
                                          String lockField,Integer expireTime, Integer retryCount, Integer retryDelaySecond) {
-        return Homo.warp((HomoSink<Boolean> monoSink) -> storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, expireTime, new CallBack<Boolean>() {
-            @Override
-            public void onBack(Boolean aBoolean) {
-                if (aBoolean) {
-                    monoSink.success(aBoolean);
-                } else {
-                    monoSink.error(new LockException());
-                }
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                monoSink.error(throwable);
-            }
-        })).retry(retryCount, retryDelaySecond, LockException.class);
+        return storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, expireTime)
+                .retry(retryCount, retryDelaySecond, LockException.class);
     }
 
     public Homo<Boolean> asyncUnlock(String logicType, String ownerId,
                                            String lockField) {
-        return Homo.warp(monoSink -> storage.asyncUnlock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, new CallBack<Boolean>() {
-            @Override
-            public void onBack(Boolean aBoolean) {
-                monoSink.success(aBoolean);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                monoSink.error(throwable);
-            }
-        }));
+        return storage.asyncUnlock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField);
     }
 }

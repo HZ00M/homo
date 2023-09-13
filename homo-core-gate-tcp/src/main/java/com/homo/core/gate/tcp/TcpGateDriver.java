@@ -31,13 +31,13 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 @Log4j2
-public class TcpGateDriver<T> implements GateDriver<T>, DriverModule {
+public class TcpGateDriver implements GateDriver, DriverModule {
 
     @Autowired(required = false)
     private GateTcpProperties gateTcpProperties;
     @Autowired(required = false)
     private GateCommonProperties gateCommonProperties;
-    private GateServer<T> gateServer;
+    private GateServer gateServer;
     /**
      * 监听的serverChannel
      */
@@ -51,6 +51,8 @@ public class TcpGateDriver<T> implements GateDriver<T>, DriverModule {
     public static AttributeKey<Short> sessionIdKey = AttributeKey.valueOf("sessionId");
     public static AttributeKey<Integer> packType = AttributeKey.valueOf("packType");
     public static AttributeKey<Short> serverSeqKey = AttributeKey.valueOf("serverSeq");
+    public static AttributeKey<Short> recvConfirmSeqKey = AttributeKey.valueOf("recvConfirmSeq");
+    public static AttributeKey<Long> clientSendTimeKey = AttributeKey.valueOf("clientSendTime");
 
     /**
      * 服务器运行状态
@@ -81,24 +83,24 @@ public class TcpGateDriver<T> implements GateDriver<T>, DriverModule {
     }
 
     @Override
-    public void startGate(GateServer<T> gateServer) {
+    public void startGate(GateServer gateServer) {
         try {
             this.gateServer = gateServer;
             ChannelFuture channelFuture = new ServerBootstrap()//创建ServerBootstrap实例
                     .group(bossGroup, workGroup)//初始化ServerBootstrap线程组
                     .channel(Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class)//设置将要被实例化的ServerChannel类
-                    .childHandler(new ServerChanelInitializer(customHandlers,gateTcpProperties,gateCommonProperties))//在ServerChannelInitializer中初始化ChannelPipeline责任链，并添加到serverBootstrap中
+                    .childHandler(new ServerChanelInitializer(customHandlers, gateTcpProperties, gateCommonProperties))//在ServerChannelInitializer中初始化ChannelPipeline责任链，并添加到serverBootstrap中
                     .option(ChannelOption.SO_BACKLOG, 1024)//标识当服务处理线程全满时，用于临时存放已三次握手的请求的队列的最大长度
                     .childOption(ChannelOption.SO_KEEPALIVE, true)//是否启用心跳保活机制
                     .bind(gateServer.getPort()).sync();//绑定端口后，开启监听
             if (channelFuture.isSuccess()) {
-                log.info("TcpGateDriver {} startGateServer success listener port {}",gateServer.getName(), gateServer.getPort());
+                log.info("TcpGateDriver {} startGateServer success listener port {}", gateServer.getName(), gateServer.getPort());
                 serverChannel = channelFuture.channel();
                 isRunning = true;
             }
 
         } catch (Exception e) {
-            log.error("TcpGateDriver name {} port {} startGateServer fail",gateServer.getName(), gateServer.getPort(), e);
+            log.error("TcpGateDriver name {} port {} startGateServer fail", gateServer.getName(), gateServer.getPort(), e);
             System.exit(-1);
         }
     }
@@ -133,22 +135,22 @@ public class TcpGateDriver<T> implements GateDriver<T>, DriverModule {
 
 
     @Override
-    public Homo<Boolean> pong(GateClient<T> gateClient,  T msg) {
+    public <T> Homo<Boolean> sendToclient(GateClient gateClient, T msg) {
         return Homo.warp(homoSink -> {
             Channel channel = clientMap.get(gateClient);
-            if (channel !=null){
+            if (channel != null) {
                 ChannelFuture future = channel.writeAndFlush(msg);
                 future.addListener(future1 -> {
                     homoSink.success(future1.isSuccess());
                 });
-            }else {
-                homoSink.error(HomoError.throwError(HomoError.gateError,"channel is null"));
+            } else {
+                homoSink.error(HomoError.throwError(HomoError.gateError, "channel is null"));
             }
         });
     }
 
     @Override
-    public Homo<Boolean> broadcast( T msg) {
+    public <T> Homo<Boolean> broadcast(T msg) {
         for (Channel channel : clientMap.values()) {
             channel.writeAndFlush(msg);
         }
@@ -156,34 +158,37 @@ public class TcpGateDriver<T> implements GateDriver<T>, DriverModule {
     }
 
     @Override
-    public void closeGateClient(GateClient<T> gateClient) {
-        gateClient.onClose("closeGateClient");
+    public void closeGateClient(GateClient gateClient) {
         Channel channel = clientMap.get(gateClient);
-        if (channel!=null){
+        if (channel != null) {
             channel.close();
-        }else {
-            log.error("closeGateClient channel not found, gateClient_{}",gateClient);
+        } else {
+            log.error("closeGateClient channel not found, gateClient_{}", gateClient);
         }
         gateClient.onClose("do closeGateClient");
     }
 
-    public void createConnection(ChannelHandlerContext context,String addr,int port){
-        log.info("createConnection start addr {} port {}", addr,port);
+    public void createConnection(ChannelHandlerContext context, String addr, int port) {
+        log.info("createConnection start addr {} port {}", addr, port);
         Channel channel = context.channel();
-        GateClient<T> gateClient = gateServer.newClient(addr, port);
-        clientMap.put(gateClient,channel);
+        GateClient gateClient = gateServer.newClient(addr, port);
+        clientMap.put(gateClient, channel);
         channel.attr(clientKey).set(gateClient);
         gateClient.onOpen();
-        log.info("createConnection finish addr {} port {}", addr,port);
+        log.info("createConnection finish addr {} port {}", addr, port);
     }
 
-    public void closeConnection(ChannelHandlerContext context,String reason){
+    public GateClient getGateClient(Channel channel) {
+        return channel.attr(clientKey).get();
+    }
+
+    public void closeConnection(ChannelHandlerContext context, String reason) {
         Channel channel = context.channel();
-        GateClient gateClient = channel.attr(clientKey).get();
-        if (gateClient!=null){
+        GateClient gateClient = getGateClient(channel);
+        if (gateClient != null) {
             gateClient.onClose(reason);
             clientMap.remove(gateClient);
-        }else {
+        } else {
             log.error("tpcGateDriver closeConnection can not find gateClient");
         }
     }

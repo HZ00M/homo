@@ -1,16 +1,17 @@
 package com.homo.core.gate;
 
 import com.homo.core.facade.gate.GateClient;
-import com.homo.core.facade.gate.GateMessage;
 import com.homo.core.facade.gate.GateServer;
+import com.homo.core.utils.rector.Homo;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class GateClientImpl implements GateClient<GateMessage> {
-    private final GateServerImpl gateServer;
+public class DefaultGateClient implements GateClient {
+    private final GateServer gateServer;
     private final String name;
 
-    public GateClientImpl(GateServerImpl gateServer, String name) {
+
+    public DefaultGateClient(GateServer gateServer, String name) {
         this.gateServer = gateServer;
         this.name = name;
     }
@@ -26,14 +27,23 @@ public class GateClientImpl implements GateClient<GateMessage> {
     }
 
     @Override
-    public GateServer<GateMessage> getGateServer() {
+    public GateServer getGateServer() {
         return gateServer;
     }
 
     @Override
-    public  void pong(byte[] data) {
-        gateServer.pong(this,data);
+    public  void sendToClient(byte[] data) {
+        gateServer.sendToClient(this,data);
     }
 
+    @Override
+    public Homo<Boolean> sendToClientComplete(byte[] data) {
+       return gateServer.sendToClientComplete(this,data);
+    }
+
+    @Override
+    public void close() {
+        gateServer.closeClient(this);
+    }
 
 }

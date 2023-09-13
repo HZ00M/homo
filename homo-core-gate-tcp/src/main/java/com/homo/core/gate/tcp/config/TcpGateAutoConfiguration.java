@@ -24,8 +24,8 @@ public class TcpGateAutoConfiguration {
     @Bean("gateDriver")
     public GateDriver tcpGateDriver(){
         log.info("gateDriver bean register");
-        TcpGateDriver<GateMessagePackage> tcpGateDriver = new TcpGateDriver<>();
-        tcpGateDriver.registerAfterHandler(new TailHandler<>(tcpGateDriver));
+        TcpGateDriver tcpGateDriver = new TcpGateDriver();
+        tcpGateDriver.registerAfterHandler(new TailHandler(tcpGateDriver));
         return tcpGateDriver;
     }
 }

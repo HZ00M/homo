@@ -14,14 +14,14 @@ import java.net.InetSocketAddress;
 
 /**
  * 入站尾处理器，处理连接相关操作
- * @param <T>
+ * @param
  */
 @Log4j2
 @ChannelHandler.Sharable
-public class TailHandler<T> extends ChannelInboundHandlerAdapter {
-    private final TcpGateDriver<T> tcpGateDriver;
+public class TailHandler extends ChannelInboundHandlerAdapter {
+    private final TcpGateDriver tcpGateDriver;
 
-    public TailHandler(TcpGateDriver<T> tcpGateDriver){
+    public TailHandler(TcpGateDriver tcpGateDriver){
         this.tcpGateDriver = tcpGateDriver;
     }
 

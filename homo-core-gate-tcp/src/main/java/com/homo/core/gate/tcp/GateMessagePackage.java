@@ -20,14 +20,15 @@ public class GateMessagePackage implements GateMessage<GateMessagePackage> {
         this.body = body;
     }
 
-    public GateMessagePackage(byte[] body, int version, int type, long opTime, short sessionId, short opSeq) {
+    public GateMessagePackage(byte[] body, int version, int type, long opTime, short sessionId, short sendReq, short recvReq) {
         this.header = new Header();
         header.setBodySize(body.length);
         header.setVersion(version);
         header.setType(type);
         header.setOpTime(opTime);
         header.setSessionId(sessionId);
-        header.setOpSeq(opSeq);
+        header.setSendSeq(sendReq);
+        header.setRecvSeq(recvReq);
         this.body = body;
     }
 
@@ -75,7 +76,8 @@ public class GateMessagePackage implements GateMessage<GateMessagePackage> {
         buf.writeByte(header.getType());
         buf.writeLong(header.getOpTime());
         buf.writeShort(header.getSessionId());
-        buf.writeShort(header.getOpSeq());
+        buf.writeShort(header.getSendSeq());
+        buf.writeShort(header.getRecvSeq());
     }
 
     public ByteBuf makeBuf() {

@@ -4,6 +4,7 @@ import com.homo.core.facade.document.EntityStorageDriver;
 import com.homo.core.facade.lock.LockDriver;
 import com.homo.core.facade.module.Module;
 import com.homo.core.utils.callback.CallBack;
+import com.homo.core.utils.rector.Homo;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -854,15 +855,11 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param logicType  逻辑类型
      * @param ownerId    ID
      * @param lockField  指定key
-     * @param lockVal    期望值  没有值传""
-     * @param uniqueId   令牌
      * @param expireTime 锁过期时间
-     * @param callBack        回调返回是否解锁成功
      */
-    public <T> void asyncLock(String appId, String regionId, String logicType, String ownerId,
-                              String lockField, Integer expireTime,CallBack<Boolean> callBack) {
-        lockDriver.asyncLock(appId, regionId, logicType, ownerId, lockField, expireTime,
-                callBack);
+    public <T> Homo<Boolean> asyncLock(String appId, String regionId, String logicType, String ownerId,
+                              String lockField, Integer expireTime) {
+        return lockDriver.asyncLock(appId, regionId, logicType, ownerId, lockField, expireTime);
     }
 
 
@@ -874,11 +871,10 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param logicType 逻辑类型
      * @param ownerId   ID
      * @param lockField 指定key
-     * @param callBack       回调返回是否解锁成功
      */
-    public <T> void asyncUnlock(String appId, String regionId, String logicType, String ownerId,
-                                String lockField, CallBack<Boolean> callBack) {
-        lockDriver.asyncUnlock(appId, regionId, logicType, ownerId, lockField, callBack);
+    public <T> Homo<Boolean> asyncUnlock(String appId, String regionId, String logicType, String ownerId,
+                                String lockField) {
+        return lockDriver.asyncUnlock(appId, regionId, logicType, ownerId, lockField);
     }
 
     /**
@@ -889,8 +885,6 @@ public class EntityStorage<F, S, U, P> implements Module {
      * @param logicType  逻辑类型
      * @param ownerId    ID
      * @param lockField  指定key
-     * @param lockVal    期望值
-     * @param uniqueId   令牌
      * @param expireTime 锁过期时间
      * @return
      */

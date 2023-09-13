@@ -2,6 +2,7 @@ package com.homo.core.facade.lock;
 
 import com.homo.core.facade.Driver;
 import com.homo.core.utils.callback.CallBack;
+import com.homo.core.utils.rector.Homo;
 
 public interface LockDriver extends Driver {
 
@@ -13,9 +14,8 @@ public interface LockDriver extends Driver {
      * @param ownerId     ID
      * @param lockField   指定key
      * @param expireTime  锁过期时间
-     * @param callBack         回调返回是否解锁成功
      */
-    void asyncLock(String appId, String regionId, String logicType, String ownerId, String lockField, Integer expireTime, CallBack<Boolean> callBack);
+    Homo<Boolean> asyncLock(String appId, String regionId, String logicType, String ownerId, String lockField, Integer expireTime);
 
     /**
      * 异步解锁
@@ -24,10 +24,9 @@ public interface LockDriver extends Driver {
      * @param logicType   逻辑类型
      * @param ownerId     ID
      * @param lockField   指定key
-     * @param callBack         回调返回是否解锁成功
      */
-    void asyncUnlock(String appId,String regionId,String logicType,String ownerId,
-                     String lockField,  CallBack<Boolean> callBack);
+    Homo<Boolean> asyncUnlock(String appId,String regionId,String logicType,String ownerId,
+                     String lockField);
 
 
     /**

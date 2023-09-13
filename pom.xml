@@ -84,6 +84,7 @@
         <druid.version>1.0.31</druid.version>
         <netty.all.version>4.1.68.Final</netty.all.version>
         <apache.commons.version>3.5</apache.commons.version>
+        <apache.commons.collections4.version>4.4</apache.commons.collections4.version>
         <commons-pool2.version>2.10.0</commons-pool2.version>
         <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
         <skywalking.version>8.3.0</skywalking.version>
@@ -499,6 +500,11 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${apache.commons.collections4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
                 <artifactId>commons-pool2</artifactId>
                 <version>${commons-pool2.version}</version>
             </dependency>
@@ -793,6 +799,7 @@
                 <artifactId>apm-toolkit-opentracing</artifactId>
                 <version>${skywalking.version}</version>
             </dependency>
+
 
 
             <dependency>

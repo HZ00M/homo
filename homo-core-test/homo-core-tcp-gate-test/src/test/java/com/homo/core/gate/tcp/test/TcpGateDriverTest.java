@@ -6,7 +6,7 @@ import com.homo.core.gate.tcp.GateMessagePackage;
 import com.homo.core.gate.tcp.MessageType;
 import com.homo.core.gate.tcp.TcpGateServerApplication;
 import com.homo.core.utils.serial.FastjsonSerializationProcessor;
-import io.homo.proto.gate.GateMsg;
+import io.homo.proto.client.Msg;
 import io.homo.proto.gate.test.TcpMsg;
 import io.homo.proto.gate.test.TcpResp;
 import io.netty.buffer.ByteBuf;
@@ -28,16 +28,16 @@ import java.nio.charset.StandardCharsets;
 @SpringBootTest(classes = TcpGateServerApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class TcpGateTest {
+public class TcpGateDriverTest {
 
 
     @Test
     public void testProtoTcp() throws InterruptedException {
-        GateMsg.Builder builder = GateMsg.newBuilder();
+        Msg.Builder builder = Msg.newBuilder();
         TcpMsg tcpMsg = TcpMsg.newBuilder().setParam("test").build();
         builder.setMsgId("TcpMsg");
         builder.setMsgContent(tcpMsg.toByteString());
-        GateMsg gateMsg = builder.build();
+        Msg gateMsg = builder.build();
         byte[] body = gateMsg.toByteArray();
         GateMessage.Header header = new GateMessage.Header();
         header.setBodySize(body.length);
@@ -78,7 +78,7 @@ public class TcpGateTest {
                 //ByteBuf.array() 只有 HEAP BUFFER (堆缓冲区)可以使用
                 byte[] respBytes = new byte[buf.readableBytes()];
                 buf.readBytes(respBytes);
-                GateMsg respGateMsg = GateMsg.parseFrom(respBytes);
+                Msg respGateMsg = Msg.parseFrom(respBytes);
                 String msgId = respGateMsg.getMsgId();
                 TcpResp resp = TcpResp.parseFrom(respGateMsg.getMsgContent());
                 log.info("reading proto msg done msgId {} resp {}",msgId,new String(resp.getParam().getBytes(StandardCharsets.UTF_8)));

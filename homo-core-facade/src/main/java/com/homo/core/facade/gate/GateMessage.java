@@ -47,10 +47,14 @@ public interface GateMessage<T> {
         private long opTime;
         //会话id
         private short sessionId;
-        //操作序号
-        private short opSeq = Short.MAX_VALUE;
+        //发送序号
+        private short sendSeq = -DEFAULT_SEND_SEQ;
+        //接受序号
+        private short recvSeq = DEFAULT_RECV_SEQ;
 
     }
+    short DEFAULT_SEND_SEQ = -1;
+    short DEFAULT_RECV_SEQ = -1;
 //    @Data
 //    class Header implements Cloneable {
 //
