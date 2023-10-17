@@ -44,8 +44,9 @@ public class TcpGateDriverTest {
         header.setVersion(1);
         header.setType(MessageType.PROTO.ordinal());
         header.setOpTime(System.currentTimeMillis());
-        header.setSessionId(Short.MIN_VALUE);
-        header.setOpSeq(Short.MIN_VALUE);
+        header.setClientSeq(Short.MIN_VALUE);
+        header.setSendSeq(Short.MIN_VALUE);
+        header.setRecvSeq(Short.MIN_VALUE);
         GateMessagePackage gateMessagePackage = new GateMessagePackage(header, body);
         try {
             //1、创建客户端的Socket对象(Socket)
@@ -104,8 +105,8 @@ public class TcpGateDriverTest {
         header.setVersion(1);
         header.setType(MessageType.JSON.ordinal());
         header.setOpTime(System.currentTimeMillis());
-        header.setSessionId(Short.MIN_VALUE);
-        header.setOpSeq(Short.MIN_VALUE);
+        header.setClientSeq(Short.MIN_VALUE);
+        header.setSendSeq(Short.MIN_VALUE);
         GateMessagePackage gateMessagePackage = new GateMessagePackage(header, body);
         try {
             //1、创建客户端的Socket对象(Socket)

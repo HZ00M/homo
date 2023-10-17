@@ -50,7 +50,7 @@ public class EncoderHandler extends MessageToByteEncoder<GateMessage> {
                 byteBuf.writeByte(header.getVersion());
                 byteBuf.writeByte(header.getType());
                 byteBuf.writeLong(header.getOpTime());
-                byteBuf.writeShort(header.getSessionId());
+                byteBuf.writeShort(header.getClientSeq());
                 byteBuf.writeShort(header.getSendSeq());
                 byteBuf.writeShort(header.getRecvSeq());
                 byteBuf.writeLong(System.currentTimeMillis());

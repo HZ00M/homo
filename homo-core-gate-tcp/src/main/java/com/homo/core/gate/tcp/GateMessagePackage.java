@@ -26,7 +26,7 @@ public class GateMessagePackage implements GateMessage<GateMessagePackage> {
         header.setVersion(version);
         header.setType(type);
         header.setOpTime(opTime);
-        header.setSessionId(sessionId);
+        header.setClientSeq(sessionId);
         header.setSendSeq(sendReq);
         header.setRecvSeq(recvReq);
         this.body = body;
@@ -75,7 +75,7 @@ public class GateMessagePackage implements GateMessage<GateMessagePackage> {
         buf.writeByte(header.getVersion());
         buf.writeByte(header.getType());
         buf.writeLong(header.getOpTime());
-        buf.writeShort(header.getSessionId());
+        buf.writeShort(header.getClientSeq());
         buf.writeShort(header.getSendSeq());
         buf.writeShort(header.getRecvSeq());
     }
@@ -89,6 +89,28 @@ public class GateMessagePackage implements GateMessage<GateMessagePackage> {
 
     public int getPackageLength(){
         return GateMessage.HEAD_LENGTH + body.length;
+    }
+
+    //从buffer中读取整个message消息
+    public static GateMessagePackage getFullPack(ByteBuf in){
+        Header header = getPackHead(in);
+        byte[] body = new byte[header.getBodySize()];
+        in.readBytes(body);
+        return new GateMessagePackage(header,body);
+
+    }
+
+    //字节流解码->PackHead
+    public static Header getPackHead(ByteBuf in){
+        Header header = new Header();
+        header.setBodySize(in.readInt());
+        header.setVersion(in.readByte());
+        header.setType(in.readByte());
+        header.setOpTime(in.readLong());
+        header.setClientSeq(in.readShort());
+        header.setSendSeq(in.readShort());
+        header.setRecvSeq(in.readShort());
+        return header;
     }
 
 }
