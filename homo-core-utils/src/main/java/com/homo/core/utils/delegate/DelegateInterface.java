@@ -1,6 +1,6 @@
 package com.homo.core.utils.delegate;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.InvocationHandler;
@@ -31,7 +31,7 @@ import java.lang.reflect.Proxy;
  *                 输出如下：
  *                 监听到delegate被调用，参数：发起一次调用: 1
  */
-@Log4j2
+@Slf4j
 public class DelegateInterface<Target> extends BroadCasterCall<Target> {
 
     private final Class<Target> interfaceClass;

@@ -2,7 +2,7 @@ package com.homo.core.facade.storege.dirty;
 
 import com.homo.core.configurable.dirty.DirtyProperties;
 import com.homo.core.facade.storege.DataOpType;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import java.util.Map;
 
 ;
 
-@Log4j2
+@Slf4j
 public class DirtyHelper {
     public static  String ERROR_SUFFIX = "errorFlag";
     public static  String DEL_SUFFIX = ":delFlag";

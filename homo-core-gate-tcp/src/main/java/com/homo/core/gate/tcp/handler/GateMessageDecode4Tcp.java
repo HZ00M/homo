@@ -1,6 +1,7 @@
 package com.homo.core.gate.tcp.handler;
 
 import com.homo.core.facade.gate.GateMessage;
+import com.homo.core.facade.gate.GateMessageHeader;
 import com.homo.core.gate.tcp.GateMessagePackage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,7 +20,7 @@ public class GateMessageDecode4Tcp extends ByteToMessageDecoder {
             in.resetReaderIndex();
             return;
         }
-        GateMessage.Header header = GateMessagePackage.getPackHead(in);
+        GateMessageHeader header = GateMessagePackage.getPackHead(in);
         int bodySize = header.getBodySize();
         if (in.readableBytes() < bodySize){
             //半包

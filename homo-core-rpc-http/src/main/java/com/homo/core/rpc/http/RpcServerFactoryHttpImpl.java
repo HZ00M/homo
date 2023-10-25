@@ -3,7 +3,7 @@ package com.homo.core.rpc.http;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.facade.rpc.RpcServerFactory;
 import com.homo.core.facade.rpc.RpcType;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * http rpc服务工厂类
  */
-@Log4j2
+@Slf4j
 public class RpcServerFactoryHttpImpl implements RpcServerFactory{
     @Autowired(required = false)
     private ApplicationContext applicationContext;

@@ -4,12 +4,12 @@ import com.homo.core.configurable.dirty.DirtyProperties;
 import com.homo.core.facade.module.Module;
 import com.homo.core.facade.storege.dirty.DirtyDriver;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 ;
 
-@Log4j2
+@Slf4j
 public class PersistentProcess implements Module {
     @Autowired(required = false)
     DirtyDriver dirtyDriver;

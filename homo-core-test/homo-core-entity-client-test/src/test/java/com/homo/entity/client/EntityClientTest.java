@@ -7,7 +7,7 @@ import io.homo.proto.entity.test.AccountInfo;
 import io.homo.proto.entity.test.TestEntityRequest;
 import io.homo.proto.entity.test.TestEntityResponse;
 import io.homo.proto.entity.test.UserLoginRequest;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import reactor.test.StepVerifier;
 
-@Log4j2
+@Slf4j
 @SpringBootTest(classes = TestEntityClientApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

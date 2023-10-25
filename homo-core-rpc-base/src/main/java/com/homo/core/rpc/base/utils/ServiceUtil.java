@@ -3,9 +3,9 @@ package com.homo.core.rpc.base.utils;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import lombok.experimental.UtilityClass;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
-@Log4j2
+@Slf4j
 @UtilityClass
 public class ServiceUtil {
     /**

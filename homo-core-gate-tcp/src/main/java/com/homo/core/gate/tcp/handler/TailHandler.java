@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -16,7 +16,7 @@ import java.net.InetSocketAddress;
  * 入站尾处理器，处理连接相关操作
  * @param
  */
-@Log4j2
+@Slf4j
 @ChannelHandler.Sharable
 public class TailHandler extends ChannelInboundHandlerAdapter {
     private final TcpGateDriver tcpGateDriver;
@@ -36,9 +36,9 @@ public class TailHandler extends ChannelInboundHandlerAdapter {
         String hostAddress = socketAddress.getAddress().getHostAddress();
         int port = socketAddress.getPort();
         ZipkinUtil.startScope(ZipkinUtil.newSRSpan().name("channelActive"), span -> {
-            ctx.channel().attr(TcpGateDriver.sessionIdKey).setIfAbsent(Short.MIN_VALUE);//todo 暂时使用默认值
-            short initSeq = 0;
-            ctx.channel().attr(TcpGateDriver.serverSeqKey).setIfAbsent(initSeq);
+            ctx.channel().attr(TcpGateDriver.sessionIdKey).setIfAbsent(ctx.channel().id().asShortText());
+//            short initSeq = 0;
+//            ctx.channel().attr(TcpGateDriver.serverSeqKey).setIfAbsent(initSeq);
             tcpGateDriver.createConnection(ctx,hostAddress,port);
         }, null);
     }

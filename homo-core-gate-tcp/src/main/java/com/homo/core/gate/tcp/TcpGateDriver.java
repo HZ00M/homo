@@ -6,7 +6,7 @@ import com.homo.core.facade.gate.GateClient;
 import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.facade.gate.GateServer;
 import com.homo.core.facade.module.DriverModule;
-import com.homo.core.gate.tcp.handler.AbstractLogicHandler;
+import com.homo.core.gate.tcp.handler.AbstractGateLogicHandler;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.rector.Homo;
@@ -19,7 +19,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Future;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-@Log4j2
+@Slf4j
 public class TcpGateDriver implements GateDriver, DriverModule {
 
     @Autowired(required = false)
@@ -48,11 +48,11 @@ public class TcpGateDriver implements GateDriver, DriverModule {
     private Map<GateClient, Channel> clientMap = new HashMap<>();
 
     public static AttributeKey<GateClient> clientKey = AttributeKey.valueOf("client");
-    public static AttributeKey<Short> sessionIdKey = AttributeKey.valueOf("sessionId");
+    public static AttributeKey<String> sessionIdKey = AttributeKey.valueOf("sessionId");
     public static AttributeKey<Integer> packType = AttributeKey.valueOf("packType");
-    public static AttributeKey<Short> serverSeqKey = AttributeKey.valueOf("serverSeq");
+    public static AttributeKey<Short> serverSendSeqKey = AttributeKey.valueOf("serverSeq");
     public static AttributeKey<Short> recvConfirmSeqKey = AttributeKey.valueOf("recvConfirmSeq");
-    public static AttributeKey<Long> clientSendTimeKey = AttributeKey.valueOf("clientSendTime");
+    public static AttributeKey<Short> clientSendReqKey = AttributeKey.valueOf("clientSendReq");
 
     /**
      * 服务器运行状态
@@ -68,7 +68,7 @@ public class TcpGateDriver implements GateDriver, DriverModule {
 
     private EventLoopGroup workGroup;
 
-    private Tuple3<List<ChannelHandler>, List<AbstractLogicHandler>, List<ChannelHandler>> customHandlers = Tuples.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+    private Tuple3<List<ChannelHandler>, List<AbstractGateLogicHandler>, List<ChannelHandler>> customHandlers = Tuples.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
     public void init() {
         if (Epoll.isAvailable()) {
@@ -175,7 +175,7 @@ public class TcpGateDriver implements GateDriver, DriverModule {
         clientMap.put(gateClient, channel);
         channel.attr(clientKey).set(gateClient);
         gateClient.onOpen();
-        log.info("createConnection finish addr {} port {}", addr, port);
+        log.info("createConnection finish addr {} port {} gateClient {}", addr, port);
     }
 
     public GateClient getGateClient(Channel channel) {
@@ -197,7 +197,7 @@ public class TcpGateDriver implements GateDriver, DriverModule {
         customHandlers.getT1().add(handler);
     }
 
-    public <T> void registerPostHandler(AbstractLogicHandler<T> handler) {
+    public <T> void registerPostHandler(AbstractGateLogicHandler<T> handler) {
         customHandlers.getT2().add(handler);
     }
 

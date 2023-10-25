@@ -1,6 +1,6 @@
 package com.homo.core.utils.concurrent.lock;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Log4j2
+@Slf4j
 public class Locker {
     class LockBlock{
         ReentrantLock lock = new ReentrantLock();

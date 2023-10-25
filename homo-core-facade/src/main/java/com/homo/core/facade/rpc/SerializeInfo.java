@@ -4,11 +4,11 @@ import com.homo.core.utils.serial.FSTSerializationProcessor;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
 import com.homo.core.utils.serial.ProtoSerializationProcessor;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 
-@Log4j2
+@Slf4j
 @Data
 public class SerializeInfo {
     public Class<?> paramType;

@@ -4,11 +4,11 @@ import com.homo.core.common.apollo.ConfigDriver;
 import com.homo.core.configurable.module.ModuleProperties;
 import com.homo.core.facade.module.RootModule;
 import com.homo.core.facade.module.ServerInfo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
-@Log4j2
+@Slf4j
 public class RootModuleImpl implements RootModule {
     @Autowired(required = false)
     ModuleProperties moduleProperties;

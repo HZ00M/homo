@@ -1,14 +1,14 @@
 package com.homo.core.utils.serial;
 
 import com.google.protobuf.GeneratedMessageV3;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
 
-@Log4j2
+@Slf4j
 public class ProtoSerializationProcessor implements HomoSerializationProcessor {
     public static Map<Class<?>, Method> cacheUnSerialMap = new HashMap<>();
 

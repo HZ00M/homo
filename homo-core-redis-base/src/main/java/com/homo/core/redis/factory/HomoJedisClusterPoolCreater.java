@@ -3,7 +3,7 @@ package com.homo.core.redis.factory;
 import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.impl.HomoJedisCluster;
 import com.homo.core.utils.spring.GetBeanUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
@@ -14,7 +14,7 @@ import java.util.Set;
 
 ;
 
-@Log4j2
+@Slf4j
 public class HomoJedisClusterPoolCreater {
     public static HomoRedisPool createPool(){
         try {

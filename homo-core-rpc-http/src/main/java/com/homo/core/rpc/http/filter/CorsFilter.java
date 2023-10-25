@@ -1,6 +1,6 @@
 package com.homo.core.rpc.http.filter;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -12,7 +12,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-@Log4j2
+@Slf4j
 public class CorsFilter implements WebFilter {
     private static final String ALLOWED_HEADERS = "*";
     private static final String ALLOWED_METHODS = "GET, PUT, POST, DELETE, OPTIONS";

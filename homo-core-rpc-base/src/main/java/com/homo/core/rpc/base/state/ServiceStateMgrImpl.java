@@ -15,7 +15,7 @@ import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 /**
  * 管理服务器状态实现类
  */
-@Log4j2
+@Slf4j
 public class ServiceStateMgrImpl implements ServiceStateMgr {
     @Autowired
     HomoSerializationProcessor homoSerializationProcessor;

@@ -9,7 +9,7 @@ import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.rector.Homo;
 import com.mongodb.client.model.*;
 import com.mongodb.reactivestreams.client.MongoDatabase;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bson.BsonDocument;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 /**
  * 文档存储驱动层 由mongoDB实现
  */
-@Log4j2
+@Slf4j
 public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bson,Bson,List<Bson>> {
     @Autowired
     private MongoHelper mongoHelper;

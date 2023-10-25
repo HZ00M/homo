@@ -1,6 +1,6 @@
 package com.homo.core.utils.lang;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-@Log4j2
+@Slf4j
 public class KKMap<K1,K2,T> {
     Map<K1,Map<K2,T>> data = new ConcurrentHashMap<>();
 

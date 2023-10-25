@@ -5,7 +5,7 @@ import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.rpc.client.RpcClientMgr;
 import com.homo.core.utils.spring.GetBeanUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 远程代理工厂
  */
-@Log4j2
+@Slf4j
 public class EntityProxyFactory {
 
     ThreadLocal<Map<Class<?>,EntityRpcProxy>> entityType2ProxyMapThreadLocal = new ThreadLocal<>();

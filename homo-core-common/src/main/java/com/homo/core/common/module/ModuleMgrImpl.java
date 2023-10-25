@@ -3,13 +3,13 @@ package com.homo.core.common.module;
 import com.homo.core.facade.module.Module;
 import com.homo.core.facade.module.ModuleMgr;
 import com.homo.core.facade.module.RootModule;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
 
 import java.util.*;
 
-@Log4j2
+@Slf4j
 public class ModuleMgrImpl implements ModuleMgr, SmartLifecycle {
     @Autowired(required = false)
     RootModule rootModule;

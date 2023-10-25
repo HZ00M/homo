@@ -4,14 +4,14 @@ import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Log4j2
+@Slf4j
 public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
     private String id;
     private ReentrantLock lock = new ReentrantLock();

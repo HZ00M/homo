@@ -12,7 +12,7 @@ import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.spring.GetBeanUtil;
 import lombok.ToString;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 抽象能力实体
  */
-@Log4j2
+@Slf4j
 @ToString
 public class AbstractAbilityEntity implements AbilityEntity, TimeAble, CallAble {
     static Map<Class<?>, String> entityClazzToEntityTypeMap = new ConcurrentHashMap<>();

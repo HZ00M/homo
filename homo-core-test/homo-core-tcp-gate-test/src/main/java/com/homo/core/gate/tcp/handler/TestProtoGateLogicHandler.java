@@ -2,21 +2,22 @@ package com.homo.core.gate.tcp.handler;
 
 import com.homo.core.facade.gate.GateClient;
 import com.homo.core.facade.gate.GateMessage;
+import com.homo.core.facade.gate.GateMessageHeader;
 import io.homo.proto.client.Msg;
 import io.homo.proto.gate.test.TcpMsg;
 import io.homo.proto.gate.test.TcpResp;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * 使用proto与客户端进行通讯
  */
-@Log4j2
+@Slf4j
 @Component
-public class TestProtoLogicHandler extends ProtoLogicHandler{
+public class TestProtoGateLogicHandler extends ProtoGateLogicHandler {
 
     @Override
-    public void process(Msg msg, GateClient gateClient, GateMessage.Header header) throws Exception {
+    public void doProcess(Msg msg, GateClient gateClient, GateMessageHeader header) throws Exception {
         String msgId = msg.getMsgId();
         /**
          * 读取客户端消息

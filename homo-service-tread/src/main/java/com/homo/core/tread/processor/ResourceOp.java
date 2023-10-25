@@ -6,7 +6,7 @@ import com.homo.core.tread.processor.exception.GetOpException;
 import com.homo.core.tread.processor.exception.ProcessOpException;
 import com.homo.core.tread.processor.exception.SetOpException;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 
@@ -14,7 +14,7 @@ import java.util.Arrays;
  * 资源操作的基类
  * 操作流程: getMethod -> afterGetCheck -> computer -> beforeSetCheck -> checkMethod -> setMethod
  */
-@Log4j2
+@Slf4j
 public abstract class ResourceOp<T> implements OpPoint {
 
     ResourceProcesses resourceProcesses;

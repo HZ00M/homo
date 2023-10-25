@@ -4,16 +4,16 @@ import lombok.Data;
 
 public interface GateMessage<T> {
 
-    Header getHeader();
+    GateMessageHeader getHeader();
 
     byte[] serial();
 
     byte[] getBody();
 
-    static GateMessage makeMessage(Header header,byte[] body){
+    static GateMessage makeMessage(GateMessageHeader header,byte[] body){
         return new GateMessage() {
             @Override
-            public Header getHeader() {
+            public GateMessageHeader getHeader() {
                 return header;
             }
 
@@ -34,27 +34,26 @@ public interface GateMessage<T> {
      * todo 数据压缩支持
      */
     int HEAD_LENGTH = 20;
-    @Data
-    class Header implements Cloneable {
+//    @Data
+//    public class Header implements Cloneable {
+//
+//        //body大小
+//        private int bodySize;
+//        //版本号
+//        private int version;
+//        //消息类型
+//        private int type;
+//        //操作时间
+//        private long opTime;
+//        //会话id
+//        private short sessionId;
+//        //发送序号
+//        private short sendSeq = DEFAULT_SEND_SEQ;
+//        //接受序号
+//        private short recvSeq = DEFAULT_RECV_SEQ;
 
-        //body大小
-        private int bodySize;
-        //版本号
-        private int version;
-        //消息类型
-        private int type;
-        //操作时间
-        private long opTime;
-        //会话id
-        private short clientSeq;
-        //发送序号
-        private short sendSeq = DEFAULT_SEND_SEQ;
-        //接受序号
-        private short recvSeq = DEFAULT_RECV_SEQ;
+//    }
 
-    }
-    short DEFAULT_SEND_SEQ = -1;
-    short DEFAULT_RECV_SEQ = -1;
 
 
 }

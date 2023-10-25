@@ -7,7 +7,7 @@ import com.homo.core.facade.module.Module;
 import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * 响应式 实体存储模块
  */
-@Log4j2
+@Slf4j
 public class RectorEntityStorage<F, S, U, P> implements Module {
     private boolean useCache;   //todo 增加缓存支持
     @Autowired(required = false)

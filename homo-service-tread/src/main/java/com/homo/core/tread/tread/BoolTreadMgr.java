@@ -6,7 +6,7 @@ import com.homo.core.tread.tread.exception.TreadSetException;
 import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.fun.FuncEx;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +19,7 @@ import java.util.function.BiPredicate;
  * @author dubian
  */
 @Component
-@Log4j2
+@Slf4j
 public class BoolTreadMgr extends AbstractTreadMgr<Boolean> {
     @Autowired
     private TreadProperties treadProperties;

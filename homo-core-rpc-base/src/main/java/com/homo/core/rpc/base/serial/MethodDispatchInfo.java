@@ -11,14 +11,14 @@ import com.homo.core.utils.reflect.HomoTypeUtil;
 import com.homo.core.utils.serial.*;
 import io.homo.proto.client.ParameterMsg;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.function.BiPredicate;
 
-@Log4j2
+@Slf4j
 @Data
 public class MethodDispatchInfo implements RpcSecurity {
     private Method method;

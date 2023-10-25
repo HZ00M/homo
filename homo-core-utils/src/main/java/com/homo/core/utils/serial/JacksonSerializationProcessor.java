@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
@@ -18,7 +18,7 @@ import java.io.IOException;
  * @apiNote https://www.w3cschool.cn/article/28650020.html
  * @apiNote https://wenku.baidu.com/view/1e8c35f54a649b6648d7c1c708a1284ac850057e.html
  */
-@Log4j2
+@Slf4j
 public class JacksonSerializationProcessor implements HomoSerializationProcessor {
     private static InstanceHolder INSTANCE;
 

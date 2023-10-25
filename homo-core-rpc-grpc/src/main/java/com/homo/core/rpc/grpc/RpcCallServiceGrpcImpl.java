@@ -11,9 +11,9 @@ import com.homo.core.rpc.grpc.proccessor.StreamCallErrorProcessor;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.grpc.stub.StreamObserver;
 import io.homo.proto.rpc.*;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
-@Log4j2
+@Slf4j
 public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImplBase {
     private final RpcServer rpcServer;
 

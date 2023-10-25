@@ -11,9 +11,9 @@ import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import com.homo.core.utils.trace.ZipkinUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
-@Log4j2
+@Slf4j
 public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
     private CallData callData;
     private final HomoSink sink;

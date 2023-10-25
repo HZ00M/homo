@@ -4,12 +4,12 @@ import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
 import com.homo.core.common.apollo.ConfigDriver;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 ;
 
 @Data
-@Log4j2
+@Slf4j
 public class MysqlInfoHolder {
     private ConfigDriver configDriver;
 

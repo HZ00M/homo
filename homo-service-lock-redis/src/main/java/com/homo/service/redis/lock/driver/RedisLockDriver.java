@@ -6,7 +6,7 @@ import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.rector.Homo;
 import io.lettuce.core.RedisFuture;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -14,7 +14,7 @@ import java.util.List;
 
 ;
 
-@Log4j2
+@Slf4j
 public class RedisLockDriver implements LockDriver {
     @Autowired(required = false)
     @Qualifier("homoRedisPool")

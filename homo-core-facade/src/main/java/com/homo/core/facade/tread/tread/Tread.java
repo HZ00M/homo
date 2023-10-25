@@ -5,7 +5,7 @@ import com.homo.core.facade.tread.tread.enums.SeqType;
 import com.homo.core.facade.tread.tread.op.SeqPoint;
 import com.homo.core.utils.fun.FuncEx;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  *  基于id的调用通过GetObjMethod获取不到对象直接执行失败，add时获取不到对象会调用CreateObjMethod,操作完成后执行SetObjMethod方法更新资源对象
  * @author dubian
  */
-@Log4j2
+@Slf4j
 public class Tread<T> {
     public String id;
     protected HashMap<SeqType, List<SeqPoint<T>>> seqMap;

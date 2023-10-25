@@ -1,13 +1,13 @@
 package com.homo.core.utils.reflect;
 
 import lombok.experimental.UtilityClass;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 @UtilityClass
 public class HomoAnnotationUtil {
 

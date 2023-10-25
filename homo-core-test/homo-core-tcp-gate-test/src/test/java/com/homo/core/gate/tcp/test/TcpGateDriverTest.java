@@ -2,8 +2,9 @@ package com.homo.core.gate.tcp.test;
 
 import com.alibaba.fastjson.JSONObject;
 import com.homo.core.facade.gate.GateMessage;
+import com.homo.core.facade.gate.GateMessageHeader;
 import com.homo.core.gate.tcp.GateMessagePackage;
-import com.homo.core.gate.tcp.MessageType;
+import com.homo.core.gate.tcp.GateMessageType;
 import com.homo.core.gate.tcp.TcpGateServerApplication;
 import com.homo.core.utils.serial.FastjsonSerializationProcessor;
 import io.homo.proto.client.Msg;
@@ -11,7 +12,7 @@ import io.homo.proto.gate.test.TcpMsg;
 import io.homo.proto.gate.test.TcpResp;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.PreferHeapByteBufAllocator;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -24,7 +25,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-@Log4j2
+@Slf4j
 @SpringBootTest(classes = TcpGateServerApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -39,12 +40,12 @@ public class TcpGateDriverTest {
         builder.setMsgContent(tcpMsg.toByteString());
         Msg gateMsg = builder.build();
         byte[] body = gateMsg.toByteArray();
-        GateMessage.Header header = new GateMessage.Header();
+        GateMessageHeader header = new GateMessageHeader();
         header.setBodySize(body.length);
         header.setVersion(1);
-        header.setType(MessageType.PROTO.ordinal());
+        header.setType(GateMessageType.PROTO.ordinal());
         header.setOpTime(System.currentTimeMillis());
-        header.setClientSeq(Short.MIN_VALUE);
+        header.setSessionId(Short.MIN_VALUE);
         header.setSendSeq(Short.MIN_VALUE);
         header.setRecvSeq(Short.MIN_VALUE);
         GateMessagePackage gateMessagePackage = new GateMessagePackage(header, body);
@@ -100,12 +101,12 @@ public class TcpGateDriverTest {
         jsonObject.put("test1", "1");
         jsonObject.put("test2", "2");
         byte[] body = processor.writeByte(jsonObject);
-        GateMessage.Header header = new GateMessage.Header();
+        GateMessageHeader header = new GateMessageHeader();
         header.setBodySize(body.length);
         header.setVersion(1);
-        header.setType(MessageType.JSON.ordinal());
+        header.setType(GateMessageType.JSON.ordinal());
         header.setOpTime(System.currentTimeMillis());
-        header.setClientSeq(Short.MIN_VALUE);
+        header.setSessionId(Short.MIN_VALUE);
         header.setSendSeq(Short.MIN_VALUE);
         GateMessagePackage gateMessagePackage = new GateMessagePackage(header, body);
         try {

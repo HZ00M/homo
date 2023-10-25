@@ -5,7 +5,7 @@ import com.homo.core.facade.storege.SaveObject;
 import com.homo.core.utils.lang.Pair;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
@@ -14,7 +14,7 @@ import java.util.Map;
 
 ;
 
-@Log4j2
+@Slf4j
 public class ObjStorage implements Module {
     public static final String OBJECT_KEY = "data";
     @Autowired(required = false)

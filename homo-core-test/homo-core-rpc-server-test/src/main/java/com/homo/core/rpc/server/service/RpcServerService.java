@@ -8,12 +8,12 @@ import com.homo.core.utils.rector.Homo;
 import io.homo.proto.client.ParameterMsg;
 import io.homo.proto.rpc.test.TestServerRequest;
 import io.homo.proto.rpc.test.TestServerResponse;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-@Log4j2
+@Slf4j
 @Component
 public class RpcServerService extends BaseService implements RpcServiceFacade {
 

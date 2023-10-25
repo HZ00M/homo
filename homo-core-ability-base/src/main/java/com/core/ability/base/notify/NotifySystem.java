@@ -3,12 +3,12 @@ package com.core.ability.base.notify;
 import com.homo.core.facade.ability.AbilityEntityMgr;
 import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.facade.ability.ListenerAble;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 通知系统
  */
-@Log4j2
+@Slf4j
 public class NotifySystem implements AbilitySystem {
     @Override
     public void init(AbilityEntityMgr abilityEntityMgr) {

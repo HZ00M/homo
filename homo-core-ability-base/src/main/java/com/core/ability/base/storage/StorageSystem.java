@@ -15,7 +15,7 @@ import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 对象自动保存系统
  */
-@Log4j2
+@Slf4j
 public class StorageSystem implements AbilitySystem, ServiceModule {
     final Locker locker = new Locker();
     @Autowired

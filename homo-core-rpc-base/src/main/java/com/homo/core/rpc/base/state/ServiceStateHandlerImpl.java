@@ -9,7 +9,7 @@ import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 /**
  * 缓存服务器状态信息
  */
-@Log4j2
+@Slf4j
 public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, Module {
     static final String SERVICE_NAME_TAG = "serviceNameTag";
     private Map<String, List<Integer>> goodServiceMap = new ConcurrentHashMap<>();

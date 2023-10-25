@@ -4,7 +4,7 @@ import com.homo.core.facade.module.RootModule;
 import com.homo.core.storage.ByteStorage;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 
-@Log4j2
+@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(classes = ByteStorageTessApplication.class)

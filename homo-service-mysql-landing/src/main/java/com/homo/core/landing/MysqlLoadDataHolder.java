@@ -9,7 +9,7 @@ import com.homo.core.redis.factory.RedisInfoHolder;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import reactor.core.publisher.Sinks;
@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 /**
  * 缓存mysql数据到redis处理器
  */
-@Log4j2
+@Slf4j
 public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
     Map<String, Boolean> tableTags = new ConcurrentHashMap<>();
     @Autowired(required = false)

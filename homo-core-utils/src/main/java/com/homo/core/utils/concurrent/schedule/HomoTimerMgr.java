@@ -2,7 +2,7 @@ package com.homo.core.utils.concurrent.schedule;
 
 import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 ;
 
-@Log4j2
+@Slf4j
 public class HomoTimerMgr {
     /**
      * 任务无限执行次数

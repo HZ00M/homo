@@ -8,7 +8,7 @@ import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.TimerTask;
 import java.util.concurrent.ScheduledFuture;
@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 
 ;
 
-@Log4j2
+@Slf4j
 public abstract class AbstractHomoTimerTask<T extends AbstractHomoTimerTask> extends TimerTask {
     @Setter
     public String id;

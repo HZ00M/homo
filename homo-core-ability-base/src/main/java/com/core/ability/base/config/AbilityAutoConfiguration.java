@@ -9,7 +9,7 @@ import com.core.ability.base.timer.TimeSystem;
 import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.facade.ability.ICallSystem;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Import;
 import java.util.Set;
 
 @Configuration
-@Log4j2
+@Slf4j
 @Import(AbilityProperties.class)
 public class AbilityAutoConfiguration {
     @Autowired

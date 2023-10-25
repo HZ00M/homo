@@ -13,9 +13,9 @@ import com.homo.core.utils.exception.HomoException;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.client.ParameterMsg;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
-@Log4j2
+@Slf4j
 public class CallDispatcher {
     public RpcHandlerInfoForServer rpcHandleInfo;
     protected RpcInterceptor interceptor;

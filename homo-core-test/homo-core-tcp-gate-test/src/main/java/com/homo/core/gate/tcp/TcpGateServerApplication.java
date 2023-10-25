@@ -2,9 +2,9 @@ package com.homo.core.gate.tcp;
 
 import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.gate.GateServerMgr;
-import com.homo.core.gate.tcp.handler.TestFastJsonLogicHandler;
-import com.homo.core.gate.tcp.handler.TestProtoLogicHandler;
-import lombok.extern.log4j.Log4j2;
+import com.homo.core.gate.tcp.handler.TestFastJsonGateLogicHandler;
+import com.homo.core.gate.tcp.handler.TestProtoGateLogicHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -13,7 +13,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 import java.util.concurrent.CountDownLatch;
 
-@Log4j2
+@Slf4j
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class TcpGateServerApplication implements CommandLineRunner {
     static CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -23,9 +23,9 @@ public class TcpGateServerApplication implements CommandLineRunner {
     @Autowired(required = false)
     private GateServerMgr gateServerMgr;
     @Autowired
-    TestProtoLogicHandler testProtoLogicHandler;
+    TestProtoGateLogicHandler testProtoLogicHandler;
     @Autowired
-    TestFastJsonLogicHandler testJsonLogicHandler;
+    TestFastJsonGateLogicHandler testJsonLogicHandler;
 
     public static void main(String[] args) {
         SpringApplication.run(TcpGateServerApplication.class);

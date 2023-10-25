@@ -5,7 +5,7 @@ import com.homo.core.facade.lock.LockDriver;
 import com.homo.core.facade.module.Module;
 import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * 回调式 实体存储模块
  */
-@Log4j2
+@Slf4j
 public class EntityStorage<F, S, U, P> implements Module {
 
     /**

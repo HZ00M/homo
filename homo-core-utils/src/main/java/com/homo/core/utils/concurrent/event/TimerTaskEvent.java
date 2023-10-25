@@ -1,11 +1,11 @@
 package com.homo.core.utils.concurrent.event;
 
 import com.homo.core.utils.concurrent.schedule.AbstractHomoTimerTask;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 ;
 
-@Log4j2
+@Slf4j
 public class TimerTaskEvent extends AbstractBaseEvent {
 
     AbstractHomoTimerTask timerTask;

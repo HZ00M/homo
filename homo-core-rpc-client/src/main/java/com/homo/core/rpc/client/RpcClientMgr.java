@@ -7,7 +7,7 @@ import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.utils.exception.HomoException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -16,7 +16,7 @@ import org.springframework.context.ApplicationContextAware;
 import java.util.HashMap;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 public class RpcClientMgr implements ServiceModule, ApplicationContextAware {
     private Map<RpcType, RpcClientFactory> rpcClientFactoryMap = new HashMap<>();
     @Autowired(required = false)

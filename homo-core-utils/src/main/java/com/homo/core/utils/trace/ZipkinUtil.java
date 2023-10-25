@@ -14,7 +14,7 @@ import com.homo.core.utils.config.ZipKinProperties;
 import com.homo.core.utils.fun.ConsumerEx;
 import io.grpc.ClientInterceptor;
 import io.grpc.ServerInterceptor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.Sender;
@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  * ZipKin全链路跟踪工具类
  * zipkin追踪流程  clientSend->serverReceiver->serverSend->clientReceive
  */
-@Log4j2
+@Slf4j
 public class ZipkinUtil  {
     public static final String CLIENT_SEND_TAG = "cs";
     public static final String SERVER_RECEIVE_TAG = "sr";

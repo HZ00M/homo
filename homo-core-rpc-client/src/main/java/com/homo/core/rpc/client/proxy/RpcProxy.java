@@ -14,7 +14,7 @@ import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.exception.HomoException;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoInterfaceUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.cglib.proxy.Enhancer;
@@ -25,7 +25,7 @@ import reactor.util.function.Tuples;
 
 import java.lang.reflect.Method;
 
-@Log4j2
+@Slf4j
 public class RpcProxy implements MethodInterceptor {
     private final ServiceStateMgr serviceStateMgr;
     private final ServiceMgr serviceMgr;

@@ -1,7 +1,7 @@
 package com.homo.core.utils.delegate;
 
 import com.homo.core.utils.exception.HomoError;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
@@ -10,7 +10,7 @@ import java.util.Optional;
  * 支持调用返回
  * @param <Target>
  */
-@Log4j2
+@Slf4j
 public abstract class BroadCasterCall<Target> extends BroadCaster<Target> {
 
     private final ThreadLocal<Optional<Object>> relThreadLocal = new ThreadLocal<>(); //todo 有bug需要优化

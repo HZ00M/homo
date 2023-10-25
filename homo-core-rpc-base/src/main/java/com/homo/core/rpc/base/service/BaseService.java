@@ -18,7 +18,7 @@ import io.homo.proto.entity.EntityRequest;
 import io.homo.proto.entity.EntityResponse;
 import io.homo.proto.entity.Ping;
 import io.homo.proto.entity.Pong;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -26,7 +26,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 /**
  * 提供获取服务器信息及服务调用的基本能力
  */
-@Log4j2
+@Slf4j
 public class BaseService implements Service, IEntityService {
     @Autowired(required = false)
     @Lazy

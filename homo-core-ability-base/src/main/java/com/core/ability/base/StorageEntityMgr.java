@@ -13,7 +13,7 @@ import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 具备存储能力的实体管理器
  */
-@Log4j2
+@Slf4j
 public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
     static Map<String, Class<AbilityEntity>> typeToAbilityObjectClazzMap = new ConcurrentHashMap<>();
     AbilityProperties abilityProperties;

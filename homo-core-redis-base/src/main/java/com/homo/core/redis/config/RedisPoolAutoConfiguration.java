@@ -8,7 +8,7 @@ import com.homo.core.redis.factory.HomoJedisPoolCreater;
 import com.homo.core.redis.factory.HomoJodisPoolCreater;
 import com.homo.core.redis.factory.HomoLettucePoolCreater;
 import com.homo.core.redis.factory.RedisInfoHolder;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +16,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Log4j2
+@Slf4j
 @Import(RedisConnectProperties.class)
 public class RedisPoolAutoConfiguration {
     @Autowired

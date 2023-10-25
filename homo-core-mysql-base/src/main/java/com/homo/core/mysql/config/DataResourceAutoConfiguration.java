@@ -3,7 +3,7 @@ package com.homo.core.mysql.config;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.homo.core.common.apollo.ConfigDriver;
 import com.homo.core.mysql.datasource.DynamicDataSource;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ import java.util.Map;
 ;
 
 @Configuration
-@Log4j2
+@Slf4j
 public class DataResourceAutoConfiguration {
     @Value("${mysql.public.namespace:homo_mysql_config}")
     private String publicNamespace;

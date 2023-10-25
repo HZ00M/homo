@@ -10,7 +10,7 @@ import io.lettuce.core.resource.DefaultClientResources;
 import io.lettuce.core.resource.DefaultEventLoopGroupProvider;
 import io.lettuce.core.resource.Delay;
 import io.netty.channel.nio.NioEventLoopGroup;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -18,7 +18,7 @@ import java.time.Duration;
 
 ;
 
-@Log4j2
+@Slf4j
 public class HomoLettucePoolCreater {
     public static HomoRedisPool createPool()throws InterruptedException{
         try {

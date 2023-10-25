@@ -3,12 +3,12 @@ package com.homo.core.rpc.client.proxy;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.client.RpcClientMgr;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 public class RpcProxyMgr {
     private RpcProxyMgr(){}
 

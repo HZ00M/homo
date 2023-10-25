@@ -7,7 +7,7 @@ import com.homo.core.utils.serial.FSTSerializationProcessor;
 import com.homo.core.utils.serial.FastjsonSerializationProcessor;
 import io.homo.proto.rpc.test.TestServerRequest;
 import io.homo.proto.rpc.test.TestServerResponse;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -22,7 +22,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 import java.util.HashMap;
 
-@Log4j2
+@Slf4j
 @SpringBootTest(classes = TestRpcClientApplication.class,webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

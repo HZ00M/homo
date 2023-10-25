@@ -1,12 +1,12 @@
 package com.homo.core.rpc.server.config;
 
 import com.homo.core.rpc.server.RpcServerMgr;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@Log4j2
+@Slf4j
 public class RpcServerConfiguration {
 
     @Bean("rpcServerMgr")

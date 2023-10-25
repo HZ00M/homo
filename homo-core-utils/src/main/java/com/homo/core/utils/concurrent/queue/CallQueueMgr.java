@@ -5,7 +5,7 @@ import com.homo.core.utils.concurrent.event.Event;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.utils.rector.Homo;
 import lombok.NonNull;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.Timer;
@@ -20,7 +20,7 @@ import java.util.function.BiFunction;
 /**
  * 事件处理管理器
  */
-@Log4j2
+@Slf4j
 public class CallQueueMgr  {
     public static final String DEFAULT_CHOICE_THREAD_STRATEGY = "defaultPloyType";
     private volatile static CallQueueMgr instance = null;

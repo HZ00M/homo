@@ -3,9 +3,9 @@ package com.homo.core.gate;
 import com.homo.core.facade.gate.GateClient;
 import com.homo.core.facade.gate.GateServer;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
-@Log4j2
+@Slf4j
 public class DefaultGateClient implements GateClient {
     private final GateServer gateServer;
     private final String name;

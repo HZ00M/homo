@@ -1,11 +1,11 @@
 package com.homo.core.tread.tread.config;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-@Log4j2
+@Slf4j
 public class TreadProperties {
 
     @Value("${tpf.check.scanPath:com.syyx}")

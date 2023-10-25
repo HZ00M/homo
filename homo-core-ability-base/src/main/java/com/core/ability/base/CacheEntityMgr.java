@@ -11,7 +11,7 @@ import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.reflect.HomoInterfaceUtil;
 import com.homo.core.utils.spring.GetBeanUtil;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 /**
  * 具备缓存能力的对象实体管理器
  */
-@Log4j2
+@Slf4j
 public class CacheEntityMgr implements AbilityEntityMgr {
     static Map<Class<?>, Class<?>[]> entityClazz2ParamsMap = new ConcurrentHashMap<>();
     IdCallQueue idCallQueue = new IdCallQueue("AbilityObjEntityImpl");

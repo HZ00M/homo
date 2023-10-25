@@ -1,7 +1,7 @@
 package com.homo.core.rpc.client.proxy;
 
 import com.homo.core.facade.rpc.RpcHandler;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-@Log4j2
+@Slf4j
 public class RpcHandlerBeanDefineRegistry implements BeanDefinitionRegistryPostProcessor, ResourceLoaderAware, ApplicationContextAware, EnvironmentAware {
     private ApplicationContext applicationContext;
     private ResourcePatternResolver resourcePatternResolver;

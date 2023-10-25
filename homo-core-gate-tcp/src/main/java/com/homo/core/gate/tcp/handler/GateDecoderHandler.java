@@ -7,20 +7,18 @@ import com.homo.core.gate.tcp.TcpGateDriver;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-@Log4j2
-public class DecoderHandler extends ByteToMessageDecoder {
+@Slf4j
+public class GateDecoderHandler extends ByteToMessageDecoder {
 
     private final GateCommonProperties gateCommonProperties;
 
-    public DecoderHandler(GateCommonProperties gateCommonProperties) {
+    public GateDecoderHandler(GateCommonProperties gateCommonProperties) {
         this.gateCommonProperties = gateCommonProperties;
     }
-
-
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> nextIn) throws Exception {
@@ -39,7 +37,8 @@ public class DecoderHandler extends ByteToMessageDecoder {
         }
         //处理半包
         int readableLength = in.readableBytes();
-        if (bodySize + GateMessage.HEAD_LENGTH - 4 > readableLength) {
+        int bodySizeRead = 4;
+        if (bodySize + GateMessage.HEAD_LENGTH - bodySizeRead > readableLength) {
             //body长度+header长度-已读的int(4B) > 剩余可读长度，说明出现半包，继续等待
             // 重置读取位置(读了bodySize)
             in.resetReaderIndex();
@@ -53,7 +52,7 @@ public class DecoderHandler extends ByteToMessageDecoder {
             ctx.close();
         }
         int packType = in.readByte() & 0xFF;
-        long clientSendTime = in.readLong();
+        long opTime = in.readLong();
         short sessionId = in.readShort();
         short sendSeq = in.readShort();
         short recvReq = in.readShort();
@@ -61,10 +60,15 @@ public class DecoderHandler extends ByteToMessageDecoder {
         /**
          * 将sessionId和packType信息保存起来
          */
-        ctx.channel().attr(TcpGateDriver.sessionIdKey).setIfAbsent(sessionId);
+        Short oldClientSendSeq = ctx.channel().attr(TcpGateDriver.clientSendReqKey).get();
+        if (oldClientSendSeq != null && sendSeq <= oldClientSendSeq) {
+            log.error("sendSeq {} <= oldClientSendSeq {}!", sendSeq, oldClientSendSeq);
+        }else {
+            ctx.channel().attr(TcpGateDriver.clientSendReqKey).set(sendSeq);
+        }
         ctx.channel().attr(TcpGateDriver.packType).set(packType);
         in.readBytes(logicBytes);
-        GateMessagePackage messagePackage = new GateMessagePackage(logicBytes,version,packType,clientSendTime,sessionId,sendSeq,recvReq);
+        GateMessagePackage messagePackage = new GateMessagePackage(logicBytes,version,packType, opTime, sessionId,sendSeq,recvReq);
         nextIn.add(messagePackage);
     }
 }

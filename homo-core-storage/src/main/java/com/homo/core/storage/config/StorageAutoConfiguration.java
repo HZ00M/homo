@@ -5,7 +5,7 @@ import com.homo.core.storage.ByteStorage;
 import com.homo.core.storage.EntityStorage;
 import com.homo.core.storage.ObjStorage;
 import com.homo.core.storage.RectorEntityStorage;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.DependsOn;
 ;
 
 @Configuration
-@Log4j2
+@Slf4j
 public class StorageAutoConfiguration {
 
     @Bean("byteStorage")

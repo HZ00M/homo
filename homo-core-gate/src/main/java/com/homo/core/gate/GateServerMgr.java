@@ -5,13 +5,13 @@ import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.facade.gate.GateServer;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.facade.module.ServiceModule;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 public class GateServerMgr implements ServiceModule {
     @Autowired
     public GateDriver gateDriver;

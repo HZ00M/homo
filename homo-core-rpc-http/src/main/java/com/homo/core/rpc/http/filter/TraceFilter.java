@@ -3,13 +3,13 @@ package com.homo.core.rpc.http.filter;
 import brave.Span;
 import brave.Tracer;
 import com.homo.core.utils.trace.ZipkinUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-@Log4j2
+@Slf4j
 public class TraceFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {

@@ -10,7 +10,7 @@ import com.homo.core.redis.factory.RedisInfoHolder;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.lang.Pair;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.CollectionUtils;
@@ -35,7 +35,7 @@ import java.util.*;
  * 如果cacheKey存在，就从redis捞取后返回，如果不存在，则执行步骤3
  * 5数据移除会将需要移除的数据迁移到hSet的另一个字段上（logicKey+:+del）（逻辑删除）,然后原先的logicKey的值会被打上删除标记（:delFlag标识）
  */
-@Log4j2
+@Slf4j
 public class MysqlRedisStorageDriverImpl implements StorageDriver {
 
 //    private static final String REDIS_KEY_TMPL = "slug-data:{%s:%s:%s:%s}";

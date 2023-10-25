@@ -10,7 +10,7 @@ import com.homo.core.tread.processor.op.*;
 import com.homo.core.facade.module.Module;
 import com.homo.core.utils.rector.Homo;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -28,7 +28,7 @@ import java.util.*;
  * 注册资源的set和get方法
  */
 @Component
-@Log4j2
+@Slf4j
 public class ResourceMgr implements Module {
 
     /**

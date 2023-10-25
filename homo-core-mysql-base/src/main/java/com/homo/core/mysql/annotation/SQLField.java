@@ -1,12 +1,12 @@
 package com.homo.core.mysql.annotation;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.JdbcType;
 
 import java.lang.reflect.Field;
 
-@Log4j2
+@Slf4j
 public class SQLField {
     TableField tableField;
     Field field;

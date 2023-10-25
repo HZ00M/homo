@@ -8,7 +8,7 @@ import com.homo.core.rpc.base.serial.JsonRpcContent;
 import com.homo.core.rpc.http.dto.ResponseMsg;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
  * 否则默认作为pb来处理
  *
  */
-@Log4j2
+@Slf4j
 public class HttpServer {
     private RpcServer rpcServer;
     private DisposableServer nettyHttpServer;

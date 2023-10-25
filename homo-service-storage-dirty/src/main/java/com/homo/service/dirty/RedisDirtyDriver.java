@@ -9,7 +9,7 @@ import com.homo.core.facade.storege.landing.DBDataHolder;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.rector.Homo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import reactor.core.publisher.Mono;
@@ -21,7 +21,7 @@ import java.util.Map;
 
 ;
 
-@Log4j2
+@Slf4j
 public class RedisDirtyDriver implements DirtyDriver {
 
     @Autowired(required = false)

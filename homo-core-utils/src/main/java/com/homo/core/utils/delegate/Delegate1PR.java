@@ -1,11 +1,11 @@
 package com.homo.core.utils.delegate;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *  广播且带回调   函数签名（一个参数一个返回）
  */
-@Log4j2
+@Slf4j
 public class Delegate1PR<P,R> extends BroadCasterCall<Delegate1PR.ExecuteFun<P,R>>{
     @Override
     protected Object execute(ExecuteFun<P, R> target, Object... objects) throws Exception {

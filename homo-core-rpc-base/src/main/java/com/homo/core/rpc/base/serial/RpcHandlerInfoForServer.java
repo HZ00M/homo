@@ -2,9 +2,9 @@ package com.homo.core.rpc.base.serial;
 
 import com.homo.core.facade.rpc.RpcContent;
 import io.homo.proto.client.ParameterMsg;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
-@Log4j2
+@Slf4j
 public class RpcHandlerInfoForServer extends RpcHandleInfo {
     public RpcHandlerInfoForServer(Class<?> rpcClazz) {
         exportInterfaceMethod(rpcClazz);

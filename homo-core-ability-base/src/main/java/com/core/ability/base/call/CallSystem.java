@@ -19,7 +19,7 @@ import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.client.ParameterMsg;
 import io.homo.proto.entity.EntityRequest;
 import io.homo.proto.entity.EntityResponse;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 远程调用系统
  */
 
-@Log4j2
+@Slf4j
 public class CallSystem implements ICallSystem, ServiceModule {
     IdCallQueue idCallQueue = new IdCallQueue("CallSystem", 5000, IdCallQueue.DropStrategy.DROP_CURRENT_TASK);
     @Autowired

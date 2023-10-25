@@ -10,7 +10,7 @@ import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 ;
 
-@Log4j2
+@Slf4j
 @EnableConfigurationProperties({MongoDriverProperties.class})
 @Configuration
 public class MongoDriverAutoConfigure {

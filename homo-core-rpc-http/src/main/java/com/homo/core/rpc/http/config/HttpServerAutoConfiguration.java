@@ -7,7 +7,7 @@ import com.homo.core.rpc.http.RpcServerFactoryHttpImpl;
 import com.homo.core.rpc.http.exception.HomoHttpExceptionHandler;
 import com.homo.core.rpc.http.filter.CorsFilter;
 import com.homo.core.rpc.http.filter.TraceFilter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.web.reactive.server.ReactiveWebServerFactory;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +19,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.server.WebFilter;
 
 @Configuration
-@Log4j2
+@Slf4j
 @Import(RpcHttpServerProperties.class)
 @EnableWebFlux//必须配置这个以开启webflux自动化配置
 //@ComponentScan(excludeFilters = {@ComponentScan.Filter(type =

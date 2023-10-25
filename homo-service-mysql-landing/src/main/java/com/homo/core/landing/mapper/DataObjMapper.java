@@ -4,7 +4,7 @@ import com.homo.core.facade.storege.landing.DataObjHelper;
 import com.homo.core.mysql.GeneralMapper;
 import com.homo.core.mysql.annotation.SQLGen;
 import com.homo.core.mysql.entity.DataObject;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -56,7 +56,7 @@ public interface DataObjMapper extends GeneralMapper {
     @SelectProvider(type = DataObjectProvider.class, method = "loadDataObjectsByField")
     List<DataObject> loadDataObjectsByField(String appId, String regionId, String logicType, String ownerId, List<String> keys);
 
-    @Log4j2
+    @Slf4j
     class DataObjectProvider<T> {
         static String SEARCH_FIELDS = "`logic_type` as `logicType`,`owner_id` as `ownerId`, `key` as `key`,`value` as `value`";
 

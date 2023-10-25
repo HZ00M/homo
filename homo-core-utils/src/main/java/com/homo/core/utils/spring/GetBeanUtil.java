@@ -1,13 +1,13 @@
 package com.homo.core.utils.spring;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 ;
 
-@Log4j2
+@Slf4j
 public class GetBeanUtil implements ApplicationContextAware {
     protected static ApplicationContext context;
 

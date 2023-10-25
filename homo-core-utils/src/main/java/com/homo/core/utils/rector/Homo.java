@@ -6,7 +6,7 @@ import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.fun.FuncEx;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.*;
 
-@Log4j2
+@Slf4j
 public class Homo<T> extends Mono<T> {
     private final Mono<T> mono;
 

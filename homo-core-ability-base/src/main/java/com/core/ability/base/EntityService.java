@@ -9,11 +9,11 @@
 //import io.homo.proto.entity.EntityRequest;
 //import io.homo.proto.entity.PingRequest;
 //import io.homo.proto.entity.PongRequest;
-//import lombok.extern.log4j.Log4j2;
+//import lombok.extern.slf4j.Slf4j;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.stereotype.Component;
 //
-//@Log4j2
+//@Slf4j
 //public class EntityService extends BaseService implements IEntityService {
 //    @Autowired
 //    CallSystem callSystem;

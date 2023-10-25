@@ -5,13 +5,13 @@ import com.homo.core.facade.ability.IEntityService;
 import com.homo.core.facade.service.InnerService;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-@Log4j2
+@Slf4j
 public class RpcHandleInfo {
     private Map<String, MethodDispatchInfo> methodDispatchInfoMap = new HashMap<>();
 

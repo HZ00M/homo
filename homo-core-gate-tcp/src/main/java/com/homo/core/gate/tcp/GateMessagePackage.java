@@ -2,6 +2,7 @@ package com.homo.core.gate.tcp;
 
 import com.google.protobuf.GeneratedMessageV3;
 import com.homo.core.facade.gate.GateMessage;
+import com.homo.core.facade.gate.GateMessageHeader;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.serial.ProtoSerializationProcessor;
 import io.netty.buffer.ByteBuf;
@@ -11,29 +12,37 @@ import lombok.Getter;
 public class GateMessagePackage implements GateMessage<GateMessagePackage> {
     private static ProtoSerializationProcessor processor = new ProtoSerializationProcessor();
     @Getter
-    private Header header;
+    private GateMessageHeader header;
     @Getter
     private byte[] body;
 
-    public GateMessagePackage(Header header, byte[] body) {
+    public GateMessagePackage(GateMessageHeader header, byte[] body) {
         this.header = header;
         this.body = body;
     }
 
-    public GateMessagePackage(byte[] body, int version, int type, long opTime, short sessionId, short sendReq, short recvReq) {
-        this.header = new Header();
+    public GateMessagePackage(byte[] body){
+        this.body = body;
+        header = new GateMessageHeader();
+        int bodySize = body == null ? 0 : body.length;
+        header.setBodySize(bodySize);
+        header.setOpTime(System.currentTimeMillis());
+    }
+
+    public GateMessagePackage(byte[] body, int version, int type, long opTime, short clientSeq, short sendReq, short recvReq) {
+        this.header = new GateMessageHeader();
         header.setBodySize(body.length);
         header.setVersion(version);
         header.setType(type);
         header.setOpTime(opTime);
-        header.setClientSeq(sessionId);
+        header.setSessionId(clientSeq);
         header.setSendSeq(sendReq);
         header.setRecvSeq(recvReq);
         this.body = body;
     }
 
     @Override
-    public Header getHeader() {
+    public GateMessageHeader getHeader() {
         return header;
     }
 
@@ -75,7 +84,7 @@ public class GateMessagePackage implements GateMessage<GateMessagePackage> {
         buf.writeByte(header.getVersion());
         buf.writeByte(header.getType());
         buf.writeLong(header.getOpTime());
-        buf.writeShort(header.getClientSeq());
+        buf.writeShort(header.getSessionId());
         buf.writeShort(header.getSendSeq());
         buf.writeShort(header.getRecvSeq());
     }
@@ -93,7 +102,7 @@ public class GateMessagePackage implements GateMessage<GateMessagePackage> {
 
     //从buffer中读取整个message消息
     public static GateMessagePackage getFullPack(ByteBuf in){
-        Header header = getPackHead(in);
+        GateMessageHeader header = getPackHead(in);
         byte[] body = new byte[header.getBodySize()];
         in.readBytes(body);
         return new GateMessagePackage(header,body);
@@ -101,13 +110,13 @@ public class GateMessagePackage implements GateMessage<GateMessagePackage> {
     }
 
     //字节流解码->PackHead
-    public static Header getPackHead(ByteBuf in){
-        Header header = new Header();
+    public static GateMessageHeader getPackHead(ByteBuf in){
+        GateMessageHeader header = new GateMessageHeader();
         header.setBodySize(in.readInt());
         header.setVersion(in.readByte());
         header.setType(in.readByte());
         header.setOpTime(in.readLong());
-        header.setClientSeq(in.readShort());
+        header.setSessionId(in.readShort());
         header.setSendSeq(in.readShort());
         header.setRecvSeq(in.readShort());
         return header;

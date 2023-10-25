@@ -1,13 +1,13 @@
 package com.homo.core.rpc.server;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 import java.util.concurrent.CountDownLatch;
 
-@Log4j2
+@Slf4j
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class TestRpcServerApplication {
     static CountDownLatch countDownLatch = new CountDownLatch(1);

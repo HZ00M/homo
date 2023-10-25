@@ -175,7 +175,7 @@ public interface RpcStatefulServiceFacade {
 - 4发起远程调用
 
 ```java
-@Log4j2
+@Slf4j
 @SpringBootTest(classes = TestRpcClientApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

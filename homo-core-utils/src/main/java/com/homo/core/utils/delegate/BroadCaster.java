@@ -2,7 +2,7 @@ package com.homo.core.utils.delegate;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.homo.core.utils.exception.HomoError;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @param <Target>目标
  */
-@Log4j2
+@Slf4j
 public abstract class BroadCaster<Target> {
     public Integer minOrder = 0;
     public Integer maxOrder = 1;

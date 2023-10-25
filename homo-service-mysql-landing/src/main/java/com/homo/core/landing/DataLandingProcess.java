@@ -9,7 +9,7 @@ import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
 import com.homo.core.utils.spring.GetBeanUtil;
 import io.lettuce.core.KeyValue;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
@@ -18,7 +18,7 @@ import java.util.*;
 
 ;
 
-@Log4j2
+@Slf4j
 public class DataLandingProcess implements  Module {
 
     private static HomoAsyncRedisPool redisPool;

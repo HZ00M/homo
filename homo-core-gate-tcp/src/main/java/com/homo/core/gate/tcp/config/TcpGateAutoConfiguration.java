@@ -6,14 +6,14 @@ import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.gate.tcp.GateMessagePackage;
 import com.homo.core.gate.tcp.TcpGateDriver;
 import com.homo.core.gate.tcp.handler.TailHandler;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Log4j2
+@Slf4j
 @Import({GateTcpProperties.class, GateCommonProperties.class})
 public class TcpGateAutoConfiguration {
     @Autowired
@@ -22,7 +22,7 @@ public class TcpGateAutoConfiguration {
     private GateCommonProperties gateCommonProperties;
 
     @Bean("gateDriver")
-    public GateDriver tcpGateDriver(){
+    public GateDriver gateDriver(){
         log.info("gateDriver bean register");
         TcpGateDriver tcpGateDriver = new TcpGateDriver();
         tcpGateDriver.registerAfterHandler(new TailHandler(tcpGateDriver));

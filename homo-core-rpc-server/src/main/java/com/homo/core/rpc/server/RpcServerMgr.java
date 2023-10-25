@@ -5,14 +5,14 @@ import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.facade.rpc.RpcServerFactory;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.rpc.base.service.ServiceMgr;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-@Log4j2
+@Slf4j
 public class RpcServerMgr implements Module {
     Map<RpcType, RpcServerFactory> rpcServerFactoryMap = new HashMap<>();
     Map<String, RpcServer> rpcServerMap = new HashMap<>();

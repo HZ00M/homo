@@ -7,10 +7,10 @@ import com.homo.core.utils.trace.ZipkinUtil;
 import io.grpc.*;
 import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.TraceInfo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 
-@Log4j2
+@Slf4j
 public class SpanInterceptor implements ServerInterceptor {
     static Span span;
 

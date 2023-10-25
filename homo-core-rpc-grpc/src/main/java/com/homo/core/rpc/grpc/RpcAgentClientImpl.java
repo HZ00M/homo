@@ -16,10 +16,10 @@ import io.homo.proto.rpc.JsonReq;
 import io.homo.proto.rpc.Req;
 import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.TraceInfo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 
-@Log4j2
+@Slf4j
 public class RpcAgentClientImpl implements RpcAgentClient {
 
     private final RpcClient rpcClient;

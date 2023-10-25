@@ -8,7 +8,7 @@ import com.homo.core.utils.lang.Pair;
 import com.homo.core.utils.rector.Homo;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.RedisFuture;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
 
@@ -20,7 +20,7 @@ import java.util.Map;
 
 ;
 
-@Log4j2
+@Slf4j
 public class RedisCacheDriver implements CacheDriver {
     private static String REDIS_KEY_TMPL = "slug-cache:{%s:%s:%s:%s}";  //slug:{appId:regionId:logicType:ownerId}
     @Autowired

@@ -14,7 +14,7 @@ import com.homo.core.rpc.http.upload.UploadFile;
 import com.homo.core.utils.serial.FSTSerializationProcessor;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.client.ClientRouterHeader;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 @RestController
 public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, ApplicationContextAware {
 

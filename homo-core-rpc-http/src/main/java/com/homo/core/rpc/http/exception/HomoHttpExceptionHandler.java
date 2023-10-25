@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 
 import com.homo.core.rpc.http.dto.ResponseMsg;
 import com.homo.core.utils.exception.HomoException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * webFlux全局异常处理
  */
-@Log4j2
+@Slf4j
 public class HomoHttpExceptionHandler implements WebExceptionHandler {
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, @NotNull Throwable throwable) {

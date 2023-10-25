@@ -14,11 +14,11 @@ import io.homo.proto.entity.test.TestEntityRequest;
 import io.homo.proto.entity.test.TestEntityResponse;
 import io.homo.proto.entity.test.UserLoginRequest;
 import io.homo.proto.entity.test.UserLoginResponse;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Log4j2
+@Slf4j
 @Component
 public class EntityClientService extends BaseService implements IEntityClientService {
 

@@ -4,7 +4,7 @@ import com.homo.core.facade.module.DriverModule;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceStateMgr;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * 负责管理本服务上的所有service
  */
-@Log4j2
+@Slf4j
 public class ServiceMgr implements DriverModule {
     @Autowired(required = false)
     @Lazy

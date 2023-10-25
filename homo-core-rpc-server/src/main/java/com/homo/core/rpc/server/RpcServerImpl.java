@@ -7,12 +7,12 @@ import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.service.Service;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * rpc服务器实现
  */
-@Log4j2
+@Slf4j
 public class RpcServerImpl implements RpcServer {
 
     private final Service actualService;

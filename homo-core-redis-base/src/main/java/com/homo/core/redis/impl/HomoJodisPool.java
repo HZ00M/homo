@@ -2,7 +2,7 @@ package com.homo.core.redis.impl;
 
 import com.homo.core.redis.facade.HomoRedisPool;
 import io.codis.jodis.RoundRobinJedisPool;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Tuple;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -15,7 +15,7 @@ import java.util.Set;
 
 ;
 
-@Log4j2
+@Slf4j
 public class HomoJodisPool  implements HomoRedisPool{
     private RoundRobinJedisPool robinJedisPool;
 

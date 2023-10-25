@@ -18,7 +18,7 @@ import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.entity.EntityRequest;
 import io.homo.proto.entity.EntityResponse;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 远程调用代理，提供实体远程调用能力
  */
-@Log4j2
+@Slf4j
 public class EntityRpcProxy implements MethodInterceptor {
     private String serviceName;
     private String type;

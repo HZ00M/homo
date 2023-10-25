@@ -5,11 +5,11 @@ import com.homo.core.utils.concurrent.event.TimerTaskEvent;
 import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Consumer;
 
-@Log4j2
+@Slf4j
 public class HomoTimerTask extends AbstractHomoTimerTask<HomoTimerTask> {
 
     public Object[] objects;

@@ -1,12 +1,12 @@
 package com.homo.core.utils.callback;
 
 import com.google.common.util.concurrent.*;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Log4j2
+@Slf4j
 public class CallbackTaskScheduler extends Thread {
     private ConcurrentLinkedQueue<CallbackTask> executeTaskQueue = new ConcurrentLinkedQueue<>();
     private AtomicInteger atomicInteger = new AtomicInteger();

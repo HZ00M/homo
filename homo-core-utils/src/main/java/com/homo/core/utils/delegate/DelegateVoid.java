@@ -1,12 +1,12 @@
 package com.homo.core.utils.delegate;
 
 import com.homo.core.utils.exception.HomoError;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 广播  方法签名（无参无回调）
  */
-@Log4j2
+@Slf4j
 public class DelegateVoid extends BroadCaster<DelegateVoid.ExecuteFun> {
     @FunctionalInterface
     public interface ExecuteFun {

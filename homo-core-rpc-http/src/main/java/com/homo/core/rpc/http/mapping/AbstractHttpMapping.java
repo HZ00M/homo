@@ -8,7 +8,7 @@ import com.homo.core.rpc.http.HttpServer;
 import com.homo.core.rpc.http.RpcServerFactoryHttpImpl;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.spring.GetBeanUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
@@ -16,7 +16,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-@Log4j2
+@Slf4j
 public class AbstractHttpMapping implements DriverModule {
 
     protected volatile Map<Integer, HttpServer> routerHttpServerMap;
