@@ -1,5 +1,6 @@
 package com.core.ability.base;
 
+import brave.Span;
 import com.homo.core.facade.ability.CallAble;
 import com.homo.core.facade.ability.TimeAble;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,9 +9,11 @@ import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.facade.ability.AbilityEntityMgr;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
+import com.homo.core.utils.concurrent.queue.CallQueueProducer;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.spring.GetBeanUtil;
+import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,8 +27,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * 抽象能力实体
  */
 @Slf4j
-@ToString
-public class AbstractAbilityEntity implements AbilityEntity, TimeAble, CallAble {
+@ToString()
+public class AbstractAbilityEntity<SELF extends AbstractAbilityEntity<SELF>>
+        implements AbilityEntity , TimeAble, CallAble {
     static Map<Class<?>, String> entityClazzToEntityTypeMap = new ConcurrentHashMap<>();
 
     protected String id;
@@ -45,8 +49,10 @@ public class AbstractAbilityEntity implements AbilityEntity, TimeAble, CallAble 
         abilityMap.put(abilityName, ability);
     }
 
+
+    @SuppressWarnings("unchecked")
     @Override
-    public Homo<Void> promiseInit() {
+    public Homo<SELF> promiseInit() {
         log.info("promiseInit start type {} id {}", getType(), id);
         if (getType() == null) {
             log.error("promiseInit init error, type is null");
@@ -55,34 +61,42 @@ public class AbstractAbilityEntity implements AbilityEntity, TimeAble, CallAble 
             log.error("promiseInit init error, id is null");
         }
         queueId = CallQueueMgr.getInstance().choiceQueueIdBySeed(id.hashCode());
-        return Homo.result(this)
-                .nextDo(entity -> {
-                    if (!GetBeanUtil.getBean(AbilityEntityMgr.class).add(entity)) {
+        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
+        return Homo.result(GetBeanUtil.getBean(AbilityEntityMgr.class).add(this))
+                .nextDo(addRet -> {
+                    if (!addRet) {
                         return Homo.error(
                                 new Exception(String.format("entity create error! type_%s id_%s already exist!", getType(), getId())));
                     }
-                    return Homo.result(entity);
+                    return Homo.result(this);
                 })
                 // 切换到entity对应的线程 todo 是否有必要?
-                .switchThread(queueId)
+                .switchThread(queueId,span)
                 .nextDo(entity -> {
                     List<Homo<Void>> afterInitAbility = new ArrayList<>(abilityMap.size());
                     for (Ability ability : abilityMap.values()) {
                         afterInitAbility.add(ability.promiseAfterInitAttach(entity));
                     }
-                    return Homo.when(afterInitAbility).justThen(this::afterPromiseInit);
+                    return Homo.when(afterInitAbility)
+                            .justThen(
+                                    Homo.result(null)
+                                            .nextDo(ret -> {
+                                                afterInit();
+                                                return Homo.result((SELF) this);
+                                            })
+                            );
                 });
 
     }
 
-    protected Homo<Void> afterPromiseInit() {
-        return Homo.result(null);
+    protected void afterInit() {
     }
 
     @Override
     public Homo<Void> promiseDestroy() {
+        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
         return Homo.result(this)
-                .switchThread(queueId)
+                .switchThread(queueId,span)
                 .nextDo(entity -> {
                     List<Homo<Void>> beforeAfterDestroyAbility = new ArrayList<>(abilityMap.size());
                     for (Ability ability : abilityMap.values()) {
@@ -116,7 +130,7 @@ public class AbstractAbilityEntity implements AbilityEntity, TimeAble, CallAble 
             entityClazzToEntityTypeMap.put(getClass(), type);
             return type;
         }
-        log.error("not found EntityType, object_{}", this);
+        log.error("not found EntityType, object {}", this);
         return null;
     }
 

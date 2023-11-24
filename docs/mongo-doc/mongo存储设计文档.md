@@ -235,7 +235,7 @@ public class AppUserServiceImpl implements AppUserService {
      * @return
      */
     public Homo<GetUserInfoResp> getUserInfo(GetUserInfoReq req) {
-        log.info("getUserInfo req userId_{} req_{}", req.getUserId(), req);
+        log.info("getUserInfo req userId {} req {}", req.getUserId(), req);
         return entityStorage
                 .get(LogicType.USER.name(), req.getUserId(), "data", User.class)
                 .nextDo(retUser -> {
@@ -252,31 +252,31 @@ public class AppUserServiceImpl implements AppUserService {
                                 .setErrorDesc("没有该用户信息")
                                 .build();
                     }
-                    log.info("getUserInfo res userId_{} res_{}", req.getUserId(), res);
+                    log.info("getUserInfo res userId {} res {}", req.getUserId(), res);
                     return Homo.result(res);
                 }).onErrorContinue(throwable -> {
                     GetUserInfoResp res = GetUserInfoResp.newBuilder()
                             .setErrorCode(2)
                             .setErrorDesc("服务器异常")
                             .build();
-                    log.error("getUserInfo error userId_{} req_{} res_{}", req.getUserId(), req, res);
+                    log.error("getUserInfo error userId {} req {} res {}", req.getUserId(), req, res);
                     return Homo.result(res);
                 });
     }
 
     @Override
     public Homo<CreateUserResp> createInfo(CreateUserReq req) {
-        log.info("createUserInfo req userId_{} req_{}", req.getUserInfo().getUserId(), req);
+        log.info("createUserInfo req userId {} req {}", req.getUserInfo().getUserId(), req);
         String userId = req.getUserInfo().getUserId();
         String uuid = UUID.randomUUID().toString();
         return entityStorage
                 .asyncLock(LogicType.USER.name(), userId, "user", "", uuid, 5, 5, 1)
                 .nextDo(aBoolean -> {
                     if (!aBoolean) {
-                        log.error("createUserInfo lock fail userId_{} ", userId);
+                        log.error("createUserInfo lock fail userId {} ", userId);
                         return Homo.error(new Error());
                     }
-                    log.info("createUserInfo lock success userId_{} ", userId);
+                    log.info("createUserInfo lock success userId {} ", userId);
                     return Homo.result(1);
                 })
                 .nextDo(ret ->
@@ -298,7 +298,7 @@ public class AppUserServiceImpl implements AppUserService {
                                                     .setErrorCode(1)
                                                     .setErrorDesc(throwable.getMessage())
                                                     .build();
-                                            log.info("createUserInfo fail userId_{} req_{} res_{}", userId, req, res);
+                                            log.info("createUserInfo fail userId {} req {} res {}", userId, req, res);
                                             return Homo.result(res);
                                         })
                                 )

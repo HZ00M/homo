@@ -25,7 +25,7 @@ public class TestFastJsonGateLogicHandler extends FastJsonGateLogicHandler {
         /**
          * 返回一条消息给客户端
          */
-        gateClient.sendToClient(bytes);
+        gateClient.sendToClient("jsonMsg",bytes).start();
     }
 
 }

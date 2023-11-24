@@ -58,28 +58,30 @@ public class StorageAbility extends AbstractAbility {
         storageSystem = GetBeanUtil.getBean(StorageSystem.class);
         return super.promiseAfterInitAttach(abilityEntity)
                 .consumerValue((ret) -> {
-
                     // 配置了定时保持或者缓存时间
                     // 如果定时保存，就按照定时保存的时间起定时器，如果定时保存的时间比缓存时间大，那么可能会多缓存一会
                     long updateStep = saveTime > 0 ? saveTime : cacheTime;
-                    log.info("TimeAbility attach type {} id {} updateStep {}", abilityEntity.getType(), abilityEntity.getId(), updateStep);
+                    log.info("StorageAbility promiseAfterInitAttach setSaveTime type {} id {} updateStep {}", abilityEntity.getType(), abilityEntity.getId(), updateStep);
                     CallQueueMgr.getInstance().task(() -> {
                         getOwner().getAbility(TimeAbility.class).newTimer(getOwner().getId(), () -> {
                             long diffTime = System.currentTimeMillis() - currentGetTime;
-                            if (cacheTime != null && diffTime > cacheTime) {
+                            if (cacheTime != null && cacheTime != 0 && diffTime > cacheTime) {//开启自动释放
                                 // 配置了缓存时间，且过了缓存时间
                                 // 缓存时间到了，取消定时器，清除缓存
                                 getOwner().getAbility(TimeAbility.class).cancel(getOwner().getId());
                                 // 超过了时间就释放掉
-                                log.info("TimeAbility destroy [{}] [{}], currentTimeMillis:[{}] - updateTime:[{}]  diffTime [{}] > cacheTime:[{}]", getOwner().getType(), getOwner().getId(), System.currentTimeMillis(), currentGetTime, diffTime, cacheTime);
+                                log.info("TimeAbility destroy [{}] [{}], currentTimeMillis:[{}] - updateTime:[{}]  diffTime [{}] > cacheTime:[{}]",
+                                        getOwner().getType(), getOwner().getId(), System.currentTimeMillis(), currentGetTime, diffTime, cacheTime);
                                 getOwner().promiseDestroy().start();
                             } else {
                                 if (currentGetTime > lastSaveTime) {
-                                    log.info("TimeAbility save [{}] [{}] updateTime:[{}] lastSaveTime:[{}]  diffTime [{}]", getOwner().getType(), getOwner().getId(), currentGetTime, lastSaveTime, diffTime);
+                                    log.info("TimeAbility save [{}] [{}] updateTime:[{}] lastSaveTime:[{}]  diffTime [{}]",
+                                            getOwner().getType(), getOwner().getId(), currentGetTime, lastSaveTime, diffTime);
                                     save();
                                     lastSaveTime = currentGetTime;
                                 } else {
-                                    log.info("TimeAbility save doNothing [{}] [{}] updateTime:[{}] lastSaveTime:[{}]  diffTime [{}]", getOwner().getType(), getOwner().getId(), currentGetTime, lastSaveTime, diffTime);
+                                    log.info("TimeAbility save doNothing [{}] [{}] updateTime:[{}] lastSaveTime:[{}]  diffTime [{}]",
+                                            getOwner().getType(), getOwner().getId(), currentGetTime, lastSaveTime, diffTime);
                                 }
                             }
                         }, updateStep, updateStep, HomoTimerMgr.UNLESS_TIMES);
@@ -89,7 +91,6 @@ public class StorageAbility extends AbstractAbility {
 
     @Override
     public void unAttach(AbilityEntity abilityEntity) {
-        log.info(" unAttach Entity type_{} id_{}", getOwner().getType(), getOwner().getId());
         save();
     }
 

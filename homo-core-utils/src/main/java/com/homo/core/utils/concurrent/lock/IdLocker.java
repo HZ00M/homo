@@ -9,14 +9,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
-public class Locker {
+public class IdLocker {
     class LockBlock{
         ReentrantLock lock = new ReentrantLock();
         AtomicInteger count = new AtomicInteger();
     }
-    final Map<String, LockBlock> idLockMap = new ConcurrentHashMap<>();
+    final static Map<String, LockBlock> idLockMap = new ConcurrentHashMap<>();
 
-    public void lock(String id,Runnable runnable){
+    public void lock(String id, Runnable runnable){
         LockBlock lockBlock ;
         synchronized (this){
             lockBlock = idLockMap.computeIfAbsent(id, id1->new LockBlock());
@@ -24,9 +24,9 @@ public class Locker {
         }
         try {
             lockBlock.lock.unlock();
-            log.info("lock id_{} idLock_{} begin",lockBlock, id);
+            log.info("lock id {} idLock {} begin",lockBlock, id);
             runnable.run();
-            log.info("lock id_{} idLock_{} end",lockBlock, id);
+            log.info("lock id {} idLock {} end",lockBlock, id);
         }catch (Throwable throwable){
             log.error("lock id {} catch error!", id, throwable);
         }finally {
@@ -38,7 +38,7 @@ public class Locker {
             }
             lockBlock.lock.unlock();
         }
-        log.trace("lock id_{} end", id);
+        log.trace("lock id {} end", id);
     }
 
     public <T> T lock(String id, Callable<T> callable)throws Exception{
@@ -50,9 +50,9 @@ public class Locker {
         try {
             T rel;
             lockBlock.lock.lock();
-            log.info("lock id_{} idLock_{} begin", id,lockBlock.count);
+            log.info("lock id {} idLock {} begin", id,lockBlock.count);
+            //rel是异步Homo清空下不能保证串行
             rel= callable.call();
-            log.info("lock id_{} idLock_{} end", id,lockBlock.count);
             return rel;
         }catch (Exception e){
             log.error("lock id {} catch error!", id, e);
@@ -64,15 +64,17 @@ public class Locker {
                     log.info("lock remove id {} idLockMap !", id);
                 }
             }
+            log.info("lock id {} idLock {} end", id,lockBlock.count);
             lockBlock.lock.unlock();
+
         }
     }
 
-    public <T>T lockCallable(String id, Callable<T> callable){
+    public <T> T lockCallable(String id, Callable<T> callable){
         try{
             return lock(id, callable);
         } catch (Exception e){
-            log.error("lock callable id_{} Exception!", id, e);
+            log.error("lock callable id {} Exception!", id, e);
             return null;
         }
     }

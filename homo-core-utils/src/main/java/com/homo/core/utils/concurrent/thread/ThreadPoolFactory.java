@@ -35,21 +35,21 @@ public class ThreadPoolFactory {
     }
 
     public static ExecutorService newThreadPoolWithQueueSize(String poolName, Integer corePoolSize, Integer queueSize, Integer maxPoolSize, Integer keepAlive, ThreadFactory factory) {
-        log.warn("newThreadPoolWithQueueSize preset poolName_{} corePoolSize_{} queueSize_{} maxPoolSize_{} keepAlive_{}/second ", poolName, corePoolSize, queueSize, maxPoolSize, keepAlive);
+        log.info("newThreadPoolWithQueueSize preset poolName {} corePoolSize {} queueSize {} maxPoolSize {} keepAlive {}/second ", poolName, corePoolSize, queueSize, maxPoolSize, keepAlive);
         String noNullPoolName = Optional.ofNullable(poolName).orElse("DefaultThreadPoolFactory");
         Integer noNullCorePoolSize = Optional.ofNullable(corePoolSize).orElse(Runtime.getRuntime().availableProcessors());
         Integer noNullMaxPoolSize = Optional.ofNullable(maxPoolSize).orElse(noNullCorePoolSize);
         Integer noNullKeepAlive = Optional.ofNullable(keepAlive).orElse(Integer.MAX_VALUE);
         LinkedBlockingDeque linkedBlockingDeque = queueSize == null ? new LinkedBlockingDeque<>() : new LinkedBlockingDeque<>(queueSize);
         ThreadFactory threadFactory = Optional.ofNullable(factory).orElse(newThreadFactory(noNullPoolName));
-        log.warn("newThreadPoolWithQueueSize set poolName_{} corePoolSize_{} queueSize_{} maxPoolSize_{} keepAlive_{}/second ", noNullPoolName, noNullCorePoolSize, "limitless", noNullMaxPoolSize, noNullKeepAlive);
+        log.info    ("newThreadPoolWithQueueSize set poolName {} corePoolSize {} queueSize {} maxPoolSize {} keepAlive {}/second ", noNullPoolName, noNullCorePoolSize, "limitless", noNullMaxPoolSize, noNullKeepAlive);
         ThreadPoolExecutor executorService = new ThreadPoolExecutor(noNullCorePoolSize, noNullMaxPoolSize, noNullKeepAlive, TimeUnit.SECONDS, linkedBlockingDeque, threadFactory);
         executorService.prestartAllCoreThreads();
         return executorService;
     }
 
     public static ThreadFactory newThreadFactory(String threadName) {
-        log.warn("newHomoThreadFactory threadName_{}", threadName);
+        log.warn("newHomoThreadFactory threadName {}", threadName);
         return new ThreadFactory() {
             int threadCount = 0;
             final int factoryIndex = factoryCount++;
@@ -58,11 +58,11 @@ public class ThreadPoolFactory {
             public Thread newThread(Runnable r) {
                 String name = threadName + "[" + threadCount + "]";
                 String info = String.format("newHomoThreadFactory factoryName_[%s]:factoryIndex_[%d]:threadCount_[%d]", name, factoryIndex, threadCount++);
-                log.warn("new thread [{}]", info);
+                log.info("new thread [{}]", info);
                 Runnable warp = () -> {
-                    log.warn("run task in {} >>> begin", info);
+                    log.info("run task in {} >>> begin", info);
                     r.run();
-                    log.warn("new task in {} >>> end", info);
+                    log.info("new task in {} >>> end", info);
                 };
                 Thread newThread = new Thread(warp, name);
                 return newThread;

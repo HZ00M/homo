@@ -11,11 +11,45 @@ public class ServiceUtil {
     /**
      * 通过服务名，获得域名
      *
-     * @param serviceName 服务名字
+     * @param serviceTag 服务名字
      * @return
      */
-    public String getServiceHostName(String serviceName) {
-        String[] stringArray = serviceName.split(":");
+    public String getServiceHostNameByTag(String serviceTag) {
+        String[] stringArray = serviceTag.split(":");
+        return stringArray[0];
+    }
+
+    /**
+     * 通过服务名，获得端口
+     *
+     * @param serviceTag 服务名字
+     * @return
+     */
+    public int getServicePortByTag(String serviceTag) {
+        String[] stringArray = serviceTag.split(":");
+        return Integer.parseInt(stringArray[stringArray.length - 1]);
+    }
+
+
+    /**
+     * 通过服务名，获得端口
+     *
+     * @param realHost 服务名字
+     * @return
+     */
+    public int getServicePortByRealHost(String realHost) {
+        String[] stringArray = realHost.split(":");
+        return Integer.parseInt(stringArray[stringArray.length - 1]);
+    }
+
+    /**
+     * 通过服务名，获得域名
+     *
+     * @param realHost 服务名字
+     * @return
+     */
+    public String getServiceHostNameByRealHost(String realHost) {
+        String[] stringArray = realHost.split(":");
         return stringArray[0];
     }
 
@@ -33,26 +67,17 @@ public class ServiceUtil {
         return null;
     }
 
-    /**
-     * 通过服务名，获得端口
-     *
-     * @param serviceName 服务名字
-     * @return
-     */
-    public int getServicePort(String serviceName) {
-        String[] stringArray = serviceName.split(":");
-        return Integer.parseInt(stringArray[stringArray.length - 1]);
-    }
+
 
     /**
      * 格式化有状态服务访问名称
-     * @param hostName 服务名
+     * @param tagName 服务名
      * @param podIndex pod index
      * @return 状态服务访问名称
      */
-    public String formatStatefulName(String hostName, Integer podIndex) {
+    public String formatStatefulName(String tagName, Integer podIndex) {
         //命名格式: [tagName]:[port]
-        String[] stringArray = hostName.split(":");
+        String[] stringArray = tagName.split(":");
         String serviceHost = stringArray[0];
         Integer port = Integer.parseInt(stringArray[stringArray.length - 1]);
 
@@ -60,5 +85,9 @@ public class ServiceUtil {
 //        String statefulName = String.format("%s-%d.%s:%d", serviceHost, podIndex, serviceHost, port);
         log.debug("statefulName : {}", statefulHostName);
         return statefulHostName;
+    }
+
+    public static boolean isStatefulService(String realHostName) {
+        return realHostName.contains("-")&&realHostName.contains(".");//todo 待验证
     }
 }

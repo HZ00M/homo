@@ -9,5 +9,7 @@ import lombok.ToString;
 @AllArgsConstructor
 public class ServiceInfo {
     public String serviceTag;
+    public String serverHost;
+    public Integer serverPort;
     public Integer isStateful;
 }

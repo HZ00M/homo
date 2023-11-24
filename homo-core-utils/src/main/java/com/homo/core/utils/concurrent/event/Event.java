@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 public interface Event {
     Logger log = LoggerFactory.getLogger(Event.class);
 
+    default String id(){
+        return "";
+    }
     default void preProcess(){}
 
     void process();

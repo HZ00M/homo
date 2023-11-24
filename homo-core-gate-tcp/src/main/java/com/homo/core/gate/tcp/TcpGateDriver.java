@@ -20,6 +20,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
@@ -29,6 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class TcpGateDriver implements GateDriver, DriverModule {
@@ -48,9 +51,9 @@ public class TcpGateDriver implements GateDriver, DriverModule {
     private Map<GateClient, Channel> clientMap = new HashMap<>();
 
     public static AttributeKey<GateClient> clientKey = AttributeKey.valueOf("client");
-    public static AttributeKey<String> sessionIdKey = AttributeKey.valueOf("sessionId");
+    public static AttributeKey<Short> sessionIdKey = AttributeKey.valueOf("sessionId");
     public static AttributeKey<Integer> packType = AttributeKey.valueOf("packType");
-    public static AttributeKey<Short> serverSendSeqKey = AttributeKey.valueOf("serverSeq");
+    public static AttributeKey<Short> serverSendSeqKey = AttributeKey.valueOf("serverSendSeq");
     public static AttributeKey<Short> recvConfirmSeqKey = AttributeKey.valueOf("recvConfirmSeq");
     public static AttributeKey<Short> clientSendReqKey = AttributeKey.valueOf("clientSendReq");
 
@@ -70,14 +73,15 @@ public class TcpGateDriver implements GateDriver, DriverModule {
 
     private Tuple3<List<ChannelHandler>, List<AbstractGateLogicHandler>, List<ChannelHandler>> customHandlers = Tuples.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
+
     public void init() {
         if (Epoll.isAvailable()) {
-            bossGroup = new EpollEventLoopGroup(gateTcpProperties.bossNum, bossExecutor);
-            workGroup = new EpollEventLoopGroup(gateTcpProperties.workNum);
+            bossGroup = new EpollEventLoopGroup(gateTcpProperties.bossNum, bossFactory);
+            workGroup = new EpollEventLoopGroup(gateTcpProperties.workNum,workFactory);
             log.info("TcpGateDriver initialize using epoll");
         } else {
-            bossGroup = new NioEventLoopGroup(gateTcpProperties.bossNum, bossExecutor);
-            workGroup = new NioEventLoopGroup(gateTcpProperties.workNum);
+            bossGroup = new NioEventLoopGroup(gateTcpProperties.bossNum, bossFactory);
+            workGroup = new NioEventLoopGroup(gateTcpProperties.workNum,workFactory);
             log.info("TcpGateDriver initialize not use epoll");
         }
     }
@@ -133,9 +137,8 @@ public class TcpGateDriver implements GateDriver, DriverModule {
         }
     }
 
-
     @Override
-    public <T> Homo<Boolean> sendToclient(GateClient gateClient, T msg) {
+    public <T> Homo<Boolean> sendToClientComplete(GateClient gateClient, T msg) {
         return Homo.warp(homoSink -> {
             Channel channel = clientMap.get(gateClient);
             if (channel != null) {
@@ -144,7 +147,21 @@ public class TcpGateDriver implements GateDriver, DriverModule {
                     homoSink.success(future1.isSuccess());
                 });
             } else {
-                homoSink.error(HomoError.throwError(HomoError.gateError, "channel is null"));
+                log.info("sendToClient channel is null gateClient {}",gateClient.name());
+                homoSink.success(false);
+            }
+        });
+    }
+    @Override
+    public <T> Homo<Boolean> sendToClient(GateClient gateClient, T msg) {
+        return Homo.warp(homoSink -> {
+            Channel channel = clientMap.get(gateClient);
+            if (channel != null && channel.isActive()) {
+                ChannelFuture future = channel.writeAndFlush(msg);
+                homoSink.success(true);
+            } else {
+                log.info("sendToClient channel is null gateClient {}",gateClient.name());
+                homoSink.success(false);
             }
         });
     }
@@ -163,7 +180,7 @@ public class TcpGateDriver implements GateDriver, DriverModule {
         if (channel != null) {
             channel.close();
         } else {
-            log.error("closeGateClient channel not found, gateClient_{}", gateClient);
+            log.error("closeGateClient channel not found, gateClient {}", gateClient);
         }
         gateClient.onClose("do closeGateClient");
     }
@@ -175,7 +192,7 @@ public class TcpGateDriver implements GateDriver, DriverModule {
         clientMap.put(gateClient, channel);
         channel.attr(clientKey).set(gateClient);
         gateClient.onOpen();
-        log.info("createConnection finish addr {} port {} gateClient {}", addr, port);
+        log.info("createConnection end addr {} port {} ", addr, port);
     }
 
     public GateClient getGateClient(Channel channel) {
@@ -205,4 +222,24 @@ public class TcpGateDriver implements GateDriver, DriverModule {
         customHandlers.getT3().add(handler);
     }
 
+    ThreadFactory bossFactory = new ThreadFactory() {
+        private AtomicInteger atomicInteger = new AtomicInteger();
+        int index ;
+        @Override
+        public Thread newThread(@NotNull Runnable r) {
+            index = atomicInteger.incrementAndGet();
+            Thread t = new Thread(r, "TcpBoss" +index);
+            return t;
+        }
+    };
+    ThreadFactory workFactory = new ThreadFactory() {
+        private AtomicInteger atomicInteger = new AtomicInteger();
+        int index ;
+        @Override
+        public Thread newThread(@NotNull Runnable r) {
+            index = atomicInteger.incrementAndGet();
+            Thread t = new Thread(r, "TcpWorker" +index);
+            return t;
+        }
+    };
 }

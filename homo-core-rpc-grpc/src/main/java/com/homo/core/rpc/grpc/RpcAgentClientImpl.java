@@ -9,6 +9,8 @@ import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.serial.JsonRpcContent;
+import com.homo.core.utils.concurrent.queue.CallQueue;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
@@ -18,6 +20,7 @@ import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.TraceInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
+import org.springframework.util.Assert;
 
 @Slf4j
 public class RpcAgentClientImpl implements RpcAgentClient {
@@ -49,25 +52,30 @@ public class RpcAgentClientImpl implements RpcAgentClient {
     @Override
     public Homo rpcCall(String funName, RpcContent param) {
         try (Tracer.SpanInScope ignored = ZipkinUtil.getTracing().tracer().withSpanInScope(ZipkinUtil.newCSSpan())) {
+            CallQueue currentCallQueue = CallQueueMgr.getInstance().getLocalQueue();
+            Assert.notNull(currentCallQueue,"rpcCall callQueue is null funName " + funName);
+
+            Homo rpcResult;
             if (param.getType().equals(RpcContentType.BYTES)) {
                 ByteRpcContent byteRpcContent = (ByteRpcContent) param;
                 byte[][] data = byteRpcContent.getData();
                 if (srcIsStateFul && targetIsStateful) {
                     log.debug("asyncBytesStreamCall {} {}", funName, param);
-                    return asyncBytesStreamCall(funName, data);
+                    rpcResult = asyncBytesStreamCall(funName, data);
                 } else {
                     //无状态客户端访问有状态服务端 或 有状态客户端访问无状态服务端 都不需要建立长连接
                     log.debug("asyncBytesCall {} {}", funName, param);
-                    return asyncBytesCall(funName, data);
+                    rpcResult = asyncBytesCall(funName, data);
                 }
             } else if (param.getType().equals(RpcContentType.JSON)) {
                 JsonRpcContent jsonRpcContent = (JsonRpcContent) param;
                 String data = jsonRpcContent.getData();
-                return asyncJsonCall(funName, data);
+                rpcResult = asyncJsonCall(funName, data);
             } else {
-                log.error("asyncCall contentType unknown, targetServiceName {} funName {} contentType_{}", targetServiceName, funName, param.getType());
-                return Homo.error(new RuntimeException("rpcCall contentType unknown"));
+                log.error("asyncCall contentType unknown, targetServiceName {} funName {} contentType {}", targetServiceName, funName, param.getType());
+                rpcResult = Homo.error(new RuntimeException("rpcCall contentType unknown"));
             }
+            return rpcResult.switchThread(currentCallQueue,ZipkinUtil.getTracing().tracer().nextSpan());
         } catch (Exception e) {
             log.error("rpcCall {} {} error ", funName, param != null ? param.getType() : "null", e);
             return Homo.error(e);

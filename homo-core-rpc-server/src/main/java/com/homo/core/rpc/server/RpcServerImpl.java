@@ -53,7 +53,7 @@ public class RpcServerImpl implements RpcServer {
             span.name(funName);
         }
         if (actualService == null) {
-            log.warn("RpcServerImpl onCall service is null, funName_{}", funName);
+            log.warn("RpcServerImpl onCall service is null, funName {}", funName);
             return Homo.result(null);
 
         }

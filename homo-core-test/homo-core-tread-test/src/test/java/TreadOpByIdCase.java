@@ -34,7 +34,7 @@
 //    void setup() throws Exception {
 //        treadProperties.traceEnable = true;
 //        userId = "123456";
-//        log.info("setup userId_{}", userId);
+//        log.info("setup userId {}", userId);
 //        localHandler = entityMgr.createEntityPromise(userId, TreadHandler.class, userId)
 //                .block();
 //        treadHandler = callSystemPorxyUtil.getEntityProxy(TreadService.class, ITreadHandler.class, userId);

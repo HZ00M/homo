@@ -1,13 +1,18 @@
 package com.homo.core.utils.rector;
 
+import brave.Span;
 import com.homo.core.utils.concurrent.event.AbstractBaseEvent;
 import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
+import com.homo.core.utils.concurrent.queue.CallQueueProducer;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.trace.TraceLogUtil;
+import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
+import org.slf4j.MDC;
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
@@ -36,6 +41,8 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(new ConsumerEx<HomoSink<T>>() {
             @Override
             public void accept(HomoSink<T> tHomoSink) throws Exception {
+                Span span = ZipkinUtil.getTracing().tracer().currentSpan();
+                TraceLogUtil.setTraceIdBySpan(span, "Homo queue");
                 idCallQueue.addIdTask(callable, errCb, tHomoSink);
             }
         });
@@ -44,30 +51,51 @@ public class Homo<T> extends Mono<T> {
     public static Homo<Void> resultVoid() {
         return Homo.warp(Mono.empty());
     }
-
     public final Homo<T> switchToCurrentThread() {
+        Span span = ZipkinUtil.currentSpan();
+        return switchToCurrentThread(span);
+    }
+    public final Homo<T> switchToCurrentThread(Span span) {
         CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
-        return switchThread(callQueue.getId());
+        return switchThread(callQueue, span);
     }
 
-    public final Homo<T> switchThread(int callQueueId) {
-        CallQueue callQueue = CallQueueMgr.getInstance().getQueue(callQueueId);
-        return nextDo(ret -> {
-            CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
-            if (localQueue == null || localQueue != callQueue) {
-                return Homo.warp(tHomoSink -> {
-                    callQueue.addEvent(new AbstractBaseEvent() {
-                        @Override
-                        public void process() {
-                            log.info("switchThread process queueId {}", callQueueId);
-                            tHomoSink.success(ret);
-                        }
-                    });
-                });
-            } else {
-                return Homo.result(ret);
-            }
+    public final Homo<T> switchThread(CallQueueProducer producer, Span span) {
+        return producer == null ? this : this.switchThread(producer.getQueueId(), span);
+    }
+
+    public final Homo<T> switchThreadByString(String uniqueId, Span span) {
+        return switchThreadByHashCode(uniqueId.hashCode(), span);
+    }
+
+    public final Homo<T> switchThreadByHashCode(int hashCode, Span span) {
+        CallQueue callQueue = CallQueueMgr.getInstance().getQueueByHashCode(hashCode);
+        return switchThread(callQueue, span);
+    }
+
+
+    public final Homo<T> switchThread(CallQueue callQueue, Span span) {
+        return this.nextDo(ret -> {
+            return CallQueueMgr.getInstance().isThreadChanged(callQueue) ?
+                    warp(sink -> {
+                        AbstractBaseEvent abstractBaseEvent = new AbstractBaseEvent() {
+                            @Override
+                            public void process() {
+                                TraceLogUtil.setTraceIdBySpan(span,"process");
+                                log.info("switchThread process queueId {}", callQueue.getId());
+                                sink.success(ret);
+                            }
+                        };
+                        abstractBaseEvent.setSpan(span);
+                        callQueue.addEvent(abstractBaseEvent);
+                    }) :
+                    result(ret);
         });
+    }
+
+    public final Homo<T> switchThread(int callQueueId, Span span) {
+        CallQueue callQueue = CallQueueMgr.getInstance().getQueue(callQueueId);
+        return switchThread(callQueue, span);
     }
 
     @Override
@@ -315,7 +343,7 @@ public class Homo<T> extends Mono<T> {
                         Retry.fixedDelay(retryCount, Duration.ofSeconds(retryDelaySecond))
                                 .scheduler(Schedulers.single())
                                 .filter(retryPredicate)
-                                .doBeforeRetry(retrySignal -> log.warn("retry on the exception_{} starting , times_{}", retrySignal.failure(), retrySignal.totalRetries() + 1))
+                                .doBeforeRetry(retrySignal -> log.warn("retry on the exception {} starting , times {}", retrySignal.failure(), retrySignal.totalRetries() + 1))
                 )
         );
     }
@@ -344,7 +372,7 @@ public class Homo<T> extends Mono<T> {
                         Retry.fixedDelay(retryCount, duration)
                                 .scheduler(Schedulers.single())
                                 .filter(retryPredicate)
-                                .doBeforeRetry(retrySignal -> log.warn("retry on the exception_{} starting , times_{}", retrySignal.failure(), retrySignal.totalRetries() + 1))
+                                .doBeforeRetry(retrySignal -> log.warn("retry on the exception {} starting , times {}", retrySignal.failure(), retrySignal.totalRetries() + 1))
                 )
         );
     }

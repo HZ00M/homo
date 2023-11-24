@@ -6,7 +6,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public enum HomoError implements HomoThrowable {
-    defaultError(0, "system error %s "),
+    defaultError(-1, "system error %s "),
+
+    success(0,"success"),
     callAllow(100, "call fun not allow"),
     callEmpty(101, "call empty"),
     callError(102, "not support yet"),

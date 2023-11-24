@@ -168,9 +168,9 @@ public class MethodDispatchInfo implements RpcSecurity {
             return serializeData;
         }
         if (paramContentType.equals(RpcContentType.BYTES)) {
-            serializeData = rpcContent.serializeParams(params, paramSerializeInfos, paddingOffset);
+            serializeData = rpcContent.serializeParams(params, paramSerializeInfos, 0);
         } else if (paramContentType.equals(RpcContentType.JSON)) {
-            serializeData = rpcContent.serializeParams(params, paramSerializeInfos, paddingOffset);
+            serializeData = rpcContent.serializeParams(params, paramSerializeInfos, 0);
         }
         return serializeData;
     }

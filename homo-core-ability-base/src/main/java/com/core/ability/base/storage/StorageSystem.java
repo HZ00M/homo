@@ -7,7 +7,7 @@ import com.homo.core.facade.module.ServiceModule;
 import com.homo.core.facade.storege.SaveObject;
 import com.homo.core.storage.ByteStorage;
 import com.homo.core.storage.ObjStorage;
-import com.homo.core.utils.concurrent.lock.Locker;
+import com.homo.core.utils.concurrent.lock.IdLocker;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.rector.Homo;
@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class StorageSystem implements AbilitySystem, ServiceModule {
-    final Locker locker = new Locker();
+    final IdLocker idLocker = new IdLocker();
     @Autowired
     AbilityProperties abilityProperties;
     @Autowired
@@ -70,23 +70,20 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
 
     public <T extends SaveObject> void save(SaveAble saveAbleEntity) {
         long start = System.currentTimeMillis();
-        synchronized (locker) {
+        synchronized (idLocker) {
             saveEntityMap.put(saveAbleEntity.getId(), new SaveCache(saveAbleEntity, serializationProcessor.writeByte(saveAbleEntity), false));
         }
         long end = System.currentTimeMillis();
         if (end - start > 500) {
-            log.warn("save object take more than 500 milliseconds, {} milliseconds used type_{} Id_{}, entity_{}", end - start, saveAbleEntity.getType(), saveAbleEntity.getId(), saveAbleEntity);
+            log.warn("save object take more than 500 milliseconds, {} milliseconds used type {} Id {}, entity {}", end - start, saveAbleEntity.getType(), saveAbleEntity.getId(), saveAbleEntity);
         }
     }
 
     private void landEntity() {
-        Span span = ZipkinUtil.getTracing().tracer().nextSpan();
-        span.name("landEntity");
-
         Map<String, SaveCache> lastEntityMap;
         long start = System.currentTimeMillis();
         // 切换队列, 需要加锁
-        synchronized (locker) {
+        synchronized (idLocker) {
             lastEntityMap = saveEntityMap;
             saveEntityMap = switchToOtherMap();
         }
@@ -154,18 +151,17 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
     }
 
     public <E extends SaveObject> Homo<E> load(String logicType, String id, Class<E> zz) {
-        return Homo.warp(() -> locker.lockCallable(id, () -> {
-                    // 先取缓存中的值
-                    E cacheData = (E) getInCache(logicType, id);
-                    if (cacheData != null) {
-                        // 如果缓存里面有就直接返回
-                        return Homo.result(cacheData);
-                    } else {
-                        // 否则就从storage中加载
-                        return loadFromStorage(logicType, id, zz);
-                    }
-                })
-        );
+        return idLocker.lockCallable(id, () -> {
+            // 先取缓存中的值
+            E cacheData = (E) getInCache(logicType, id);
+            if (cacheData != null) {
+                // 如果缓存里面有就直接返回
+                return Homo.result(cacheData);
+            } else {
+                // 否则就从storage中加载
+                return loadFromStorage(logicType, id, zz);
+            }
+        });
     }
 
     <E extends SaveObject> Homo<E> loadFromStorage(String logicType, String id, Class<E> zz) {
@@ -180,7 +176,7 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
         return storage.load(logicType, id, zz)
                 .ifEmptyThen(Homo.result(null))
                 .consumerValue(ret -> {
-                    log.info("loadFromStorage load from persistent () logicType {} id {} clazz {} ret {}", logicType, id, zz, ret);
+                    log.info("loadFromStorage load from persistent logicType {} id {} clazz {} ret {}", logicType, id, zz, ret);
                 });
     }
 

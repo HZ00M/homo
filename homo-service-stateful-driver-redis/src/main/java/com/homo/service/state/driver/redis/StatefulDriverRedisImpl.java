@@ -1,11 +1,15 @@
 package com.homo.service.state.driver.redis;
 
+import brave.Span;
 import com.homo.core.facade.service.StatefulDriver;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
+import com.homo.core.utils.concurrent.queue.CallQueue;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
+import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,75 +36,81 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
     public static String[] nullArgs = new String[]{};
 
     @Override
-    public Homo<Boolean> setLinkedPod(String appId, String regionId, String logicType, String uid, String serviceName, int podId, int persistSeconds) {
-        String uidSvcKey = String.format(USER_SERVICE_TEMP, appId, regionId, logicType, uid, serviceName);
-        String uidKey = String.format(USER_TEMP, appId, regionId, logicType, uid);
+    public Homo<Boolean> setLinkedPod(String appId, String regionId, String logicType, String ownerId, String serviceName, int podId, int persistSeconds) {
+        String uidSvcKey = String.format(USER_SERVICE_TEMP, appId, regionId, logicType, ownerId, serviceName);
+        String uidKey = String.format(USER_TEMP, appId, regionId, logicType, ownerId);
         String[] keys = {uidSvcKey, uidKey};
         String[] args = {String.valueOf(serviceName), String.valueOf(podId), String.valueOf(persistSeconds)};
         String statefulSetLink = LuaScriptHelper.statefulSetLink;
-        return Homo.warp(new ConsumerEx<HomoSink<Boolean>>() {
+        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        Homo<Boolean> warp = Homo.warp(new ConsumerEx<HomoSink<Boolean>>() {
             @Override
             public void accept(HomoSink<Boolean> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(statefulSetLink, keys, args)
                         .subscribe(ret -> {
                             Long rel = (Long) ((List) ret).get(0);
-                            log.trace("setLinkedPod  appId {} regionId {} logicType {} uid {} serviceName {} podId {} persistSeconds {} rel {}", appId, regionId, logicType, uid, serviceName, podId, persistSeconds, rel);
-                            homoSink.success(rel==1L);
+                            log.trace("setLinkedPod  appId {} regionId {} logicType {} ownerId {} serviceName {} podId {} persistSeconds {} rel {}", appId, regionId, logicType, ownerId, serviceName, podId, persistSeconds, rel);
+                            homoSink.success(rel == 1L);
                         });
             }
         });
+        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId), storageSpan).consumerValue(ret -> storageSpan.finish());
     }
 
     @Override
-    public Homo<Integer> setLinkedPodIfAbsent(String appId, String regionId, String logicType, String uid, String serviceName, int podId, int persistSeconds) {
-        String uidSvcKey = String.format(USER_SERVICE_TEMP, appId, regionId, logicType, uid, serviceName);
-        String uidKey = String.format(USER_TEMP, appId, regionId, logicType, uid);
+    public Homo<Integer> setLinkedPodIfAbsent(String appId, String regionId, String logicType, String ownerId, String serviceName, int podId, int persistSeconds) {
+        String uidSvcKey = String.format(USER_SERVICE_TEMP, appId, regionId, logicType, ownerId, serviceName);
+        String uidKey = String.format(USER_TEMP, appId, regionId, logicType, ownerId);
         String[] keys = {uidSvcKey, uidKey};
         String[] args = {String.valueOf(serviceName), String.valueOf(podId), String.valueOf(persistSeconds)};
         String statefulSetLinkIfAbsent = LuaScriptHelper.statefulSetLinkIfAbsent;
-        log.info("setLinkedPodIfAbsent start appId {} regionId {} logicType {} serviceName {} uid {} podId {} persistSeconds {} ", appId, regionId, logicType, serviceName, uid, podId, persistSeconds);
-
-        return Homo.warp(new ConsumerEx<HomoSink<Integer>>() {
+        log.info("setLinkedPodIfAbsent start appId {} regionId {} logicType {} serviceName {} ownerId {} podId {} persistSeconds {} ", appId, regionId, logicType, serviceName, ownerId, podId, persistSeconds);
+        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        Homo<Integer> warp = Homo.warp(new ConsumerEx<HomoSink<Integer>>() {
             @Override
             public void accept(HomoSink<Integer> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(statefulSetLinkIfAbsent, keys, args)
                         .subscribe(ret -> {
                             String rel = (String) ((List) ret).get(0);
-                            log.info("setLinkedPodIfAbsent end appId {} regionId {} logicType {} serviceName {} uid {} podId {} persistSeconds {} rel {}", appId, regionId, logicType, serviceName, uid, podId, persistSeconds, rel);
+                            log.info("setLinkedPodIfAbsent end appId {} regionId {} logicType {} serviceName {} ownerId {} podId {} persistSeconds {} rel {}", appId, regionId, logicType, serviceName, ownerId, podId, persistSeconds, rel);
                             homoSink.success(Integer.parseInt(rel));
                         });
             }
         });
+        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId), storageSpan).consumerValue(ret -> storageSpan.finish());
     }
 
     @Override
-    public Homo<Integer> getLinkedPod(String appId, String regionId, String logicType, String uid, String serviceName) {
-        String uidSvcKey = String.format(USER_SERVICE_TEMP, appId, regionId, logicType, uid, serviceName);
+    public Homo<Integer> getLinkedPod(String appId, String regionId, String logicType, String ownerId, String serviceName) {
+        String uidSvcKey = String.format(USER_SERVICE_TEMP, appId, regionId, logicType, ownerId, serviceName);
         String[] keys = {uidSvcKey};
         String[] args = nullArgs;
         String statefulGetLink = LuaScriptHelper.statefulGetLink;
-        return Homo.warp(new ConsumerEx<HomoSink<Integer>>() {
+        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        Homo<Integer> warp = Homo.warp(new ConsumerEx<HomoSink<Integer>>() {
             @Override
             public void accept(HomoSink<Integer> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(statefulGetLink, keys, args)
                         .subscribe(ret -> {
                             String podIdStr = (String) ((List) ret).get(0);
                             Integer rel = Integer.valueOf(podIdStr);
-                            log.trace("getLinkedPod  appId {} regionId {} logicType {} serviceName {} uid {} rel {}", appId, regionId, logicType, serviceName, uid, rel);
+                            log.trace("getLinkedPod  appId {} regionId {} logicType {} serviceName {} ownerId {} rel {}", appId, regionId, logicType, serviceName, ownerId, rel);
                             homoSink.success(rel);
                         });
             }
         });
+        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId), storageSpan).consumerValue(ret -> storageSpan.finish());
     }
 
     @Override
-    public Homo<Boolean> removeLinkedPod(String appId, String regionId, String logicType, String uid, String serviceName, int persistSeconds) {
-        String uidSvcKey = String.format(USER_SERVICE_TEMP, appId, regionId, logicType, uid, serviceName);
-        String uidKey = String.format(USER_TEMP, appId, regionId, logicType, uid);
+    public Homo<Boolean> removeLinkedPod(String appId, String regionId, String logicType, String ownerId, String serviceName, int persistSeconds) {
+        String uidSvcKey = String.format(USER_SERVICE_TEMP, appId, regionId, logicType, ownerId, serviceName);
+        String uidKey = String.format(USER_TEMP, appId, regionId, logicType, ownerId);
         String[] keys = {uidSvcKey, uidKey};
         String[] args = {String.valueOf(serviceName), String.valueOf(persistSeconds)};
         String statefulRemoveLink = LuaScriptHelper.statefulRemoveLink;
-        return Homo.warp(new ConsumerEx<HomoSink<Boolean>>() {
+        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        Homo<Boolean> warp = Homo.warp(new ConsumerEx<HomoSink<Boolean>>() {
             @Override
             public void accept(HomoSink<Boolean> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(statefulRemoveLink, keys, args)
@@ -112,20 +122,22 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
                             } else {
                                 homoSink.success(false);
                             }
-                            log.info("removeLinkedPod  appId {} regionId {} logicType {} serviceName {} uid {} rel {}", appId, regionId, logicType, serviceName, uid, rel);
+                            log.info("removeLinkedPod  appId {} regionId {} logicType {} serviceName {} ownerId {} rel {}", appId, regionId, logicType, serviceName, ownerId, rel);
 
                         });
             }
         });
+        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId), storageSpan).consumerValue(ret -> storageSpan.finish());
     }
 
     @Override
-    public Homo<Map<String, Integer>> getAllLinkService(String appId, String regionId, String logicType, String uid) {
-        String uidKey = String.format(USER_TEMP, appId, regionId, logicType, uid);
+    public Homo<Map<String, Integer>> getAllLinkService(String appId, String regionId, String logicType, String ownerId) {
+        String uidKey = String.format(USER_TEMP, appId, regionId, logicType, ownerId);
         String[] keys = {uidKey};
         String[] args = nullArgs;
         String getAllLinkService = LuaScriptHelper.getAllLinkService;
-        return Homo.warp(new ConsumerEx<HomoSink<Map<String, Integer>>>() {
+        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        Homo<Map<String, Integer>> warp = Homo.warp(new ConsumerEx<HomoSink<Map<String, Integer>>>() {
             @Override
             public void accept(HomoSink<Map<String, Integer>> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(getAllLinkService, keys, args)
@@ -136,10 +148,11 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
                                 map.put(rel.get(i), Integer.valueOf(rel.get(i + 1)));
                             }
                             homoSink.success(map);
-                            log.trace("getAllLinkService  appId {} regionId {} logicType {}  uid {} rel {}", appId, regionId, logicType, uid, rel);
+                            log.trace("getAllLinkService  appId {} regionId {} logicType {}  ownerId {} rel {}", appId, regionId, logicType, ownerId, rel);
                         });
             }
         });
+        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId), storageSpan).consumerValue(ret -> storageSpan.finish());
     }
 
     @Override
@@ -149,29 +162,34 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
         String loadTimestamp = LoadTimestamp.join(load, System.currentTimeMillis());
         Map<String, String> dataMap = new HashMap<>();
         dataMap.put(podNumStr, loadTimestamp);
-        return Homo.warp(asyncRedisPool.hsetAsyncReactive(stateQueryKey, dataMap))
+        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        Homo<Boolean> warp = Homo.warp(asyncRedisPool.hsetAsyncReactive(stateQueryKey, dataMap))
                 .nextDo(ret -> {
                     log.trace("setServiceState ret appId {} regionId {} logicType {} serviceName {} podId {} load {} loadTimestamp {} ret {}",
-                            appId, regionId, logicType, serviceName, podId, load,loadTimestamp,ret
+                            appId, regionId, logicType, serviceName, podId, load, loadTimestamp, ret
                     );
                     if (ret != null) {
                         return Homo.result(true);
                     } else {
                         log.error("setServiceState error appId {} regionId {} logicType {} serviceName {} podId {} load {} loadTimestamp {}",
-                                appId, regionId, logicType, serviceName, podId, load,loadTimestamp
+                                appId, regionId, logicType, serviceName, podId, load, loadTimestamp
                         );
                         return Homo.result(false);
                     }
                 });
+        return warp.switchThread(localQueue, storageSpan).consumerValue(ret -> storageSpan.finish());
     }
 
     @Override
     public Homo<Map<Integer, Integer>> getServiceState(String appId, String regionId, String logicType, String serviceName, long beginTimeMillis) {
-        String serviceKey = String.format(SERVICE_STATE_TEMP,appId,regionId,logicType,serviceName);
+        String serviceKey = String.format(SERVICE_STATE_TEMP, appId, regionId, logicType, serviceName);
         String[] keys = {serviceKey};
         String[] args = nullArgs;
         String getServiceState = LuaScriptHelper.getServiceState;
-        return Homo.warp(new ConsumerEx<HomoSink<Map<Integer, Integer>>>() {
+        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        Homo<Map<Integer, Integer>> warp = Homo.warp(new ConsumerEx<HomoSink<Map<Integer, Integer>>>() {
             @Override
             public void accept(HomoSink<Map<Integer, Integer>> homoSink) throws Exception {
                 asyncRedisPool.evalAsyncReactive(getServiceState, keys, args)
@@ -181,7 +199,7 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
                             for (int i = 0; i < rel.size(); i += 2) {
                                 LoadTimestamp loadTimestamp = LoadTimestamp.split(rel.get(i + 1));
                                 Long timestamp = loadTimestamp.timestamp;
-                                if (timestamp>=beginTimeMillis){
+                                if (timestamp >= beginTimeMillis) {
                                     map.put(Integer.valueOf(rel.get(i)), loadTimestamp.load);
                                 }
                             }
@@ -190,6 +208,7 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
                         });
             }
         });
+        return warp.switchThread(localQueue, storageSpan).consumerValue(ret -> storageSpan.finish());
     }
 
 }

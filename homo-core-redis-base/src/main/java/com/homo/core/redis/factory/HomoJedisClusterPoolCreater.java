@@ -35,7 +35,7 @@ public class HomoJedisClusterPoolCreater {
             testWhileIdle设置成true这样能获得比较好的性能。
              */
             config.setTestOnBorrow(redisInfoHolder.isTestOnBorrow());
-            log.info("HomoJedisClusterPool create config_{}",config);
+            log.info("HomoJedisClusterPool create config {}",config);
             JedisCluster jedisCluster;
             Set<HostAndPort> hostAndPorts = parseNodesHostAndPort(redisInfoHolder.getUrl());
             if(StringUtils.isEmpty(redisInfoHolder.getAuth())){

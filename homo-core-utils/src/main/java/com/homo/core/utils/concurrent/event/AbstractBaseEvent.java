@@ -6,8 +6,12 @@ import brave.Span;
 public abstract class AbstractBaseEvent implements BaseEvent{
     private Span span;
     public boolean processed;
-    public String mark;
 
+    public String id;
+    @Override
+    public String id(){
+        return id;
+    }
     @Override
     public boolean processed() {
         return processed;

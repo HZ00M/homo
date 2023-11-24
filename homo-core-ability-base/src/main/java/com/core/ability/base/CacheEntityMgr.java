@@ -47,17 +47,18 @@ public class CacheEntityMgr implements AbilityEntityMgr {
 
     @Override
     public <T extends AbilityEntity> boolean add(T abilityEntity) {
-        log.info("add entity start, type_{} id_{}", abilityEntity.getType(), abilityEntity.getId());
+        log.info("add entity start, type {} id {}", abilityEntity.getType(), abilityEntity.getId());
         AbilityEntity objEntity = type2Id2ObjMap.get(abilityEntity.getType(), abilityEntity.getId());
         if (objEntity != null) {
             log.error(
-                    "add entity error, type id is already exist ,type_{} id_{}",
+                    "add entity error, type id is already exist ,type {} id {}",
                     objEntity.getType(),
                     objEntity.getId(), new Exception("重复添加entity!"));
             return false;
         }
         processConsumer(addProcess, abilityEntity);
         type2Id2ObjMap.set(abilityEntity.getType(), abilityEntity.getId(), abilityEntity);
+        log.info("add entity success, type {} id {} type2Id2ObjMap {}", abilityEntity.getType(), abilityEntity.getId(),type2Id2ObjMap);
         GetBeanUtil.getBean(ServiceStateMgr.class).setLoad(entityCount.incrementAndGet());
         return true;
     }
@@ -100,7 +101,7 @@ public class CacheEntityMgr implements AbilityEntityMgr {
     public <T extends AbilityEntity> T remove(String type, String id) {
         T abilityEntity = (T) type2Id2ObjMap.get(type, id);
         if (abilityEntity == null) {
-            log.warn("remove entity but not found, type_{}, id_{}", type, id);
+            log.warn("remove entity but not found, type {}, id {}", type, id);
         } else {
             processConsumer(removeProcess, abilityEntity);
             type2Id2ObjMap.remove(type, id);
@@ -144,31 +145,38 @@ public class CacheEntityMgr implements AbilityEntityMgr {
         return getEntityPromise(entityClazz, id)
                 .nextDo(getEntity -> {
                     if (getEntity == null) {
-                        return createEntityPromise(entityClazz, id, params);
+                        return createEntityPromise(entityClazz, id, params)
+                                .nextDo(createEntity -> {
+                                    log.info("getOrCreateEntityPromise createEntityPromise success id {} params {} createEntity {}",
+                                            id, params, createEntity);
+                                    return Homo.result(createEntity);
+                                })
+                                ;
+                    }else {
+                        log.info("getOrCreateEntityPromise getEntityPromise success id {} params {} getEntity {}",id, params, getEntity);
+                        return Homo.result(getEntity);
                     }
-                    return Homo.result(getEntity);
+
                 });
     }
 
     @Override
     public <T extends AbilityEntity> Homo<T> createEntityPromise(Class<T> entityClazz, String id, Object... params) {
-        return Homo.queue(idCallQueue, () -> {
-            T entity = get(entityClazz, id);//创建前再次判断是否存在
+        T entity = get(entityClazz, id);//创建前再次判断是否存在
+        if (entity == null) {
+            log.info("createEntityPromise star entityClazz {} id {} params {}", entityClazz, id, params);
+            entity = newEntity(id, entityClazz, params);
             if (entity == null) {
-                log.info("createEntityPromise star entityClazz {} id {} params {}", entityClazz, id, params);
-                entity = newEntity(id, entityClazz, params);
-                if (entity == null) {
-                    return Homo.error(new Exception("createEntityPromise error id " + id + " entityClazz " + entityClazz));
-                }
+                return Homo.error(new Exception("createEntityPromise error id " + id + " entityClazz " + entityClazz));
             }
-            T finalEntity = entity;
-            return entity.promiseInit()
-                    .nextValue(self -> {
-                        log.error("createEntityPromise finish id {} entityClazz {} params {} self {}", id, entityClazz, params, self);
-                        processConsumer(createProcess, finalEntity);
-                        return finalEntity;
-                    });
-        }, () -> log.error("createEntityPromise fail id {} entityClazz {} params {}", id, entityClazz, params));
+        }
+        T finalEntity = entity;
+        return entity.promiseInit()
+                .nextValue(self -> {
+                    log.error("createEntityPromise finish id {} entityClazz {} params {} self {}", id, entityClazz, params, self);
+                    processConsumer(createProcess, finalEntity);
+                    return finalEntity;
+                });
     }
 
     private <T extends AbilityEntity> T newEntity(String id, Class<T> entityClazz, Object... params) {

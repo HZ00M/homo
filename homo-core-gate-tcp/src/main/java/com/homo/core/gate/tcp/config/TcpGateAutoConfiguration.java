@@ -3,7 +3,6 @@ package com.homo.core.gate.tcp.config;
 import com.homo.core.configurable.gate.GateCommonProperties;
 import com.homo.core.configurable.gate.GateTcpProperties;
 import com.homo.core.facade.gate.GateDriver;
-import com.homo.core.gate.tcp.GateMessagePackage;
 import com.homo.core.gate.tcp.TcpGateDriver;
 import com.homo.core.gate.tcp.handler.TailHandler;
 import lombok.extern.slf4j.Slf4j;

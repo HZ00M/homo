@@ -31,7 +31,7 @@ public class HomoJodisPoolCreater {
             testWhileIdle设置成true这样能获得比较好的性能。
              */
             config.setTestOnBorrow(redisInfoHolder.isTestOnBorrow());
-            log.info("HomoJodisPool create config_{}",config);
+            log.info("HomoJodisPool create config {}",config);
             RoundRobinJedisPool robinJedisPool;
             if(StringUtils.isEmpty(redisInfoHolder.getAuth())){
                 robinJedisPool = RoundRobinJedisPool.create()

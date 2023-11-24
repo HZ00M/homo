@@ -30,7 +30,7 @@ public class HomoJedisPoolCreater {
             testWhileIdle设置成true这样能获得比较好的性能。
              */
             config.setTestOnBorrow(redisInfoHolder.isTestOnBorrow());
-            log.info("HomoJedisPool create config_{}",config);
+            log.info("HomoJedisPool create config {}",config);
             JedisPool jedisPool;
             if(StringUtils.isEmpty(redisInfoHolder.getAuth())){
                 jedisPool = new JedisPool(config, redisInfoHolder.getUrl(), redisInfoHolder.getPort(),redisInfoHolder.getTimeOutMs(),(String) null, redisInfoHolder.getDataBase(),(String) null);

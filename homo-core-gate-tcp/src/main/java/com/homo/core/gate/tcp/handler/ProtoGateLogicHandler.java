@@ -2,8 +2,8 @@ package com.homo.core.gate.tcp.handler;
 
 import com.homo.core.facade.gate.GateClient;
 import com.homo.core.facade.gate.GateMessageHeader;
-import com.homo.core.gate.tcp.GateMessagePackage;
-import com.homo.core.gate.tcp.GateMessageType;
+import com.homo.core.facade.gate.GateMessagePackage;
+import com.homo.core.facade.gate.GateMessageType;
 import com.homo.core.gate.tcp.TcpGateDriver;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.client.Msg;

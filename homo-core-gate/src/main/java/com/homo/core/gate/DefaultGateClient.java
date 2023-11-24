@@ -14,16 +14,22 @@ public class DefaultGateClient implements GateClient {
     public DefaultGateClient(GateServer gateServer, String name) {
         this.gateServer = gateServer;
         this.name = name;
+        log.info("DefaultGateClient create clientName {} gateServer.name {} gateServer.port {}", name, gateServer.getName(), gateServer.getPort());
+    }
+
+    @Override
+    public String name() {
+        return name;
     }
 
     @Override
     public void onOpen() {
-        log.info("GateClientImpl {} onOpen ", name);
+        log.info("DefaultGateClient onOpen  name {}", name);
     }
 
     @Override
     public void onClose(String reason) {
-        log.info("GateClientImpl onClose reason {}", reason);
+        log.info("DefaultGateClient onClose name {} reason {}", name, reason);
     }
 
     @Override
@@ -32,14 +38,25 @@ public class DefaultGateClient implements GateClient {
     }
 
     @Override
-    public  void sendToClient(byte[] data) {
-        gateServer.sendToClient(this,data);
+    public Homo<Boolean> sendToClient(String msgId, byte[] msg) {
+        return gateServer.sendToClient(this, msgId, msg);
     }
 
     @Override
-    public Homo<Boolean> sendToClientComplete(byte[] data) {
-       return gateServer.sendToClientComplete(this,data);
+    public Homo<Boolean> sendToClient(String msgId, byte[] msg, Short sessionId, Short clientSendSeq, Short confirmServerSendSeq) {
+        return gateServer.sendToClient(this, msgId, msg, sessionId, clientSendSeq, confirmServerSendSeq);
     }
+
+    @Override
+    public Homo<Boolean> sendToClientComplete(String msgId, byte[] msg) {
+        return gateServer.sendToClientComplete(this, msgId, msg);
+    }
+
+    @Override
+    public Homo<Boolean> sendToClientComplete(String msgId, byte[] msg, Short sessionId, Short clientSendSeq, Short confirmServerSendSeq) {
+       return gateServer.sendToClientComplete(this, msgId, msg, sessionId, clientSendSeq, confirmServerSendSeq);
+    }
+
 
     @Override
     public void close() {

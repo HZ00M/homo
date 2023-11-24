@@ -1,8 +1,6 @@
-package com.homo.core.gate.tcp;
+package com.homo.core.facade.gate;
 
 import com.google.protobuf.GeneratedMessageV3;
-import com.homo.core.facade.gate.GateMessage;
-import com.homo.core.facade.gate.GateMessageHeader;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.serial.ProtoSerializationProcessor;
 import io.netty.buffer.ByteBuf;
@@ -29,22 +27,52 @@ public class GateMessagePackage implements GateMessage<GateMessagePackage> {
         header.setOpTime(System.currentTimeMillis());
     }
 
-    public GateMessagePackage(byte[] body, int version, int type, long opTime, short clientSeq, short sendReq, short recvReq) {
-        this.header = new GateMessageHeader();
-        header.setBodySize(body.length);
+    public GateMessagePackage(byte[] msgBytes, int version, int type, long opTime, short sessionId, short sendReq, short recvReq) {
+        header = new GateMessageHeader();
+        header.setBodySize(msgBytes.length);
         header.setVersion(version);
         header.setType(type);
         header.setOpTime(opTime);
-        header.setSessionId(clientSeq);
+        header.setSessionId(sessionId);
         header.setSendSeq(sendReq);
         header.setRecvSeq(recvReq);
-        this.body = body;
+        body = msgBytes;
     }
 
     @Override
     public GateMessageHeader getHeader() {
         return header;
     }
+
+    public void setSessionId(short sessionId) {
+        header.setSessionId(sessionId);
+    }
+
+    public void setSendSeq(short sendSeq) {
+        header.setSendSeq(sendSeq);
+    }
+
+    public void setRecvSeq(short recvSeq) {
+        header.setRecvSeq(recvSeq);
+    }
+
+    public void setOpTime(long opTime) {
+        header.setOpTime(opTime);
+    }
+
+    public void setBody(byte[] body) {
+        header.setBodySize(body.length);
+        this.body = body;
+    }
+
+    public void setVersion(int version) {
+        header.setVersion(version);
+    }
+
+    public void setType(int type) {
+        header.setType(type);
+    }
+
 
 
     public static <T> T parse(byte[] playLoad, Class<T> type) throws Exception {

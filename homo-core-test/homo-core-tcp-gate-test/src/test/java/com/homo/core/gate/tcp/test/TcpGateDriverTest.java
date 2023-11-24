@@ -1,10 +1,9 @@
 package com.homo.core.gate.tcp.test;
 
 import com.alibaba.fastjson.JSONObject;
-import com.homo.core.facade.gate.GateMessage;
 import com.homo.core.facade.gate.GateMessageHeader;
-import com.homo.core.gate.tcp.GateMessagePackage;
-import com.homo.core.gate.tcp.GateMessageType;
+import com.homo.core.facade.gate.GateMessagePackage;
+import com.homo.core.facade.gate.GateMessageType;
 import com.homo.core.gate.tcp.TcpGateServerApplication;
 import com.homo.core.utils.serial.FastjsonSerializationProcessor;
 import io.homo.proto.client.Msg;

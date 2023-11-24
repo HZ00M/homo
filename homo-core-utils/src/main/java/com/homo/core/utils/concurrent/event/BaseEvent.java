@@ -22,14 +22,22 @@ public interface BaseEvent extends Event {
             }finally {
                 long spentTime = System.currentTimeMillis() - processTime;
                 if (spentTime > 1000){
-                    log.warn("{} process too long! spentTime_{}", getName(),spentTime);
+                    log.warn("{} process too long! spentTime {}", getName(),spentTime);
                 }
                 span.annotate("process-event-end");
                 span.tag("process-spend-time", String.valueOf(spentTime));
                 afterProcess();
             }
         }else {
-            doProcess();
+            try{
+                preProcess();
+                process();
+            }catch (Throwable throwable) {
+                log.error("event process error", throwable);
+            }finally {
+                afterProcess();
+            }
+
         }
     }
 

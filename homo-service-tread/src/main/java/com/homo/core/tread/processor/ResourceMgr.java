@@ -443,7 +443,7 @@ public class ResourceMgr implements Module {
                 registerResourceCheckFun(resourceType, ownerClazz, checkFun, checkMethod.checkInfo());
             }
         }
-        log.info("scanCheckMethod finish checkFunMap_{}", checkFunMap);
+        log.info("scanCheckMethod finish checkFunMap {}", checkFunMap);
     }
 
 

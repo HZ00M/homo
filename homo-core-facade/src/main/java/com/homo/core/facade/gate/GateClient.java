@@ -7,6 +7,8 @@ import com.homo.core.utils.rector.Homo;
  */
 public interface GateClient {
 
+    String name();
+
     /**
      * 连接打开回调函数
      */
@@ -24,15 +26,13 @@ public interface GateClient {
      */
     GateServer getGateServer();
 
-    /**
-     * 给客户端发送消息
-     * @param data 消息
-     * @return
-     */
-    void sendToClient(byte[] data);
+    Homo<Boolean> sendToClient(String msgId, byte[] msg) ;
 
-    Homo<Boolean> sendToClientComplete(byte[] data);
+    Homo<Boolean> sendToClient(String msgId, byte[] msg, Short sessionId, Short clientSendSeq, Short confirmServerSendSeq) ;
+    Homo<Boolean> sendToClientComplete(String msgId, byte[] msg) ;
+    Homo<Boolean> sendToClientComplete(String msgId, byte[] msg, Short sessionId, Short clientSendSeq, Short confirmServerSendSeq);
 
     void close();
+
 
 }

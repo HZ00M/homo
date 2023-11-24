@@ -1,6 +1,7 @@
 package com.homo.core.rpc.client;
 
 import com.homo.core.facade.service.ServiceExport;
+import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
@@ -16,22 +17,19 @@ import java.util.Iterator;
 import java.util.List;
 
 @Slf4j
-public enum ExchangeHostName implements MultiFunA<String, Homo<String>> {
+public enum ExchangeHostName implements MultiFunA<ServiceInfo, Homo<String>> {
     not_wrap {
         @Override
-        public Homo<String> apply(String tagName, Object... objs) throws Exception {
+        public Homo<String> apply(ServiceInfo serverInfo, Object... objs) throws Exception {
+            String tagName = serverInfo.getServiceTag();
             return Homo.result(tagName);
         }
     },
     statefulLess {
         @Override
-        public Homo<String> apply(String tagName, Object... o) throws Exception {
-            ServiceExport serviceExportInfo = GetBeanUtil.getBean(ServiceMgr.class).getServiceExportInfo(tagName);
-            boolean stateful = false;
-            if (serviceExportInfo!= null){
-                stateful = serviceExportInfo.isStateful();
-            }
-            if (!stateful) {
+        public Homo<String> apply(ServiceInfo serverInfo, Object... o) throws Exception {
+            String tagName = serverInfo.getServiceTag();
+            if (serverInfo.getIsStateful() < 1) {
                 return Homo.result(tagName);
             }
             return Homo.result(null);
@@ -39,7 +37,8 @@ public enum ExchangeHostName implements MultiFunA<String, Homo<String>> {
     },
     statefulChoiceFirstParam {
         @Override
-        public Homo<String> apply(String tagName, Object... objs) throws Exception {
+        public Homo<String> apply(ServiceInfo serverInfo, Object... objs) throws Exception {
+            String tagName = serverInfo.getServiceTag();
             if (objs.length > 0 && objs[0] instanceof Integer && (Integer) objs[0] != -1) {
                 Integer podId = (Integer) objs[0];
                 String hostName = ServiceUtil.formatStatefulName(tagName, podId);
@@ -50,12 +49,17 @@ public enum ExchangeHostName implements MultiFunA<String, Homo<String>> {
     },
     statefulChoiceForParamMsgrLink {
         @Override
-        public Homo<String> apply(String tagName, Object... objs) throws Exception {
+        public Homo<String> apply(ServiceInfo serverInfo, Object... objs) throws Exception {
+            String tagName = serverInfo.getServiceTag();
+            String serverHost = serverInfo.getServerHost();
             if (objs.length > 1 && objs[1] instanceof ParameterMsg) {
                 ParameterMsg parameterMsg = (ParameterMsg) objs[1];
                 return GetBeanUtil.getBean(ServiceStateMgr.class)
-                        .computeUserLinkedPodIfAbsent(parameterMsg.getUserId(), tagName, false)
+                        .computeUserLinkedPodIfAbsent(parameterMsg.getUserId(), serverHost, false)
                         .nextDo(podId -> {
+                            if (podId == null) {
+                                log.error("statefulChoiceForParamMsgrLink error podId == null serverInfo {} objs {}", serverInfo, objs);
+                            }
                             String hostName = ServiceUtil.formatStatefulName(tagName, podId);
                             return Homo.result(hostName);
                         });
@@ -66,12 +70,14 @@ public enum ExchangeHostName implements MultiFunA<String, Homo<String>> {
     },
     statefulChoiceForEntityLink {
         @Override
-        public Homo<String> apply(String tagName, Object... objs) throws Exception {
+        public Homo<String> apply(ServiceInfo serverInfo, Object... objs) throws Exception {
+            String tagName = serverInfo.getServiceTag();
+            String serverHost = serverInfo.getServerHost();
             for (Object obj : objs) {
                 if (obj instanceof EntityRequest) {
                     EntityRequest request = (EntityRequest) obj;
                     return GetBeanUtil.getBean(ServiceStateMgr.class)
-                            .computeUserLinkedPodIfAbsent(request.getId(), tagName, false)
+                            .computeUserLinkedPodIfAbsent(request.getId(), serverHost, false)
                             .nextDo(podId -> {
                                 if (podId == null) {
                                     log.error("statefulChoiceForEntityLink tagName {} objs {} podId is null,exchange to 0 !", tagName, objs);
@@ -87,7 +93,7 @@ public enum ExchangeHostName implements MultiFunA<String, Homo<String>> {
     },
     ;
 
-    public static List<MultiFunA<String, Homo<String>>> registerFun = new ArrayList<>();
+    public static List<MultiFunA<ServiceInfo, Homo<String>>> registerFun = new ArrayList<>();
 
     static {
         registerFun.add(statefulLess);
@@ -97,12 +103,12 @@ public enum ExchangeHostName implements MultiFunA<String, Homo<String>> {
         registerFun.add(not_wrap);
     }
 
-    public static Homo<String> exchange(String tagName, Object... objs) {
+    public static Homo<String> exchange(ServiceInfo tagName, Object... objs) {
         Homo<String> chain = Homo.result(null);
-        Iterator<MultiFunA<String, Homo<String>>> iterator = registerFun.iterator();
+        Iterator<MultiFunA<ServiceInfo, Homo<String>>> iterator = registerFun.iterator();
         try {
             while (iterator.hasNext()) {
-                MultiFunA<String, Homo<String>> next = iterator.next();
+                MultiFunA<ServiceInfo, Homo<String>> next = iterator.next();
                 chain = chain.nextDo(ret -> {
                     if (ret == null) {
                         return next.apply(tagName, objs);
@@ -118,7 +124,7 @@ public enum ExchangeHostName implements MultiFunA<String, Homo<String>> {
         }
     }
 
-    public static void register(MultiFunA<String, Homo<String>> fun) {
+    public static void register(MultiFunA<ServiceInfo, Homo<String>> fun) {
         registerFun.add(fun);
     }
 

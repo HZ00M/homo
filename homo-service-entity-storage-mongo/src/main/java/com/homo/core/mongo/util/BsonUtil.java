@@ -64,7 +64,7 @@ public class BsonUtil {
                     if (fieldClazz.isInstance(val)) {
                         field.set(entity, val);
                     } else {
-                        logger.warn("Class_{} field_{} type_{} misMatch to dbType_{}", clazz.getSimpleName(), field.getName(), field.getGenericType(), val.getClass().getTypeName());
+                        logger.warn("Class {} field {} type {} misMatch to dbType {}", clazz.getSimpleName(), field.getName(), field.getGenericType(), val.getClass().getTypeName());
                     }
                     continue;
                 }

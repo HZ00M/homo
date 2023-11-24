@@ -32,6 +32,6 @@ public class TestProtoGateLogicHandler extends ProtoGateLogicHandler {
         /**
          * 给客户端返回一条消息
          */
-        gateClient.sendToClient(respMsg.toByteArray());
+        gateClient.sendToClient(msgId,respMsg.toByteArray()).start();
     }
 }
