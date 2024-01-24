@@ -35,7 +35,7 @@ public interface ConfigDriver extends Driver {
      * @param key
      * @param newValueConsumer
      */
-    public void listenerKey(String key, Consumer<String> newValueConsumer);
+    void listenerKey(String key, Consumer<String> newValueConsumer);
 
     /**
      * 监听key 当key改变后执行 Consumer逻辑

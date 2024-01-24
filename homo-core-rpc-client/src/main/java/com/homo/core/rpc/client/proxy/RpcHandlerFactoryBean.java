@@ -30,7 +30,7 @@ public class RpcHandlerFactoryBean<T> extends AbstractFactoryBean<T> {
 
     @Override
     protected @NotNull T createInstance() throws Exception {
-        log.info("get RpcProxy from  RpcHandlerFactoryBean, interfaceType_{}", interfaceType.getName());
+        log.info("get RpcProxy from  RpcHandlerFactoryBean, interfaceType {}", interfaceType.getName());
         return RpcProxyMgr.createProxy(rpcClientMgr,interfaceType, serviceMgr, serviceStateMgr);
     }
 }

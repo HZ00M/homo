@@ -9,21 +9,21 @@ import lombok.extern.slf4j.Slf4j;
 public class TimerTaskEvent extends AbstractBaseEvent {
 
     AbstractHomoTimerTask timerTask;
-    //    Runnable taskFun;
-    Object[] params;
+     Object[] params;
     boolean interrupt;
 
     public TimerTaskEvent(AbstractHomoTimerTask timerTask, boolean interrupt, Object... params) {
+        this.id = String.format("TimerTaskEvent_%s",timerTask.id);
         this.timerTask = timerTask;
-//        this.taskFun = taskFun;
         this.params = params;
         this.interrupt = interrupt;
     }
 
+
     @Override
     public void process() {
         if (timerTask.isCancel) {
-            log.warn("timer already canceled id [{}] hashCode {}", timerTask.id, timerTask.hashCode());
+            log.warn("timer already canceled id [{}] ", timerTask.id );
             return;
         }
         try {

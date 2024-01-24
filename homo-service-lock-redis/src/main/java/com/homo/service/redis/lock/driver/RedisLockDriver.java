@@ -36,7 +36,7 @@ public class RedisLockDriver implements LockDriver {
         RedisFuture<Object> future = redisPool.evalAsync(lockScript, keyList, argList);
        return Homo.warp(sink->{
            future.whenComplete((result,throwable)-> {
-                       log.info("asyncLock redis completed result_{}",result,throwable);
+                       log.info("asyncLock redis completed result {}",result,throwable);
                    })
                    .thenRunAsync(()->{
                        try {

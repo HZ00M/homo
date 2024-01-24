@@ -129,7 +129,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
                         byte[] bytes = ret.get(tag);
                         if (bytes == null) {
                             // 如果找不到tag先按原tag返回
-                            log.warn("tag_{} of service not found! return tag!", tag);
+                            log.warn("tag {} of service not found! return tag!", tag);
                             homoSink.success(tag);
                         }
                         String serviceName = new String(bytes, StandardCharsets.UTF_8);
@@ -137,7 +137,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
                         homoSink.success(serviceName);
                     })
                     .catchError(throwable -> {
-                        log.error("get tag_{} error!", tag, throwable);
+                        log.error("get tag {} error!", tag, throwable);
                     });
         });
     }

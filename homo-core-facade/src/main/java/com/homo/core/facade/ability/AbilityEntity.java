@@ -23,7 +23,7 @@ public interface AbilityEntity extends Entity, CallQueueProducer {
         setAbility(ability.getClass().getSimpleName(), ability);
     }
 
-    Homo<Void> promiseInit();
+    <SELF> Homo<SELF> promiseInit();
 
     Homo<Void> promiseDestroy();
 }

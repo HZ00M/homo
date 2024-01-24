@@ -50,12 +50,15 @@ public class HomoTimerTask extends AbstractHomoTimerTask<HomoTimerTask> {
 
     @Override
     public void doRun() {
-        log.trace("HomoTimerTask doRun id {} hashCode {} currentTimes {} runTimes {} isCancel {}", id, this.hashCode(), currentTimes, runTimes, isCancel);
-        currentTimes++;
+        log.trace("HomoTimerTask doRun id {}  currentTimes {} runTimes {} isCancel {}", id, currentTimes, runTimes, isCancel);
         if (runTimes != ENDLESS && currentTimes >= runTimes) {
+            log.trace("HomoTimerTask future cancel id {}  currentTimes {} runTimes {} isCancel {}", id, currentTimes, runTimes, isCancel);
             future.cancel(true);
+            return;
         }
         //当开始执行定时任务时，将任务包装成事件塞入指定队列
         addEvent(new TimerTaskEvent(this, interrupt, objects));
+        currentTimes++;
+
     }
 }

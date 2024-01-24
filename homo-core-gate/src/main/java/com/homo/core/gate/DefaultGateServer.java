@@ -1,15 +1,12 @@
 package com.homo.core.gate;
 
 import com.google.protobuf.ByteString;
-import com.homo.core.facade.gate.GateClient;
-import com.homo.core.facade.gate.GateDriver;
-import com.homo.core.facade.gate.GateMessage;
-import com.homo.core.facade.gate.GateServer;
+import com.homo.core.facade.gate.*;
 import com.homo.core.utils.rector.Homo;
 import io.homo.proto.client.Msg;
 import lombok.Setter;
 
-public class DefaultGateServer implements GateServer<DefaultGateClient> {
+public class DefaultGateServer implements GateServer {
 
     @Setter
     private GateDriver gateDriver;
@@ -38,27 +35,53 @@ public class DefaultGateServer implements GateServer<DefaultGateClient> {
     }
 
     @Override
-    public void sendToClient(GateClient gateClient, byte[] data) {
-        GateMessage gateMessage = GateMessage.makeMessage(null, data);
-        gateDriver.sendToclient(gateClient,gateMessage).start();
+    public Homo<Boolean>  sendToClient(GateClient gateClient, String msgId, byte[] msg, short sessionId, short sendSeq, short recvSeq) {
+        Msg msgProto = Msg.newBuilder().setMsgId(msgId).setMsgContent(ByteString.copyFrom(msg)).build();
+        GateMessagePackage gateMessage = new GateMessagePackage(msgProto.toByteArray());
+        gateMessage.setSessionId(sessionId);
+        gateMessage.setSendSeq(sendSeq);
+        gateMessage.setRecvSeq(recvSeq);
+        gateMessage.setType(GateMessageType.PROTO.ordinal());//todo待优化
+        return gateDriver.sendToClient(gateClient,gateMessage);
     }
 
     @Override
-    public Homo<Boolean> sendToClientComplete(GateClient gateClient, byte[] data) {
-        GateMessage gateMessage = GateMessage.makeMessage(null, data);
-        return gateDriver.sendToclient(gateClient,gateMessage);
+    public Homo<Boolean>  sendToClient(GateClient gateClient, String msgId, byte[] msg) {
+        Msg msgProto = Msg.newBuilder().setMsgId(msgId).setMsgContent(ByteString.copyFrom(msg)).build();
+        GateMessagePackage gateMessage = new GateMessagePackage(msgProto.toByteArray());
+        gateMessage.setType(GateMessageType.PROTO.ordinal());//todo待优化
+        return gateDriver.sendToClient(gateClient,gateMessage);
+    }
+
+    @Override
+    public Homo<Boolean> sendToClientComplete(GateClient gateClient, String msgId, byte[] msg) {
+        Msg msgProto = Msg.newBuilder().setMsgId(msgId).setMsgContent(ByteString.copyFrom(msg)).build();
+        GateMessagePackage gateMessage = new GateMessagePackage(msgProto.toByteArray());
+        gateMessage.setType(GateMessageType.PROTO.ordinal());//todo待优化
+        return gateDriver.sendToClientComplete(gateClient,gateMessage);
+    }
+
+    @Override
+    public Homo<Boolean> sendToClientComplete(GateClient gateClient, String msgId, byte[] msg, short sessionId, short sendSeq, short recvSeq) {
+        Msg msgProto = Msg.newBuilder().setMsgId(msgId).setMsgContent(ByteString.copyFrom(msg)).build();
+        GateMessagePackage gateMessage = new GateMessagePackage(msgProto.toByteArray());
+        gateMessage.setSessionId(sessionId);
+        gateMessage.setSendSeq(sendSeq);
+        gateMessage.setRecvSeq(recvSeq);
+        gateMessage.setType(GateMessageType.PROTO.ordinal());//todo待优化
+        return gateDriver.sendToClientComplete(gateClient,gateMessage);
     }
 
 
     @Override
-    public void broadcast(String msgType, byte[] data) {
+    public void broadcast(String msgType, byte[] msgBytes) {
         Msg.Builder builder = Msg.newBuilder()
                 .setMsgId(msgType);
-        if (data != null) {
-            builder.setMsgContent(ByteString.copyFrom(data));
+        if (msgBytes != null) {
+            builder.setMsgContent(ByteString.copyFrom(msgBytes));
         }
         Msg msg = builder.build();
-        GateMessage gateMessage = GateMessage.makeMessage(null, msg.toByteArray());
+        GateMessagePackage gateMessage = new GateMessagePackage(msg.toByteArray());
         gateDriver.broadcast(gateMessage).start();
     }
 

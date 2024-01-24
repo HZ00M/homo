@@ -21,13 +21,13 @@ import java.util.function.BiFunction;
  * 事件处理管理器
  */
 @Slf4j
-public class CallQueueMgr  {
+public class CallQueueMgr {
     public static final String DEFAULT_CHOICE_THREAD_STRATEGY = "defaultPloyType";
     private volatile static CallQueueMgr instance = null;
     private static final int queueCount = Integer.parseInt(System.getProperty("call.queue.count", "4"));
     private static final int waitNum = Integer.parseInt(System.getProperty("call.queue.maxWaitNum", "10000"));
     private static final int keepLive = Integer.parseInt(System.getProperty("call.queue.maxWaitNum", "10"));
-    Map<String, BiFunction<Event, Object, Integer>> ployFunMap = new ConcurrentHashMap<>();
+    static Map<String, BiFunction<Event, Object, Integer>> ployFunMap = new ConcurrentHashMap<>();
     CallQueue[] callQueues;
     public ExecutorService executorService;
     ThreadLocal<CallQueue> localQueue = new ThreadLocal<>();
@@ -38,15 +38,15 @@ public class CallQueueMgr  {
 
         @Override
         public Integer apply(Event event, Object param) {
-            if (param instanceof CallQueueProducer){
+            if (param instanceof CallQueueProducer) {
                 Integer queueId = ((CallQueueProducer) param).getQueueId();
                 if (queueId != null) {
                     return queueId;
-                }else {
+                } else {
                     log.warn("getQueueId warn in param [{}] :", param);
                 }
             }
-            if (event instanceof CallQueueProducer){
+            if (event instanceof CallQueueProducer) {
                 Integer queueId = ((CallQueueProducer) event).getQueueId();
                 if (queueId != null) {
                     return queueId;
@@ -61,7 +61,6 @@ public class CallQueueMgr  {
             return index++;
         }
     };
-
 
 
     private CallQueueMgr() {
@@ -94,7 +93,7 @@ public class CallQueueMgr  {
             callQueue.start(this);
             callQueues[i] = callQueue;
         }
-        setLocalQueue(callQueues[0]);//设置主线程队列未第一个队列
+        setLocalQueue(callQueues[0]);//将0号队列也分配给main主线程
         checkInitFinish();
     }
 
@@ -132,7 +131,7 @@ public class CallQueueMgr  {
 
     public void setLocalQueue(CallQueue callQueue) {
         localQueue.set(callQueue);
-        log.info("CallQueueMgr setLocalQueue currentThread {} queueId {}",Thread.currentThread().getName(),callQueue.getId());
+        log.info("CallQueueMgr setLocalQueue currentThread {} queueId {}", Thread.currentThread().getName(), callQueue.getId());
     }
 
     public CallQueue getLocalQueue() {
@@ -143,7 +142,7 @@ public class CallQueueMgr  {
         return queue;
     }
 
-    public void registerPloy(String ployType, BiFunction<Event, Object, Integer> ployFun) {
+    public static void registerPloy(String ployType, BiFunction<Event, Object, Integer> ployFun) {
         ployFunMap.put(ployType, ployFun);
     }
 
@@ -166,6 +165,10 @@ public class CallQueueMgr  {
         return Math.abs(ployFun.apply(e, param));
     }
 
+    public boolean isThreadChanged(CallQueue callQueue) {
+        return !callQueue.equals(this.localQueue.get()) ;
+    }
+
     //将hashCode作为选择CallQueue的种子
     public CallQueue choiceQueueByHashCode(int hashCode) {
         return getQueue(choiceQueueIdBySeed(hashCode));
@@ -179,6 +182,23 @@ public class CallQueueMgr  {
         }
         return callQueues[index];
     }
+
+    public CallQueue getQueueByUid(String uid) {//新增根据uid选择队列
+        return getQueueByHashCode(uid.hashCode());
+    }
+
+    public CallQueue getQueueByHashCode(int hashCode) {
+        return this.getQueue(this.choiceQueueIdBySeed(hashCode));
+    }
+
+//    public int makeQueueId(int source) {
+//        source = Math.abs(source);
+//        if (source < 0) {
+//            source = 0;
+//        }
+//
+//        return source % 1;
+//    }
 
     public void addEvent(Event e) {
         addEvent(DEFAULT_CHOICE_THREAD_STRATEGY, e);
@@ -236,7 +256,7 @@ public class CallQueueMgr  {
     }
 
     // 执行一个任务，异步获得一个返回
-    public <R> Homo<R> call(Callable<R> callable){
+    public <R> Homo<R> call(Callable<R> callable) {
         return call(callable, null);
     }
 
@@ -254,11 +274,11 @@ public class CallQueueMgr  {
     }
 
     /**
-     *根据callQueueProducer执行一个任务，异步返回结果
+     * 根据callQueueProducer执行一个任务，异步返回结果
      */
-    public <R> Homo<R>  call(Callable<R> callable,@Nullable CallQueueProducer callQueueProducer){
+    public <R> Homo<R> call(Callable<R> callable, @Nullable CallQueueProducer callQueueProducer) {
         return Homo.warp(sink ->
-                task(()->{
+                task(() -> {
                     try {
                         sink.success(callable.call());
                     } catch (Exception e) {
@@ -271,7 +291,7 @@ public class CallQueueMgr  {
     public int getAllWaitCount() {
         int count = 0;
         for (CallQueue callQueue : callQueues) {
-            count+= callQueue.getWaitingTasksNum();
+            count += callQueue.getWaitingTasksNum();
         }
         return count;
     }

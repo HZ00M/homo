@@ -36,7 +36,6 @@ public class CallAbility extends AbstractAbility implements ICallAbility {
 
     @Override
     public void unAttach(AbilityEntity abilityEntity) {
-        log.info("CallAbility unAttach");
         CallSystem callSystem = GetBeanUtil.getBean(CallSystem.class);
         callSystem.remove(this).start();
     }
@@ -45,10 +44,10 @@ public class CallAbility extends AbstractAbility implements ICallAbility {
         return entityDispatcherMap.computeIfAbsent(entityClazz, k -> {
             Class<?> entityInterface = HomoAnnotationUtil.findAnnotationInterface(entityClazz, EntityType.class);
             if (entityInterface == null) {
-                log.error("cant build entity call dispatcher, entityClazz_{}", entityClazz);
+                log.error("cant build entity call dispatcher, entityClazz {}", entityClazz);
                 return null;
             }
-            Assert.isTrue(entityInterface.isInterface(), "can't build entity call dispatcher, entityInterface_{} is not interface");
+            Assert.isTrue(entityInterface.isInterface(), "can't build entity call dispatcher, entityInterface {} is not interface");
             try {
                 RpcHandlerInfoForServer rpcHandlerInfoForServer = new RpcHandlerInfoForServer(entityClazz);
                 CallDispatcher callDispatcher = new CallDispatcher(rpcHandlerInfoForServer);

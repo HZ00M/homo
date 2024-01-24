@@ -22,10 +22,6 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-facade</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.homo</groupId>
             <artifactId>homo-service-stateful-driver-redis</artifactId>
         </dependency>
         <!--        todo 待优化，是否可以由下级依赖-->

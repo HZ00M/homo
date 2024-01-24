@@ -3,12 +3,12 @@ package com.homo.core.rpc.base.trace;
 import brave.Span;
 import brave.Tracer;
 import brave.propagation.TraceContext;
+import com.homo.core.utils.trace.TraceLogUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.grpc.*;
 import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.TraceInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 
 @Slf4j
 public class SpanInterceptor implements ServerInterceptor {
@@ -29,12 +29,15 @@ public class SpanInterceptor implements ServerInterceptor {
             log.info("SpanInterceptor message IN");
             if (message instanceof StreamReq) {
                 span = getSpan((StreamReq) message);
-                MDC.put("TRACE_ID", span.context().traceIdString());
             } else {
                 span = ZipkinUtil.getTracing().tracer().currentSpan();
             }
+            log.info("onMessage span {}", span);
             try (Tracer.SpanInScope scope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)) {
+                TraceLogUtil.setTraceIdBySpan(span,"SpanInterceptor onMessage");
                 delegate().onMessage(message);
+            }finally {
+                TraceLogUtil.clearTrace();
             }
         }
     }
@@ -72,7 +75,7 @@ public class SpanInterceptor implements ServerInterceptor {
                 .start()
                 .tag(ZipkinUtil.SERVER_RECEIVE_TAG, "StreamReq");
         log.info(
-                "SpanInterceptor getSpan traceId {}, sampled {} parent_spanId {} spanId {} msgIdd {}",
+                "SpanInterceptor getSpan traceId {}, sampled {} parent_spanId {} spanId {} msgId {}",
                 traceContext.traceId(),
                 traceContext.sampled(),
                 traceContext.spanId(),

@@ -38,6 +38,8 @@
         <module>homo-service-tread</module>
         <module>homo-core-ability-base</module>
         <module>homo-core-storage</module>
+        <module>homo-maven-plugin</module>
+        <module>homo-core-extend-utils</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -97,6 +99,10 @@
         <jodis.version>0.4.1</jodis.version>
         <mybatis.starter.version>1.3.2</mybatis.starter.version>
         <mybatis.spring.version>1.3.1</mybatis.spring.version>
+        <docker.version>3.2.7</docker.version>
+        <maven.version>3.3.9</maven.version>
+        <maven.plugin.annotations.version>3.8.1</maven.plugin.annotations.version>
+        <k8s.version>10.0.0</k8s.version>
     </properties>
 
 
@@ -157,6 +163,11 @@
             </dependency>
             <dependency>
                 <artifactId>homo-core-utils</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-extend-utils</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
@@ -281,7 +292,11 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
-
+            <dependency>
+                <artifactId>homo-maven-plugin</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
 
 
             <!--            第三方依赖             -->
@@ -460,7 +475,7 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
-<!--                必须显示依赖，jackson-databind里有不会被依赖到-->
+                <!--                必须显示依赖，jackson-databind里有不会被依赖到-->
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -801,7 +816,6 @@
             </dependency>
 
 
-
             <dependency>
                 <groupId>io.projectreactor</groupId>
                 <artifactId>reactor-bom</artifactId>
@@ -818,7 +832,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
-                <version>2.7</version>
                 <configuration>
                     <generateBackupPoms>false</generateBackupPoms>
                 </configuration>
@@ -828,7 +841,6 @@
                 <!--引入source插件 -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.0</version>
                 <!-- 绑定source插件到Maven的生命周期并在生命周期后执行绑定的source的goal -->
                 <executions>
                     <execution>
@@ -854,7 +866,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.2.5</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
                     <flattenMode>resolveCiFriendliesOnly</flattenMode>
@@ -876,6 +887,55 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <!--            这个插件会生成一个META-INF/maven/plugin.xml文件，这个文件会被maven识别为一个插件，然后就可以在pom.xml文件中使用这个插件了-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+            </plugin>
         </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring.boot.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>3.6.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>1.2.5</version>
+                </plugin>
+                <plugin>
+                    <!--引入source插件 -->
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>2.7</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>

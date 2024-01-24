@@ -4,9 +4,11 @@ import brave.Span;
 import com.homo.core.utils.concurrent.event.BaseEvent;
 import com.homo.core.utils.concurrent.event.Event;
 import com.homo.core.utils.exception.HomoError;
+import com.homo.core.utils.trace.TraceLogUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -40,24 +42,30 @@ public class CallQueue {
      */
     public void addEvent(Event e) {
         final int waitingEventNum = getWaitingTasksNum();
+
+        if (log.isTraceEnabled()) {
+            log.trace("CallQueue addEvent queueId {} eventId {} waitingEventNum {} event {}", id, e.id(), waitingEventNum, e);
+        }
         if (getWaitingTasksNum() >= queueMaxSize) {
-            log.error("CallQueue id_{} addEvent error , to much waiting event waitingEventNum_{} event_{}", id, waitingEventNum, e, new Exception("to much waiting Event"));
+            log.error("CallQueue queueId {} eventId {} addEvent error , to much waiting event waitingEventNum {} event {}", id, e.id(), waitingEventNum, e, new Exception("to much waiting Event"));
         }
         if (ZipkinUtil.getTracing() != null && e instanceof BaseEvent) {
             BaseEvent event = (BaseEvent) e;
             Span span = event.getSpan() != null ? event.getSpan() : ZipkinUtil.getTracing().tracer().currentSpan();
-            if (span == null ){
+            if (span == null) {
                 span = ZipkinUtil.getTracing().tracer().newTrace();
+                log.info("addEvent span == null ,create a tempSpan traceId {}", span.context().traceIdString());
             }
-            if (span!= null){
+            if (span != null) {
                 event.setSpan(span);
                 event.annotate("add-event");
-                event.getSpan().tag("RunningEvent", event.getClass().getSimpleName());
-                event.getSpan().tag("waitingTaskNum", String.valueOf(waitingEventNum));
-            }else {
-                log.error("CallQueue id_{} addEvent error , span is null waitingEventNum_{} event_{}", id, waitingEventNum, e);
+                span.tag("RunningEvent", event.getClass().getSimpleName());
+                span.tag("waitingTaskNum", String.valueOf(waitingEventNum));
+            } else {
+                log.error("CallQueue id {} addEvent error , span is null waitingEventNum {} event {}", id, waitingEventNum, e);
                 throw HomoError.throwError(HomoError.spanError);
             }
+//            TraceLogUtil.setTraceIdBySpan(span);
             eventQueue.add(event);
         } else {
             eventQueue.add(e);
@@ -98,5 +106,23 @@ public class CallQueue {
 
     int getWaitingTasksNum() {
         return eventQueue.size();
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null){
+            return false;
+        }
+        if (obj instanceof CallQueue) {
+            return this.getId() == (((CallQueue) obj).getId());
+        } else {
+            return false;
+        }
+
     }
 }

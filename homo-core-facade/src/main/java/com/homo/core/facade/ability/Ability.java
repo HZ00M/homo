@@ -39,8 +39,8 @@ public interface Ability {
     default Homo<Void> promiseAfterInitAttach(AbilityEntity abilityEntity) {
         return Homo.warp(
                 sink -> {
-                    log.info("Ability promiseAfterAttach name {} type {} id {} ", this.getClass().getSimpleName(), abilityEntity.getType(), abilityEntity.getId());
                     attach(abilityEntity);
+                    log.info("{} promiseAfterInitAttach->attach(abilityEntity)->done type {} id {} ", this.getClass().getSimpleName(), abilityEntity.getType(), abilityEntity.getId());
                     afterAttach(abilityEntity);
                     sink.success();
                 }
@@ -51,7 +51,7 @@ public interface Ability {
         return Homo.warp(
                 sink -> {
                     unAttach(abilityEntity);
-                    log.trace("Ability promiseAfterDestroyUnAttach name_{} type_{} id_{} ", this.getClass().getSimpleName(), getOwner().getType(), getOwner().getId());
+                    log.info("{} promiseBeforeDestroyUnAttach->unAttach(abilityEntity)->done type {} id {} ", this.getClass().getSimpleName(), getOwner().getType(), getOwner().getId());
                     afterUnAttach(abilityEntity);
                     sink.success();
                 }

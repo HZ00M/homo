@@ -9,6 +9,7 @@ import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Assert;
 
 import java.util.TimerTask;
 import java.util.concurrent.ScheduledFuture;
@@ -43,12 +44,13 @@ public abstract class AbstractHomoTimerTask<T extends AbstractHomoTimerTask> ext
     }
 
     public AbstractHomoTimerTask(CallQueue callQueue, Consumer<AbstractHomoTimerTask> onErrorConsumer, Consumer<AbstractHomoTimerTask> onCancelConsumer) {
+        Assert.notNull(callQueue, "callQueue can not be null");
         this.callQueue = callQueue;
         this.onErrorConsumer = onErrorConsumer;
         this.onCancelConsumer = onCancelConsumer;
     }
 
-    public T setOnCancelConsumer(Consumer<AbstractHomoTimerTask> onCancelConsumer) {
+    public T setOnCancelConsumer(Consumer<AbstractHomoTimerTask> onCancelConzsumer) {
         this.onCancelConsumer = onCancelConsumer;
         return (T) this;
     }
@@ -100,7 +102,7 @@ public abstract class AbstractHomoTimerTask<T extends AbstractHomoTimerTask> ext
         Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("timer");
         if (callQueue != null) {
             span.tag("CallQueue", String.valueOf(callQueue.getId()));
-        }else {
+        } else {
             span.tag("CallQueue", Thread.currentThread().getName());
         }
         try (Tracer.SpanInScope scope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)) {
@@ -110,6 +112,7 @@ public abstract class AbstractHomoTimerTask<T extends AbstractHomoTimerTask> ext
             }
             callQueue.addEvent(event);
         } catch (Exception e) {
+            log.error("addEvent error event {} e", event.id(), e);
             span.error(e);
         } finally {
             span.tag(ZipkinUtil.FINISH_TAG, "HomoTimerTask").finish(System.currentTimeMillis());

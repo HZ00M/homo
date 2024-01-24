@@ -5,6 +5,8 @@ import com.homo.core.configurable.rpc.RpcGrpcClientProperties;
 import com.homo.core.facade.rpc.RpcClient;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.serial.JsonRpcContent;
+import com.homo.core.utils.concurrent.queue.CallQueue;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.utils.exception.HomoError;
@@ -12,6 +14,7 @@ import com.homo.core.utils.exception.HomoException;
 import com.homo.core.utils.fun.ConsumerEx;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
+import com.homo.core.utils.trace.TraceLogUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
@@ -22,7 +25,6 @@ import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.stub.StreamObserver;
 import io.homo.proto.rpc.*;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
@@ -204,9 +206,10 @@ public class RpcCallClientGrpcImpl implements RpcClient {
         log.info("asyncBytesCall req {}",req);
         ManagedChannel callChannel = getChannel(true);
         RpcCallServiceGrpc.RpcCallServiceStub stub = RpcCallServiceGrpc.newStub(callChannel);//多路复用
+        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
         Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.CLIENT_SEND_TAG).tag("reqId", req.getMsgId());
-        MDC.put("TRACE_ID", span.context().traceIdString());
-        Homo<Tuple2<String, ByteRpcContent>> result = Homo.warp(new ConsumerEx<HomoSink<Tuple2<String, ByteRpcContent>>>() {
+        TraceLogUtil.setTraceIdBySpan(span,"rpcClient asyncBytesCall");
+        Homo<Tuple2<String, ByteRpcContent>> warp = Homo.warp(new ConsumerEx<HomoSink<Tuple2<String, ByteRpcContent>>>() {
             @Override
             public void accept(HomoSink<Tuple2<String, ByteRpcContent>> sink) throws Exception {
                 StreamObserver<Res> observer = new StreamObserver<Res>() {
@@ -215,6 +218,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
 
                     @Override
                     public void onNext(Res reply) {
+                        TraceLogUtil.setTraceIdBySpan(span,"asyncBytesCall onNext");
                         log.trace("asyncBytesCall onNext, serviceName {} msgId {} content size {}", host, reply.getMsgId(), reply.getMsgContentCount());
                         if (reply.getMsgContentCount() > 0) {
                             results = new byte[reply.getMsgContentCount()][];
@@ -227,6 +231,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
 
                     @Override
                     public void onError(Throwable throwable) {
+                        TraceLogUtil.setTraceIdBySpan(span,"asyncBytesCall onError");
                         log.trace("asyncBytesCall onError, serviceName {} msgId {}", host, msgId);
                         span.error(throwable);
                         sink.error(throwable);
@@ -235,6 +240,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
 
                     @Override
                     public void onCompleted() {
+                        TraceLogUtil.setTraceIdBySpan(span,"asyncBytesCall onCompleted");
                         log.trace("asyncBytesCall onCompleted, serviceName {} msgId {}", host, msgId);
                         span.finish();
                         sink.success(Tuples.of(msgId, new ByteRpcContent(results, span)));
@@ -250,7 +256,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                 }
             }
         });
-        return result;
+        return warp.switchThread(localQueue, span);
     }
 
     public void updateStreamObserver(ManagedChannel channel) {
@@ -298,10 +304,14 @@ public class RpcCallClientGrpcImpl implements RpcClient {
     public Homo<Tuple2<String, ByteRpcContent>> asyncBytesStreamCall(String reqId, StreamReq streamReq) {
         log.info("asyncBytesStreamCall reqId {} call ", reqId);
         Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.CLIENT_SEND_TAG).tag("reqId", reqId);
-        MDC.put("TRACE_ID", span.context().traceIdString());
-        Homo<Tuple2<String, ByteRpcContent>> result = Homo.warp(new ConsumerEx<HomoSink<Tuple2<String, ByteRpcContent>>>() {
+        TraceLogUtil.setTraceIdBySpan(span,"rpcClient asyncBytesStreamCall");
+        ManagedChannel callChannel = getChannel(true);//检测更新channel
+        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span nextSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        Homo<Tuple2<String, ByteRpcContent>> warp = Homo.warp(new ConsumerEx<HomoSink<Tuple2<String, ByteRpcContent>>>() {
             @Override
             public void accept(HomoSink<Tuple2<String, ByteRpcContent>> sink) throws Exception {
+                TraceLogUtil.setTraceIdBySpan(nextSpan,"asyncBytesStreamCall sink");
                 log.info("requestContextMap put sink reqId {}", reqId);
                 requestContextMap.put(reqId, sink);//保存请求上下文
                 requestSpanMap.put(reqId, span);
@@ -311,6 +321,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
         HomoTimerMgr.getInstance().once("rpcTimeOut", new Runnable() {
             @Override
             public void run() {
+                TraceLogUtil.setTraceIdBySpan(nextSpan,"asyncBytesStreamCall rpcTimeOut");
                 log.info("asyncBytesStreamCall reqId {} timer run ", reqId);
                 if (requestContextMap.containsKey(reqId)) {
                     log.info("requestContextMap remove sink timeout reqId {}", reqId);
@@ -330,7 +341,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
             log.info("asyncBytesStreamCall catch error, targetServiceName {} funName {}", streamReq.getSrcService(), streamReq.getMsgId(), e);
             requestContextMap.get(reqId).error(e);
         }
-        return result;
+        return warp.switchThread(localQueue, nextSpan).consumerValue(ret->nextSpan.finish());
     }
 
     @Override
@@ -339,8 +350,9 @@ public class RpcCallClientGrpcImpl implements RpcClient {
         ManagedChannel channel = getChannel(true);
         RpcCallServiceGrpc.RpcCallServiceStub stub = RpcCallServiceGrpc.newStub(channel);
         Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.CLIENT_SEND_TAG).tag("reqId", jsonReq.getMsgId());
-        MDC.put("TRACE_ID", span.context().traceIdString());
-        Homo<Tuple2<String, JsonRpcContent>> result = Homo.warp(new ConsumerEx<HomoSink<Tuple2<String, JsonRpcContent>>>() {
+        TraceLogUtil.setTraceIdBySpan(span,"rpcClient asyncJsonCall");
+        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Homo<Tuple2<String, JsonRpcContent>> warp = Homo.warp(new ConsumerEx<HomoSink<Tuple2<String, JsonRpcContent>>>() {
             @Override
             public void accept(HomoSink<Tuple2<String, JsonRpcContent>> sink) throws Exception {
                 StreamObserver<JsonRes> observer = new StreamObserver<JsonRes>() {
@@ -348,6 +360,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                     private String msgId;
                     @Override
                     public void onNext(JsonRes reply) {
+                        TraceLogUtil.setTraceIdBySpan(span,"asyncJsonCall onNext");
                         log.trace("asyncJsonCall onError, serviceName {} msgId {}", host, msgId);
                         results = reply.getMsgContent();
                         msgId = reply.getMsgId();
@@ -355,6 +368,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
 
                     @Override
                     public void onError(Throwable throwable) {
+                        TraceLogUtil.setTraceIdBySpan(span,"asyncJsonCall throwable");
                         log.trace("asyncJsonCall onCompleted, serviceName {} msgId {}", host, msgId);
                         span.error(throwable);
                         sink.error(throwable);
@@ -363,6 +377,7 @@ public class RpcCallClientGrpcImpl implements RpcClient {
 
                     @Override
                     public void onCompleted() {
+                        TraceLogUtil.setTraceIdBySpan(span,"asyncJsonCall throwable");
                         log.trace("asyncJsonCall onCompleted, serviceName {} msgId {}", host, msgId);
                         span.finish();
                         sink.success(Tuples.of(msgId, JsonRpcContent.builder().data(results).build()));
@@ -377,6 +392,6 @@ public class RpcCallClientGrpcImpl implements RpcClient {
                 }
             }
         });
-        return result;
+        return warp.switchThread(localQueue, span);
     }
 }

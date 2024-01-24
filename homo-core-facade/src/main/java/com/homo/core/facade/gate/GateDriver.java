@@ -31,7 +31,15 @@ public interface GateDriver {
      * @param gateClient 网关客户端对象
      * @param msg        消息内容
      */
-    <T> Homo<Boolean> sendToclient(GateClient gateClient, T msg);
+    <T> Homo<Boolean> sendToClient(GateClient gateClient, T msg);
+
+    /**
+     * 发送一条消息到客户端
+     *
+     * @param gateClient 网关客户端对象
+     * @param msg        消息内容
+     */
+    <T> Homo<Boolean> sendToClientComplete(GateClient gateClient, T msg);
 
     /**
      * 广播一条消息到所有客户端

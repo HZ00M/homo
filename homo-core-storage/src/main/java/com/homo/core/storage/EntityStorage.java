@@ -842,7 +842,7 @@ public class EntityStorage<F, S, U, P> implements Module {
             List<String> remKeys,
             Class<T> clazz,
             CallBack<Boolean> callBack) {
-        log.info("removeKeys start, logicType_{} ownerId_{}", logicType, ownerId);
+        log.info("removeKeys start, logicType {} ownerId {}", logicType, ownerId);
         storageDriver.asyncRemoveKeys(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, remKeys, clazz, callBack);
     }
 

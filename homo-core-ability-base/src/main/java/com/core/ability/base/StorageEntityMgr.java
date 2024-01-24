@@ -8,7 +8,7 @@ import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.facade.ability.EntityType;
 import com.homo.core.facade.module.ServiceModule;
-import com.homo.core.utils.concurrent.lock.Locker;
+import com.homo.core.utils.concurrent.lock.IdLocker;
 import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
@@ -32,7 +32,7 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
     @Autowired
     StorageSystem storageSystem;
     Map<Class<? extends AbilitySystem>, AbilitySystem> systemMap = new HashMap<>();
-    Locker locker = new Locker();
+    IdLocker idLocker = new IdLocker();
 
     @Autowired
     public StorageEntityMgr(Set<? extends AbilitySystem> abilitySystems, AbilityProperties abilityProperties) {
@@ -71,16 +71,17 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
             Homo<T> ret;
             T entity = get(type, id);
             if (entity != null) {
-                log.info("getEntityPromise entity != null, type {} id {}", type, id);
+                log.info("getEntityPromise from InMem type {} id {}", type, id);
                 ret = Homo.result(entity);
             } else {
                 Class<AbilityEntity> entityClazz = typeToAbilityObjectClazzMap.get(type);
-                log.info("getEntityPromise asyncLoad, type {} id {}", type, id);
+                log.info("getEntityPromise asyncLoad type {} id {}", type, id);
                 ret = asyncLoad((Class<T>) entityClazz, id);
             }
+            Span span = ZipkinUtil.getTracing().tracer().currentSpan();
             return ret.nextDo(e -> {
                 if (e != null) {
-                    return Homo.result(e).switchThread(e.getQueueId());
+                    return Homo.result(e).switchThread(e.getQueueId(),span);
                 } else {
                     return Homo.result(e);
                 }
@@ -105,33 +106,43 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
                     .annotate(ZipkinUtil.CLIENT_SEND_TAG)
                     .start();
             return storageSystem.loadEntity(clazz, id)
-                    .nextDo(entity ->
-                            locker.lockCallable(id, () -> {
-                                log.info("asyncLoad finished, clazz_{} id_{} entity_{}", clazz, id, entity);
-                                T inMenEntity = get(clazz, id);
-                                if (inMenEntity != null) {
-                                    //内存有了就直接使用
-                                    return Homo.result(inMenEntity);
-                                }
-                                if (entity != null) {
-                                    return entity.promiseInit().nextDo(ret -> {
-                                        log.info("asyncLoad entity.promiseInit finish, clazz_{} id_{} entity_{}", clazz, id, entity);
-                                        return Homo.result(entity);
-                                    });
+                    .nextDo(entity -> {
+                        return idLocker.lockCallable(id, () -> {
+                            T inMenEntity = get(clazz, id);
+                            if (inMenEntity != null) {
+                                //内存有了就直接使用
+                                log.info("asyncLoad get(clazz, id), clazz {} id {} entity {}", clazz, id, entity);
+                                return Homo.result(inMenEntity);
+                            }
+                            if (entity != null) {
+                                return entity.promiseInit()
+                                        .nextDo(ret -> {
+                                            log.info("asyncLoad loadEntity(clazz, id), clazz {} id {} entity {}", clazz, id, ret);
+                                            return Homo.result((T)ret);
+                                        });
+                            } else {
+                                Func2Ex<Class<? extends AbilityEntity>, String, Homo<? extends AbilityEntity>> createFun = notFoundCreateFunMap.get(clazz);
+                                if (createFun != null) {
+                                    //如果注册了创建函数，则调用默认创建函数
+                                    return (Homo<T>) createFun.apply(clazz, id)
+                                            .consumerValue(createEntity -> {
+                                                log.info("asyncLoad createFun.apply(clazz, id), clazz {} id {} entity {}", clazz, id, entity);
+                                            });
                                 } else {
-                                    Func2Ex<Class<? extends AbilityEntity>, String, Homo<? extends AbilityEntity>> createFun = notFoundCreateFunMap.get(clazz);
-                                    if (createFun != null) {
-                                        //如果注册了创建函数，则调用默认创建函数
-                                        return (Homo<T>) createFun.apply(clazz, id);
-                                    } else {
-                                        return Homo.result(null);
-                                    }
+                                    log.info("asyncLoad not fund, clazz {} id {} entity {}", clazz, id, entity);
+                                    return Homo.result(null);
                                 }
+                            }
 
-                            }))
-                    .finallySignal(signalType -> {
+                        });
+                    })
+                    .consumerValue(finallyEntity -> {
+                        log.info("asyncLoad finally , clazz {} id {} entity {}", clazz, id, finallyEntity);
                         span.finish();
                     });
+//                    .finallySignal(signalType -> {
+//                        span.finish();
+//                    });
         }
     }
 

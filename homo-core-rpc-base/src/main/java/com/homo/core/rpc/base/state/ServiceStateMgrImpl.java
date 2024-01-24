@@ -1,5 +1,6 @@
 package com.homo.core.rpc.base.state;
 
+import brave.Span;
 import com.alibaba.fastjson.JSON;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -10,11 +11,13 @@ import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.facade.service.StatefulDriver;
 import com.homo.core.rpc.base.service.ServiceMgr;
+import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
+import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -54,8 +57,6 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     private long lastUpdateStateTime;
     private final String stateLogicType = "state";
     private final String POD_INDEX_CACHE = "%s-%s";
-    public static String SERVICE_TAG = "tag";
-    public static String SERVICE_STATEFUL = "stateful";
     /**
      * (user+service) : podIndex
      * 请求用户服务的用户和服务对应的podIndex
@@ -100,7 +101,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                     public void run() {
                         long currentTime = System.currentTimeMillis();
                         if (lastUpdateStateTime > 0 && (currentTime - lastUpdateStateTime) >= serverStateProperties.getServiceStateExpireMillSeconds() * 1000) {
-                            log.error("setState period larger than expireSeconds_{}!lastTime_{}, currentTime_{}",
+                            log.error("setState period larger than expireSeconds {}!lastTime {}, currentTime {}",
                                     serverStateProperties.getServiceStateExpireMillSeconds(), lastUpdateStateTime, currentTime);
                         }
                         lastUpdateStateTime = currentTime;
@@ -111,13 +112,13 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                         statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, weightLoad)
                                 .consumerValue(ret -> {
                                     if (ret) {
-                                        log.info("set service state success, service_{}, load_{} weightLoad_{}", serviceName, load, weightLoad);
+                                        log.info("set service state success, service {}, load {} weightLoad {}", serviceName, load, weightLoad);
                                     } else {
-                                        log.error("set service state fail, service_{}, load_{} weightLoad_{}", serviceName, load, weightLoad);
+                                        log.error("set service state fail, service {}, load {} weightLoad {}", serviceName, load, weightLoad);
                                     }
                                 })
                                 .catchError(throwable -> {
-                                    log.error("set service state error, service_{}, load_{} weightLoad_{}", serviceName, load, weightLoad, throwable);
+                                    log.error("set service state error, service {}, load {} weightLoad {}", serviceName, load, weightLoad, throwable);
 
                                 })
                                 .start();
@@ -241,7 +242,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         Integer userPodIndex = localUserServicePodCache.getIfPresent(key);
         if (userPodIndex != null) {
             if (!isPodAvailable(serviceName, userPodIndex)) {
-                log.error("computeLinkedPodIfAbsent 0 uid_{}, serviceName_{} pod_{} is DEAD!, alive pods: {}",
+                log.error("computeLinkedPodIfAbsent 0 uid {}, serviceName {} pod {} is DEAD!, alive pods: {}",
                         uid, serviceName, userPodIndex, JSON.toJSONString(alivePods(serviceName)));
                 return Homo.result(null);
             }
@@ -254,7 +255,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                                 .nextDo(currentPodIndex -> {
                                     //返回的pod已经不可用了, 返回空
                                     if (!isPodAvailable(serviceName, currentPodIndex)) {
-                                        log.error("computeUserLinkedPodIfAbsent uid_{}, serviceName_{} pod_{} is DEAD!, alive pods: {}",
+                                        log.error("computeUserLinkedPodIfAbsent uid {}, serviceName {} pod {} is DEAD!, alive pods: {}",
                                                 uid, serviceName, currentPodIndex, JSON.toJSONString(alivePods(serviceName)));
                                         return Homo.result(null);
                                     } else {
@@ -265,7 +266,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                                 });
                     } else {
                         //没有可用的pod
-                        log.error("no best pod for uid_{}, serviceName_{}", uid, serviceName);
+                        log.error("no best pod for uid {}, serviceName {}", uid, serviceName);
                         return Homo.result(null);
                     }
                 }).zipCalling(tag);
@@ -321,8 +322,8 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                 });
     }
 
-    static final String SERVICE_INFO_LOGIC_TYPE = "serverInfo";
-    static final String SERVICE_IS_STATEFUL = "stateful";
+    static final String SERVICE_INFO_LOGIC_TYPE = "state";
+    static final String SERVICE_INFO_KEY = "serverInfo";
     private Map<String, List<Integer>> goodServiceMap = new ConcurrentHashMap<>();
     private Map<String, List<Integer>> availableServiceMap = new ConcurrentHashMap<>();
 
@@ -410,53 +411,44 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         if (inMen != null) {
             return Homo.result(inMen);
         }
-        return Homo.warp(homoSink -> {
-//            ArrayList<String> fields = new ArrayList<>();
-//            fields.add(tag);
-            cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, tag)
-                    .consumerValue(ret -> {
-                        Map<String, byte[]> stringMap = ret;
+        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan();
+        Homo<ServiceInfo> warp = cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, SERVICE_INFO_KEY)
+                .nextDo(ret -> {
+                    Map<String, byte[]> stringMap = ret;
 
-                        byte[] tagBytes = stringMap.get(SERVICE_TAG);
-                        if (tagBytes == null) {
-                            // 如果找不到tag先按原tag返回
-                            log.warn("tag {} of service not found! return tag!", tag);
-                            homoSink.success(null);
-                        }
-                        byte[] stateBytes = stringMap.get(SERVICE_IS_STATEFUL);
-                        String serviceName = new String(tagBytes, StandardCharsets.UTF_8);
-                        Integer isStateful = homoSerializationProcessor.readValue(stateBytes,Integer.class);
-                        ServiceInfo serviceInfo = new ServiceInfo(serviceName,isStateful);
-
-                        tagToServiceInfoMap.put(tag, serviceInfo);
-                        homoSink.success(serviceInfo);
-                    })
-                    .catchError(throwable -> {
-                        log.error("get tag_{} error!", tag, throwable);
-                    }).start();
-        });
+                    byte[] tagBytes = stringMap.get(tag);
+                    if (tagBytes == null) {
+                        // 如果找不到tag先按原tag返回
+                        log.warn("tag {} of service not found! return tag!", tag);
+                        return Homo.result(null);
+                    }
+                    ServiceInfo serviceInfo = homoSerializationProcessor.readValue(tagBytes, ServiceInfo.class);
+                    tagToServiceInfoMap.put(tag, serviceInfo);
+                    return Homo.result(serviceInfo);
+                })
+                .catchError(throwable -> {
+                    log.error("get tag {} error!", tag, throwable);
+                });
+        return warp.switchThread(localQueue,span).consumerValue(ret->span.finish());
     }
 
     @Override
     public Homo<Boolean> setServiceInfo(String tag, ServiceInfo serviceInfo) {
         log.info("setServiceNameTag start tag {} serviceInfo {} ", tag, serviceInfo);
-        String serviceTag = serviceInfo.getServiceTag();
-        Integer isStateful = serviceInfo.getIsStateful();
-
         setLocalServiceInfo(tag, serviceInfo);
-        return Homo.warp(homoSink -> {
-            cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, tag)
-                    .nextDo(map -> {
-                        map.put(SERVICE_TAG, serviceTag.getBytes(StandardCharsets.UTF_8));
-                        byte[] statefulBytes = homoSerializationProcessor.writeByte(isStateful);
-                        map.put(SERVICE_IS_STATEFUL, statefulBytes);
-                        return cacheDriver.asyncUpdate(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, tag, map)
-                                .consumerValue(ret -> {
-                                    log.info("setServiceNameTag ret tag {} serviceName {} ret {}", tag, serviceTag, ret);
-                                    homoSink.success(true);
-                                });
-                    }).start();
-        });
+        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        return cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, SERVICE_INFO_KEY)
+                .nextDo(map -> {
+                    byte[] serverInfoBytes = homoSerializationProcessor.writeByte(serviceInfo);
+                    map.put(tag, serverInfoBytes);
+                    return cacheDriver.asyncUpdate(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, SERVICE_INFO_KEY, map)
+                            .consumerValue(ret -> {
+                                log.info("setServiceNameTag ret serviceInfo {} serviceName {} tag {} ret {}", SERVICE_INFO_KEY, serviceInfo, tag, ret);
+                            });
+                })
+                .switchThread(localQueue,storageSpan);
     }
 
     @Override

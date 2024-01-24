@@ -167,7 +167,7 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
 
             @Override
             public void onCompleted() {
-                log.error("RpcCallServiceImpl streamCall onCompleted responseObserver_{}", responseObserver);
+                log.error("RpcCallServiceImpl streamCall onCompleted responseObserver {}", responseObserver);
             }
         };
     }

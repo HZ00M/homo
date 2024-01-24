@@ -149,7 +149,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
 
                         @Override
                         public void onNext(org.bson.Document document) {
-                            log.info("asyncFindAndModify result_{}", document.toJson());
+                            log.info("asyncFindAndModify result {}", document.toJson());
                             callBack.onBack(true);
                         }
 
@@ -187,7 +187,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
 
                         @Override
                         public void onNext(org.bson.Document result) {
-                            log.info("asyncAggregate result_{}", document.toString());
+                            log.info("asyncAggregate result {}", document.toString());
                             resultList.add(result);
                         }
 
@@ -213,7 +213,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
 
     @Override
     public <T> void asyncGetAll(String appId, String regionId, String logicType, String ownerId, Class<T> clazz, CallBack<Map<String, T>> callBack) {
-        log.info("getAllKeysAndVal, appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
+        log.info("getAllKeysAndVal, appId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
         try {
             MongoDatabase mongoDatabase = mongoHelper.getMongoDatabase();
             Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
@@ -232,7 +232,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
 
     @Override
     public <T> void asyncUpdate(String appId, String regionId, String logicType, String ownerId, Map<String, T> data, Class<T> clazz, CallBack<Pair<Boolean, Map<String, T>>> callBack) {
-        log.info("update, appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
+        log.info("update, appId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
         try {
             Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
             String collectionName = document == null ? clazz.getSimpleName() : document.collectionName();
@@ -257,7 +257,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
 
     @Override
     public <T> void asyncUpdatePartial(String appId, String regionId, String logicType, String ownerId, String key, Map<String, ?> data, Class<T> clazz, CallBack<Boolean> callBack) {
-        log.info("updatePartial, appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
+        log.info("updatePartial, appId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
         try {
             Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
             String collectionName = document == null ? clazz.getSimpleName() : document.collectionName();
@@ -288,7 +288,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
 
     @Override
     public <T> void asyncGetByKeys(String appId, String regionId, String logicType, String ownerId, List<String> keyList, Class<T> clazz, CallBack<Map<String, T>> callBack) {
-        log.info("asyncGet, appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
+        log.info("asyncGet, appId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
         try {
             Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
             String collectionName = document == null ? clazz.getSimpleName() : document.collectionName();
@@ -315,7 +315,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
     @Override
     public <T> void asyncIncr(String appId, String regionId, String logicType, String ownerId, String key, Map<String, Long> incrData, Class<T> clazz, CallBack<Pair<Boolean, Map<String, Long>>> callBack) {
         try {
-            log.info("asyncIncr appId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
+            log.info("asyncIncr appId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
             Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
             String collectionName = document == null ? clazz.getSimpleName() : document.collectionName();
             mongoHelper.checkIndex(clazz);
@@ -356,7 +356,7 @@ public class MongoEntityStorageDriverImpl implements EntityStorageDriver<Bson,Bs
 
     @Override
     public <T> void asyncRemoveKeys(String appId, String regionId, String logicType, String ownerId, List<String> remKeys, Class<T> clazz, CallBack<Boolean> callBack) {
-        log.info("asyncRemoveKeys ppId_{} regionId_{} logicType_{} ownerId_{}", appId, regionId, logicType, ownerId);
+        log.info("asyncRemoveKeys ppId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
         try {
             Document document = AnnotationUtils.findAnnotation(clazz, Document.class);
             String collectionName = document == null ? clazz.getSimpleName() : document.collectionName();

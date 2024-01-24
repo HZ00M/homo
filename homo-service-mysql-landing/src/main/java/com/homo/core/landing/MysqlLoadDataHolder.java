@@ -47,7 +47,7 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
     final ExecutorService executorService = Executors.newCachedThreadPool(ThreadPoolFactory.newThreadFactory("MysqlLoadDataHolder-Thread"));
 
     public Homo<Boolean> hotAllField(String appId, String regionId, String logicType, String ownerId, String redisKey) {
-        log.trace("hotAllField begin appId_{} regionId_{} logicType_{} ownerId_{} redisKey_{}", appId, regionId, logicType, ownerId, redisKey);
+        log.trace("hotAllField begin appId {} regionId {} logicType {} ownerId {} redisKey {}", appId, regionId, logicType, ownerId, redisKey);
         String tableName = DataObject.buildTableName(appId, regionId);
         if (checkTableNotExist(tableName)) {
             schemeMapper.create(DataObject.class, tableName);
@@ -58,7 +58,7 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
         executorService.execute(() -> {
             try {
                 List<DataObject> fieldList = schemeMapper.loadAllDataObject(appId, regionId, logicType, ownerId);
-                log.trace("hotAllField process appId_{} regionId_{} logicType_{} ownerId_{} list size is {}", appId, regionId, logicType, ownerId, fieldList.size());
+                log.trace("hotAllField process appId {} regionId {} logicType {} ownerId {} list size is {}", appId, regionId, logicType, ownerId, fieldList.size());
                 byte[] hotAllFieldScript = LuaScriptHelper.hotAllFieldScript.getBytes(StandardCharsets.UTF_8);
                 List<byte[]> keys = new ArrayList<>();
                 keys.add(redisKey.getBytes(StandardCharsets.UTF_8));
@@ -69,7 +69,7 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
                     args.add(dataObject.getValue());
                 }
                 Object ret = redisPool.eval(hotAllFieldScript, keys, args);
-                log.trace("hotAllField complete appId_{} regionId_{} logicType_{} ownerId_{} list size is {} ret {}", appId, regionId, logicType, ownerId, fieldList.size(),ret);
+                log.trace("hotAllField complete appId {} regionId {} logicType {} ownerId {} list size is {} ret {}", appId, regionId, logicType, ownerId, fieldList.size(),ret);
                 one.tryEmitValue(true);
             } catch (Exception e) {
                  one.emitError(e,(signalType, emitResult) -> true);
@@ -79,7 +79,7 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
     }
 
     public Homo<List<DataObject>> hotFields(String appId, String regionId, String logicType, String ownerId, String redisKey, List<String> fields) {
-        log.trace("hotFields begin appId_{} regionId_{} logicType_{} ownerId_{} redisKey_{}", appId, regionId, logicType, ownerId, redisKey);
+        log.trace("hotFields begin appId {} regionId {} logicType {} ownerId {} redisKey {}", appId, regionId, logicType, ownerId, redisKey);
         String tableName = DataObject.buildTableName(appId, regionId);
         if (checkTableNotExist(tableName)) {
             schemeMapper.create(DataObject.class, tableName);
@@ -90,7 +90,7 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
         executorService.execute(() -> {
             try {
                 List<DataObject> fieldList = schemeMapper.loadDataObjectsByField(appId, regionId, logicType, ownerId, fields);
-                log.trace("hotFields process appId_{} regionId_{} logicType_{} ownerId_{} list size is {}", appId, regionId, logicType, ownerId, fieldList.size());
+                log.trace("hotFields process appId {} regionId {} logicType {} ownerId {} list size is {}", appId, regionId, logicType, ownerId, fieldList.size());
                 byte[] hotFieldsScript = LuaScriptHelper.hotFieldsScript.getBytes(StandardCharsets.UTF_8);
                 List<byte[]> keys = new ArrayList<>();
                 keys.add(redisKey.getBytes(StandardCharsets.UTF_8));
@@ -101,7 +101,7 @@ public class MysqlLoadDataHolder implements DBDataHolder<DataObject> {
                     args.add(dataObject.getValue());
                 }
                 redisPool.eval(hotFieldsScript, keys, args);
-                log.trace("hotFields complete appId_{} regionId_{} logicType_{} ownerId_{} list size is {}", appId, regionId, logicType, ownerId, fieldList.size());
+                log.trace("hotFields complete appId {} regionId {} logicType {} ownerId {} list size is {}", appId, regionId, logicType, ownerId, fieldList.size());
                 one.tryEmitValue(fieldList);
             } catch (Exception e) {
                 one.emitError(e,(signalType, emitResult) -> true);

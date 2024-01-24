@@ -22,14 +22,14 @@ public class HomoAnnotationUtil {
         }
         T annotation = typeClazz.getAnnotation(annotationClazz);
         if (annotation != null) {
-            log.info("getAnnotation typeClass {} {} find !", typeClazz, annotationClazz);
+            log.info("getAnnotation typeClass [{}] [{}] find !", typeClazz, annotationClazz);
             annotationClassMap.put(annotationClazz,annotation);
             return annotation;
         }
         for (Class<?> anInterface : typeClazz.getInterfaces()) {
             annotation = findAnnotation(anInterface, annotationClazz);
             if (annotation != null) {
-                log.info("getAnnotation typeClass {} {} find !", typeClazz, annotationClazz);
+                log.info("getAnnotation typeClass [{}] [{}] find !", typeClazz, annotationClazz);
                 annotationClassMap.put(annotationClazz,annotation);
                 return annotation;
             }
@@ -38,7 +38,7 @@ public class HomoAnnotationUtil {
         if (supper != null) {
             return findAnnotation(supper, annotationClazz);
         }
-        log.info("getAnnotation typeClass {} {} not find !", typeClazz, annotationClazz);
+        log.info("getAnnotation typeClass [{}] [{}] not find !", typeClazz, annotationClazz);
         return null;
     }
 

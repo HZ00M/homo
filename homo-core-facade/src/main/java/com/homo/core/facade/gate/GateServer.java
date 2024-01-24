@@ -5,14 +5,14 @@ import com.homo.core.utils.rector.Homo;
 /**
  *网关服务接口 提供通知客户端能力
  */
-public interface GateServer<T extends GateClient> {
+public interface GateServer {
     /**
      * 新网关客户端接入的回调
      * @param addr  网关客户端ip地址
      * @param port  网关客户端端口
      * @return  返回网关客户端连接对象
      */
-    T newClient(String addr,int port);
+    GateClient newClient(String addr,int port);
 
     /**
      * 获取服务名
@@ -29,12 +29,15 @@ public interface GateServer<T extends GateClient> {
     /**
      * 服务器通知客户端
      * @param gateClient 网关客户端对象
-     * @param data 消息内容
+     * @param msg 消息内容
      * @return
      */
-    void sendToClient(GateClient gateClient, byte[] data);
+    Homo<Boolean> sendToClient(GateClient gateClient,String msgId, byte[] msg, short sessionId, short sendSeq, short recvSeq);
 
-    Homo<Boolean> sendToClientComplete(GateClient gateClient, byte[] data);
+    Homo<Boolean> sendToClient(GateClient gateClient,String msgId, byte[] msg);
+    Homo<Boolean> sendToClientComplete(GateClient gateClient,String msgId, byte[] msg);
+
+    Homo<Boolean> sendToClientComplete(GateClient gateClient,String msgId, byte[] msg, short sessionId, short sendSeq, short recvSeq);
 
     /**
      * 服务器广播消息到客户端

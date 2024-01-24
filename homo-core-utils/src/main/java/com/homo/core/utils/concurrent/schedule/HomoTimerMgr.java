@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -99,6 +100,12 @@ public class HomoTimerMgr {
 
     public HomoTimerTask schedule(Runnable taskFun, String time, long period, int runTimes, Object... objects) throws ParseException {
         return schedule(UUID.randomUUID().toString(),taskFun,time,period,runTimes,objects);
+    }
+
+    public HomoTimerTask schedule(String id, CallQueue callQueue, Runnable taskFun, long delayMillSecond, long period, Object... objects) {
+        HomoTimerTask homoTimerTask = new HomoTimerTask(id,callQueue, taskFun, HomoTimerTask.ENDLESS, objects);
+        schedule(homoTimerTask, delayMillSecond, period);
+        return homoTimerTask;
     }
 
     public HomoTimerTask schedule(String id,Runnable taskFun, String time, long period, int runTimes, Object... objects) throws ParseException {

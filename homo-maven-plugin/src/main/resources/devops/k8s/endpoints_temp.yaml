@@ -1,0 +1,9 @@
+kind: Endpoints
+apiVersion: v1
+metadata:
+  name: EXAMPLE-SERVICE
+subsets:
+  - addresses:
+      - ip: EXAMPLE-IP
+    ports:
+      - port: -1

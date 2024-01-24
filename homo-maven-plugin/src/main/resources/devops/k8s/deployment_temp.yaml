@@ -1,0 +1,63 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name:
+  namespace:
+spec:
+  selector:
+    matchLabels:
+      app:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:
+    spec:
+      containers:
+        - command:
+            - java
+            - '-jar'
+            - app.jar
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sleep
+                  - '30'
+          resources:
+            limits:
+              cpu: 0
+              memory: 0
+            requests:
+              cpu: 0
+              memory: 0
+          name:
+          image:
+          imagePullPolicy: Always
+          ports:
+          volumeMounts:
+            - mountPath: /opt/settings/server.properties
+              name: volume-apollo
+              subPath: server.properties
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - configMap:
+            name: apollo-config
+          name: volume-apollo
+

@@ -39,7 +39,7 @@ public class HomoLettucePoolCreater {
             testWhileIdle设置成true这样能获得比较好的性能。
              */
             config.setTestOnBorrow(redisInfoHolder.isTestOnBorrow());
-            log.info("HomoLettucePool create config_{}",config);
+            log.info("HomoLettucePool create config {}",config);
 
             RedisURI.Builder redisUriBuilder = RedisURI.builder()
                     .withHost(redisInfoHolder.getUrl())

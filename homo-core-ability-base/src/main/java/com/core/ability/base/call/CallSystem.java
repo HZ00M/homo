@@ -10,6 +10,7 @@ import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.service.ServiceMgr;
+import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
 import com.homo.core.utils.lang.KKMap;
@@ -36,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class CallSystem implements ICallSystem, ServiceModule {
-    IdCallQueue idCallQueue = new IdCallQueue("CallSystem", 5000, IdCallQueue.DropStrategy.DROP_CURRENT_TASK);
+    IdCallQueue idCallQueue = new IdCallQueue("CallSystem", 5000, IdCallQueue.DropStrategy.DROP_CURRENT_TASK, 3);
     @Autowired
     ServiceMgr serviceMgr;
     @Autowired
@@ -70,7 +71,9 @@ public class CallSystem implements ICallSystem, ServiceModule {
             for (Method method : entityClazz.getMethods()) {
                 methodInvokeByQueueMap.put(getMethodInvokeByQueueMapKey(entityType.type(), method.getName()), method.getAnnotation(InvokeByQueue.class) != null);
             }
-            serviceStateMgr.setServiceInfo(entityType.type(), new ServiceInfo(mainService.getTagName(), mainService.isStateful() ? 1 : 0))
+            String serviceHost = ServiceUtil.getServiceHostNameByTag(mainService.getTagName());
+            int servicePort = ServiceUtil.getServicePortByTag(mainService.getTagName());
+            serviceStateMgr.setServiceInfo(entityType.type(), new ServiceInfo(mainService.getTagName(), serviceHost, servicePort, mainService.isStateful() ? 1 : 0))
                     .catchError(throwable -> {
                         log.error("setServiceNameTag error entity {}", entityType.type(), throwable);
                     })
@@ -205,12 +208,12 @@ public class CallSystem implements ICallSystem, ServiceModule {
             log.info("CallSystem no need to link when add entity type {} id {}", type, id);
             return Homo.result(true);
         } else {
-            log.info("CallSystem link entity type {} id {}", type, id);
             return serviceStateMgr.setUserLinkedPod(id, getServerInfo().serverName, serviceStateMgr.getPodIndex(), false)
                     .nextValue(prePodIndex -> {
+                        log.info("CallSystem setUserLinkedPod type {} id {} prePodIndex {} podIndex {} ", type, id, prePodIndex, serviceStateMgr.getPodIndex());
                         //如果之前的podIndex不为空，且不等于当前podIndex，则添加失败
                         if (prePodIndex != null && !prePodIndex.equals(serviceStateMgr.getPodIndex())) {
-                            log.error("CallSystem prePodIndex not equals current podIndex prePodIndex {} currentPodIndex {}", prePodIndex, serviceStateMgr.getPodIndex());
+                            log.error("CallSystem setUserLinkedPod type {} id {} prePodIndex not equals current podIndex prePodIndex {} currentPodIndex {}", type, id, prePodIndex, serviceStateMgr.getPodIndex());
                             return false;
                         }
                         return true;
