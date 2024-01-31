@@ -39,6 +39,7 @@ public class HomoServiceSetterFactory {
                 try {
                     setter.init();
                     setterMap.put(setter.getServiceName(), setter);
+                    return setter;
                 } catch (Exception e) {
                     String errMsg = String.format("%s parse service port error", serviceExport.tagName());
                     throw new RuntimeException(errMsg);
@@ -59,7 +60,7 @@ public class HomoServiceSetterFactory {
             Class<?> clazz = classLoader.loadClass(className);
             HomoServiceSetter setter = HomoServiceSetterFactory.createIfExistService(clazz);
             if (setter != null) {
-                log.info("load className {} service {}", className, setter.getServiceName());
+                log.info("load className {} service {}", className, setter);
             }
         }
     }

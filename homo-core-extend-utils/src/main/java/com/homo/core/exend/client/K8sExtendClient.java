@@ -26,7 +26,7 @@ public class K8sExtendClient {
     }
 
     public void createNamespaceIfAbsent(String namespace) throws ApiException {
-        String fileSelector = String.format("metadata.name = %s",namespace);
+        String fileSelector = String.format("metadata.name=%s",namespace);
         V1NamespaceList v1NamespaceList = coreV1Api.listNamespace(null, false, null, fileSelector, null, 1, null, null, false);
         if(v1NamespaceList == null || v1NamespaceList.getItems().size() == 0){
             log.info("createNamespaceIfAbsent namespace {} is absent,create it",namespace);
@@ -39,40 +39,45 @@ public class K8sExtendClient {
     }
 
     public void updateConfigMap(String namespace, V1ConfigMap configMap) throws ApiException {
-        String fileSelector = String.format("metadata.name = %s",configMap.getMetadata().getName());
+        String fileSelector = String.format("metadata.name=%s",configMap.getMetadata().getName());
         V1ConfigMapList v1ConfigMapList = coreV1Api.listNamespacedConfigMap(namespace, null, false, null, fileSelector, null, 1, null, null, false);
         if (v1ConfigMapList == null || v1ConfigMapList.getItems().size() == 0) {
-            log.info("updateConfigMap namespace {} configMap {} is absent,create it", namespace, configMap);
+            log.info("updateConfigMap namespace {}  is absent,create it", namespace);
             coreV1Api.createNamespacedConfigMap(namespace, configMap, null, null, null);
         }else {
-            log.info("updateConfigMap namespace {} configMap {} is exist,update it", namespace, configMap);
+            log.info("updateConfigMap namespace {}  is exist,update it", namespace);
             coreV1Api.replaceNamespacedConfigMap(configMap.getMetadata().getName(), namespace, configMap, null, null, null);
         }
     }
 
     public void updateService(String namespace, V1Service service, boolean delIfExist) throws ApiException {
         String serviceName = service.getMetadata().getName();
-        String filterSelector = String.format("metadata.name = %s",serviceName);
+        String filterSelector = String.format("metadata.name=%s",serviceName);
         V1ServiceList v1ServiceList = coreV1Api.listNamespacedService(namespace, null, false, null, filterSelector, null, 1, null, null, false);
         if (v1ServiceList == null || v1ServiceList.getItems().size() == 0) {
-            log.info("updateService namespace {} service {} is absent,create it", namespace, service);
+            log.info("updateService namespace {} service {} is absent,create it", namespace, serviceName);
             coreV1Api.createNamespacedService(namespace, service, null, null, null);
         }else {
+
             if(delIfExist){
-                log.info("updateService namespace {} service {} is exist,delete it", namespace, service);
+                log.info("updateService namespace {} service {} is exist,delete it", namespace, serviceName);
                 coreV1Api.deleteNamespacedService(serviceName, namespace, null, null, 1, null, null, null);
-                log.info("updateService namespace {} service {} is exist,create it", namespace, service);
+                log.info("updateService namespace {} service {} is exist,create it", namespace, serviceName);
                 coreV1Api.createNamespacedService(namespace, service, null, null, null);
             }else {
-                log.info("updateService namespace {} service {} is exist,update it", namespace, service);
-                coreV1Api.replaceNamespacedService(serviceName, namespace, service, null, null, null);
+                log.info("updateService namespace {} service {} is exist,skip it", namespace, serviceName);
+                /**
+                 * 更新service时，需要传入resourceVersion，否则会报错
+                 */
+//                String resourceVersion = v1ServiceList.getMetadata().getResourceVersion();
+//                coreV1Api.replaceNamespacedService(serviceName, namespace, service, null, null, null);
             }
         }
     }
 
     public void updateEndpoints(String namespace, V1Endpoints endpoints) {
         String endpointName = endpoints.getMetadata().getName();
-        String filterSelector = String.format("metadata.name = %s",endpointName);
+        String filterSelector = String.format("metadata.name=%s",endpointName);
         try {
             V1EndpointsList v1EndpointsList = coreV1Api.listNamespacedEndpoints(namespace, null, false, null, filterSelector, null, 1, null, null, false);
             if (v1EndpointsList == null || v1EndpointsList.getItems().size() == 0) {
@@ -84,6 +89,19 @@ public class K8sExtendClient {
             }
         } catch (ApiException e) {
             log.error("updateEndpoints error namespace {} endpoints {} ", namespace, endpoints, e);
+        }
+    }
+
+    public void findAndDeleteStatefulSet(String k8sNamespace, String statefulName) {
+        String filterSelector = String.format("metadata.name=%s",statefulName);
+        try {
+            V1StatefulSetList v1StatefulSetList = appsV1Api.listNamespacedStatefulSet(k8sNamespace, null, false, null, filterSelector, null, 1, null, null, false);
+            if (v1StatefulSetList != null && v1StatefulSetList.getItems().size() > 0) {
+                log.info("findAndDeleteStatefulSet namespace {} statefulName {} is exist,delete it", k8sNamespace, statefulName);
+                appsV1Api.deleteNamespacedStatefulSet(statefulName, k8sNamespace, null, null, 1, null, null, null);
+            }
+        } catch (ApiException e) {
+            log.error("findAndDeleteStatefulSet error namespace {} statefulName {} ", k8sNamespace, statefulName, e);
         }
     }
 }

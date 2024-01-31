@@ -5,6 +5,7 @@ import io.kubernetes.client.common.KubernetesType;
 import io.kubernetes.client.openapi.models.V1Service;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.io.IOException;
 @Builder
 @Data
 @Slf4j
+@ToString(exclude = "serviceExport")
 public class HomoServiceSetter {
     private Class<?> serviceClass;
     private ServiceExport serviceExport;

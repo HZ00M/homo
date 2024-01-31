@@ -37,17 +37,20 @@ public class CustomServerProvider extends DefaultServerProvider {
 
     private String getServerPropertyPath() {
         String projectPath = System.getProperty(ConfigKey.PROJECT_BASE_DIR);
+        log.info("getServerPropertyPath key {} value {}", ConfigKey.PROJECT_BASE_DIR, projectPath);
         if (projectPath == null) {
             log.info("getServerPropertyPath server.properties from file {} sys custom path does not exist!", SERVER_PROPERTIES_WINDOWS);
             return SERVER_PROPERTIES_WINDOWS;
         }
-        String customServerFile = projectPath + File.separator + ConfigKey.PROJECT_GIT_IGNORE_DEVOPS_DIR_NAME + File.separator + SERVER_PROPERTIES_FILE_NAME;
+        String serverPropertyPath = ConfigKey.APOLLO_SERVER_PROPERTIES_PATH.replace("/", File.separator);
+        String customServerFile = projectPath + File.separator + serverPropertyPath;
         File file = new File(customServerFile);
         if (!file.exists() || !file.canRead()) {
             log.info("getServerPropertyPath server.properties from  file {} doesn't exist or can not read", customServerFile);
+            log.info("getServerPropertyPath server.properties from file {} use to default path", SERVER_PROPERTIES_WINDOWS);
             return SERVER_PROPERTIES_WINDOWS;
         }
-        log.info("getServerPropertyPath server.properties from  file {} use to custom apollo", customServerFile);
+        log.info("getServerPropertyPath server.properties from file {} sys custom path", customServerFile);
         return customServerFile;
     }
 }

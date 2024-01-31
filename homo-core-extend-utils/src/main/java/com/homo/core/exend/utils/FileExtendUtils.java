@@ -127,6 +127,22 @@ public class FileExtendUtils {
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
+    /**
+     * 读取文件内容转换为字符串
+     * @return
+     */
+    public static String readCharacterFileToUtf8Str(File file) throws IOException {
+        /**
+         * 如果是资源文件直接使用类加载器读取资源文件
+         * 如果是文件则使用Files.newInputStream读取文件
+         */
+        InputStream inputStream = Files.newInputStream(file.toPath());
+        byte[] bytes = new byte[inputStream.available()];
+        inputStream.read(bytes);
+        inputStream.close();
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
     public static <T> void writeK8sObjToFile(String fileName, T k8sObj) throws IOException {
         File file = new File(fileName);
         String k8sObjYamlStr = Yaml.dump(k8sObj);
@@ -201,30 +217,37 @@ public class FileExtendUtils {
             file.deleteOnExit();
         }
     }
-
-    public static Map<String, Properties> loadPropertiesFormResourceDirectory(String directoryName) throws IOException {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    public static Map<String, Properties> readPropertiesFiles(String directoryPath) {
+        File directory = new File(directoryPath);
         Map<String, Properties> propertiesMap = new HashMap<>();
-        try (InputStream inputStream = classLoader.getResourceAsStream(directoryName)) {
-            if (inputStream != null) {
-                Path resourcePath = Paths.get(classLoader.getResource(directoryName).getPath());
-                Files.walk(resourcePath).
-                        filter(Files::isRegularFile)
-                        .filter(files -> files.toString().endsWith(".properties"))
-                        .forEach(file -> {
-                            try {
-                                Properties properties = new Properties();
-                                properties.load(Files.newInputStream(file));
-                                propertiesMap.put(file.toString(), properties);
-                                log.info("loadPropertiesFormResourceDirectory file {} properties {} ", file, properties);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        });
-            }
+
+        if (directory.exists() && directory.isDirectory()) {
+            readPropertiesFilesRecursive(directory, propertiesMap);
         }
+
         return propertiesMap;
     }
+
+    private static void readPropertiesFilesRecursive(File directory, Map<String, Properties> propertiesMap) {
+        File[] files = directory.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile() && file.getName().endsWith(".properties")) {
+                    Properties properties = new Properties();
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        properties.load(fis);
+                        propertiesMap.put(file.getAbsolutePath(), properties);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else if (file.isDirectory()) {
+                    readPropertiesFilesRecursive(file, propertiesMap);
+                }
+            }
+        }
+    }
+
 
     public static List<KubernetesType> readFileToK8sObjs(String buildServiceFilePath, boolean isResource) throws IOException {
         String content = readCharacterFileToUtf8Str(buildServiceFilePath, isResource);

@@ -57,7 +57,7 @@ public class CommandUtils {
             commands.add("/bin/sh");
             commands.add("-c");
         }
-        return null;
+        return commands;
     }
 
     private static class ProcessRunner implements Runnable{

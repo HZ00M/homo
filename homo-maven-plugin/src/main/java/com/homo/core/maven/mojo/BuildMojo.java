@@ -1,9 +1,9 @@
 package com.homo.core.maven.mojo;
 
 import com.homo.core.exend.utils.FileExtendUtils;
+import com.homo.core.maven.BuildConfiguration;
 import com.homo.core.maven.HomoServiceSetter;
 import com.homo.core.maven.HomoServiceSetterFactory;
-import com.homo.core.maven.BuildConfiguration;
 import io.kubernetes.client.common.KubernetesType;
 import io.kubernetes.client.openapi.models.*;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +14,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -66,12 +64,10 @@ public class BuildMojo extends AbsHomoMojo<BuildMojo> {
     }
 
 
-
     public void initConfig() throws MojoFailureException {
         buildConfiguration = BuildConfiguration.getInstance();
         buildConfiguration.init(this);
         HomoServiceSetterFactory.init(this);
-        log.info("homoClean init finish buildConfiguration {}",buildConfiguration);
     }
 
     public void generateAppDeployFile() throws IOException {
@@ -85,18 +81,18 @@ public class BuildMojo extends AbsHomoMojo<BuildMojo> {
             BuildConfiguration.appendContainerEnvInfo(container);
             //生成服务配置  1 暴露服务端口
             BuildConfiguration.appendContainerExportPortInfo(container);
-            Path writeFilePath = Paths.get(project.getBasedir().toString(), buildConfiguration.getStatefulSet_build_temp_yaml());
-            FileExtendUtils.writeK8sObjToFile(writeFilePath.toString(), statefulSet);
-            log.info("homoBuild statefulSet file {} success path {} ", buildConfiguration.getStatefulSet_build_temp_yaml(), writeFilePath);
+            String statefulSetBuildYaml = buildConfiguration.getStatefulSetBuildYaml();
+            FileExtendUtils.writeK8sObjToFile(statefulSetBuildYaml, statefulSet);
+            log.info("generateAppDeployFile statefulSet success path {}", statefulSetBuildYaml);
         } else {
             V1Container container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
             BuildConfiguration.appendDeploymentLabelsInfo(deployment);
             BuildConfiguration.appendContainerEnvInfo(container);
             //生成服务配置  1 暴露服务端口
             BuildConfiguration.appendContainerExportPortInfo(container);
-            Path writeFilePath = Paths.get(project.getBasedir().toString(), buildConfiguration.getDeployment_build_temp_yaml());
-            FileExtendUtils.writeK8sObjToFile(writeFilePath.toString(), deployment);
-            log.info("homoBuild deployment file {} success path {} ", buildConfiguration.getDeployment_build_temp_yaml(), writeFilePath);
+            String deploymentBuildYaml = buildConfiguration.getDeploymentBuildYaml();
+            FileExtendUtils.writeK8sObjToFile(deploymentBuildYaml, deployment);
+            log.info("generateAppDeployFile deployment success path {}", deploymentBuildYaml);
         }
 //        FileExtendUtils.saveStringFile(new File(getCompleteFilePath()),"complete");
     }
@@ -107,28 +103,24 @@ public class BuildMojo extends AbsHomoMojo<BuildMojo> {
             List<KubernetesType> localService = new ArrayList<>();
             List<KubernetesType> cloudService = new ArrayList<>();
             for (HomoServiceSetter setter : setters) {
-                if (!setter.isStateful()){
+                if (!setter.isStateful()) {
                     V1Service clusterServiceTemp = buildConfiguration.createClusterServiceTemp(setter);
                     V1Endpoints endPointsTemp = buildConfiguration.createEndPointsTemp(setter);
                     localService.add(clusterServiceTemp);
                     localService.add(endPointsTemp);
-                    log.info("homoBuild localService file {} success path {} ", buildConfiguration.getLocal_service_build_temp_yaml(), clusterServiceTemp);
-                    log.info("homoBuild endPointsTemp file {} success path {} ", buildConfiguration.getLocal_service_build_temp_yaml(), endPointsTemp);
 
                 }
                 //cloud
                 V1Service headlessServiceTemp = BuildConfiguration.createHeadlessServiceTemp(setter);
                 cloudService.add(headlessServiceTemp);
-                log.info("homoBuild cloudService file {} success path {} ", buildConfiguration.getCloud_service_build_temp_yaml(), headlessServiceTemp);
+
             }
-            if (localService.size() > 0) {
-                Path writeClusterFilePath = Paths.get(project.getBasedir().toString(), buildConfiguration.getLocal_service_build_temp_yaml());
-                FileExtendUtils.writeYamlObjToFile(writeClusterFilePath.toString(),localService.iterator());
-            }
-            if (cloudService.size() > 0) {
-                Path writeHeadlessFilePath = Paths.get(project.getBasedir().toString(), buildConfiguration.getCloud_service_build_temp_yaml());
-                FileExtendUtils.writeYamlObjToFile(writeHeadlessFilePath.toString(),cloudService.iterator());
-            }
+            String writeClusterFilePath = buildConfiguration.getLocalServiceBuildFile();
+            FileExtendUtils.writeYamlObjToFile(writeClusterFilePath, localService.iterator());
+            log.info("generateServiceFile localService success path {}", writeClusterFilePath);
+            String writeHeadlessFilePath = buildConfiguration.getCloudServiceBuildFile();
+            FileExtendUtils.writeYamlObjToFile(writeHeadlessFilePath, cloudService.iterator());
+            log.info("generateServiceFile cloudService success path {}", writeHeadlessFilePath);
         }
     }
 

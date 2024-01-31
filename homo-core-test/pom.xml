@@ -17,7 +17,7 @@
         <module>homo-core-rpc-server-facade-test</module>
         <module>homo-core-rpc-client-facade-test</module>
         <module>homo-core-tcp-gate-test</module>
-        <module>homo-core-tread-test</module>
+        <module>homo-service-tread-test</module>
         <module>homo-core-entity-test</module>
         <module>homo-core-entity-facade-test</module>
         <module>homo-core-entity-client-test</module>
@@ -95,7 +95,7 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-tread-test</artifactId>
+                <artifactId>homo-serice-tread-test</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

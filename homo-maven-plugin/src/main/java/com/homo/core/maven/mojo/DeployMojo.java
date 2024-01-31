@@ -1,14 +1,14 @@
 package com.homo.core.maven.mojo;
 
 import com.github.dockerjava.api.command.BuildImageResultCallback;
+import com.github.dockerjava.api.exception.DockerException;
 import com.homo.core.exend.client.ApolloExtendClient;
-import com.homo.core.exend.client.DockerExtentClient;
+import com.homo.core.exend.client.DockerExtendClient;
 import com.homo.core.exend.client.K8sExtendClient;
 import com.homo.core.exend.utils.CommandUtils;
 import com.homo.core.exend.utils.FileExtendUtils;
 import com.homo.core.maven.BuildConfiguration;
 import com.homo.core.maven.ConfigKey;
-import com.homo.core.maven.HomoServiceSetterFactory;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.common.KubernetesType;
 import io.kubernetes.client.openapi.ApiException;
@@ -30,20 +30,21 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
     private BuildConfiguration buildConfiguration;
     private K8sExtendClient k8sExtendClient;
     private ApolloExtendClient apolloExtendClient;
-    private DockerExtentClient dockerExtentClient;
+    private DockerExtendClient dockerExtendClient;
     private V1Deployment deployment;
-    V1StatefulSet statefulSet;
+    private V1StatefulSet statefulSet;
+    private Boolean isStatefulService;
 
     @Override
     protected void doExecute() throws MojoFailureException {
         try {
             //初始化配置
             initConfig();
-            //更新apollo配置
+            //更新apollo配置 todo 待验证
             updateApollo();
             //检查k8s命名空间
             checkAndCreateK8sNamespace();
-            //检查file system pvc
+            //检查file system pvc todo 待验证
             checkAndCreatePvc();
             //更新apollo configMap配置文件
             updateApolloConfigMap();
@@ -60,33 +61,62 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
             //服务发现
             updateDiscover();
 
-        } catch (Exception e) {
-            log.info("homoDeploy error", e);
+        }catch (DockerException dockerException) {
+            log.error("homoDeploy error StackTrace {} ", dockerException.getStackTrace(),dockerException);
+            throw new MojoFailureException("dockerException error", dockerException);
+        }catch (ApiException apiException){
+            log.error("homoDeploy error StackTrace {} ", apiException.getResponseBody(),apiException);
+            throw new MojoFailureException("apiException error", apiException);
+        }catch (Exception e) {
+            log.error("homoDeploy error", e);
+            throw new MojoFailureException("Exception error", e);
         }
 
     }
 
-    private void updateDiscover() throws ApiException {
+    private boolean isStatefulService() {
+        if (isStatefulService == null) {
+            String filePath = buildConfiguration.getStatefulSetBuildYaml();
+            File statefulBuildFile = new File(filePath);
+            isStatefulService = statefulBuildFile.exists() && statefulBuildFile.canRead();
+        }
+        return isStatefulService;
+    }
+
+    private String getStatefulName() throws IOException {
+        if (!isStatefulService()) {
+            return null;
+        }
+        return FileExtendUtils.readYamlToObj(buildConfiguration.getStatefulSetFileName(), V1StatefulSet.class, false).getMetadata().getName();
+    }
+
+    private void updateDiscover() throws ApiException, IOException {
         String serviceDeployFile;
         if (buildConfiguration.local_debug) {
             serviceDeployFile = buildConfiguration.getLocalServiceFile();
         } else {
             serviceDeployFile = buildConfiguration.getCloudServiceFile();
         }
-        List<KubernetesType> kubeObjs = new ArrayList<>();
-        try {
-            kubeObjs = FileExtendUtils.readFileToK8sObjs(serviceDeployFile, true);
-        } catch (IOException e) {
-            log.error("discoveryService error", e);
-        }
-        for (KubernetesType kubeObj : kubeObjs) {
-            if (kubeObj instanceof V1Service){
-                V1Service service = (V1Service) kubeObj;
-                k8sExtendClient.updateService(buildConfiguration.getK8s_namespace(), service,false);
+        if (isStatefulService() && buildConfiguration.local_debug) {
+            log.info("updateDiscover isStatefulService {} local_debug {} skip update serviceDeployFile", isStatefulService, buildConfiguration.local_debug);
+            //有状态服务在本地调试下需要关闭远端服务才能生效...
+            k8sExtendClient.findAndDeleteStatefulSet(buildConfiguration.getK8s_namespace(), getStatefulName());
+        } else {
+            List<KubernetesType> kubeObjs = new ArrayList<>();
+            try {
+                kubeObjs = FileExtendUtils.readFileToK8sObjs(serviceDeployFile, false);
+            } catch (IOException e) {
+                log.warn("discoveryService serviceDeployFile serviceDeployFile {} fail", serviceDeployFile, e);
             }
-            if (kubeObj instanceof V1Endpoints){
-                V1Endpoints endpoints = (V1Endpoints) kubeObj;
-                k8sExtendClient.updateEndpoints(buildConfiguration.getK8s_namespace(), endpoints);
+            for (KubernetesType kubeObj : kubeObjs) {
+                if (kubeObj instanceof V1Service) {
+                    V1Service service = (V1Service) kubeObj;
+                    k8sExtendClient.updateService(buildConfiguration.getK8s_namespace(), service, false);
+                }
+                if (kubeObj instanceof V1Endpoints) {
+                    V1Endpoints endpoints = (V1Endpoints) kubeObj;
+                    k8sExtendClient.updateEndpoints(buildConfiguration.getK8s_namespace(), endpoints);
+                }
             }
         }
 
@@ -104,18 +134,18 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         }
         List<KubernetesType> kubeObjs = new ArrayList<>();
         try {
-            kubeObjs = FileExtendUtils.readFileToK8sObjs(serviceBuildFile, true);
+            kubeObjs = FileExtendUtils.readFileToK8sObjs(serviceBuildFile, false);
         } catch (IOException e) {
             log.error("discoveryService error", e);
         }
-        if (kubeObjs.size()>0){
+        if (kubeObjs.size() > 0) {
             for (KubernetesType kubeObj : kubeObjs) {
-                if(kubeObj instanceof V1Endpoints){
+                if (kubeObj instanceof V1Endpoints) {
                     V1Endpoints endpoints = (V1Endpoints) kubeObj;
                     V1EndpointAddress endpointAddress = endpoints.getSubsets().get(0).getAddresses().get(0);
                     endpointAddress.setIp(buildConfiguration.getLocal_ip());
                 }
-                if (kubeObj instanceof KubernetesObject){
+                if (kubeObj instanceof KubernetesObject) {
                     KubernetesObject kubernetesObject = (KubernetesObject) kubeObj;
                     kubernetesObject.getMetadata().setNamespace(buildConfiguration.getK8s_namespace());
                 }
@@ -128,7 +158,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
     private void deployApplication() throws ApiException, IOException {
         String namespace = buildConfiguration.getK8s_namespace();
         if (!buildConfiguration.local_debug) {
-            if (HomoServiceSetterFactory.isStatefulService()) {
+            if (isStatefulService()) {
                 V1StatefulSet statefulSet = FileExtendUtils.readYamlToObj(buildConfiguration.getStatefulSetFileName(), V1StatefulSet.class, false);
                 String statefulSetName = statefulSet.getMetadata().getName();
                 String fileSelector = String.format("metadata.name=%s", statefulSetName);
@@ -182,8 +212,8 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
     }
 
     private void updateK8sDeployFile() throws IOException {
-        if (HomoServiceSetterFactory.isStatefulService()) {
-            statefulSet = FileExtendUtils.readYamlToObj(buildConfiguration.getStatefulSet_build_temp_yaml(), V1StatefulSet.class, false);
+        if (isStatefulService) {
+            statefulSet = FileExtendUtils.readYamlToObj(buildConfiguration.getStatefulSetBuildYaml(), V1StatefulSet.class, false);
             V1PodTemplateSpec template = statefulSet.getSpec().getTemplate();
             V1ObjectMeta metadata = statefulSet.getMetadata();
             buildConfiguration.appendStatefulMetaInfo(metadata);
@@ -191,7 +221,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
             statefulSet.getSpec().setReplicas(buildConfiguration.spec_pod_num);
             FileExtendUtils.writeK8sObjToFile(buildConfiguration.getStatefulSetFileName(), statefulSet);
         } else {
-            deployment = FileExtendUtils.readYamlToObj(buildConfiguration.getDeployment_build_temp_yaml(), V1Deployment.class, false);
+            deployment = FileExtendUtils.readYamlToObj(buildConfiguration.getDeploymentBuildYaml(), V1Deployment.class, false);
             V1PodTemplateSpec template = deployment.getSpec().getTemplate();
             V1ObjectMeta metadata = deployment.getMetadata();
             buildConfiguration.appendDeploymentMetaInfo(metadata);
@@ -203,10 +233,10 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
 
     private void updateImage() throws IOException, InterruptedException {
         if (buildConfiguration.local_debug) {
-            log.info("updateImage local_debug is true,skip build image");
+            log.info("updateImage {} is true,skip build image", ConfigKey.LOCAL_DEBUG_KEY);
         } else {
             String imageName = buildConfiguration.getPushImageName();
-            boolean imageExist = dockerExtentClient.isImageExist(imageName);
+            boolean imageExist = dockerExtendClient.isImageExist(imageName);
             if (buildConfiguration.docker_force_push || !imageExist) {
                 createJarIfAbsent();
                 writeDockerFile();
@@ -219,21 +249,22 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
     private void buildAndPushAndCleanImage() throws InterruptedException {
         HashSet<String> tags = new HashSet<>();
         tags.add(buildConfiguration.getPushImageName());
-        String imageId = dockerExtentClient.dockerClient.buildImageCmd()
-                .withDockerfile(new File(buildConfiguration.getDockerFile()))
-                .withBaseDirectory(getProject().getBasedir())
+        File dockerFile = new File(buildConfiguration.getTargetDockerFilePath());
+        String imageId = dockerExtendClient.dockerClient.buildImageCmd()
+                .withDockerfile(dockerFile)
+                .withBaseDirectory(dockerFile.getParentFile())
                 .withTags(tags)
                 .exec(new BuildImageResultCallback())
                 .awaitImageId();
         log.info("buildImage buildImageCmd success imageId {}", imageId);
         String imageNameWithRepo = buildConfiguration.getImageNameWithRepo();
         String imageTag = buildConfiguration.getImageTag();
-//        dockerExtentClient.dockerClient.tagImageCmd(imageId,imageNameWithRepo,imageTag);
-        dockerExtentClient.dockerClient.pushImageCmd(imageNameWithRepo)
+        dockerExtendClient.dockerClient.tagImageCmd(imageId,imageNameWithRepo,imageTag);
+        dockerExtendClient.dockerClient.pushImageCmd(imageNameWithRepo)
                 .withTag(imageTag)
                 .start().awaitCompletion();
         log.info("pushImage pushImageCmd success imageNameWithRepo {} imageTag {}", imageNameWithRepo, imageTag);
-        dockerExtentClient.dockerClient.removeImageCmd(imageNameWithRepo)
+        dockerExtendClient.dockerClient.removeImageCmd(imageNameWithRepo)
                 .withForce(true)
                 .withNoPrune(true)
                 .withImageId(imageId)
@@ -246,19 +277,27 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         String finalName = getProject().getBuild().getFinalName();
         String copyJarCommand = String.format(ConfigKey.DOCKER_EXAMPLE_COPY_TEMP, finalName);
         dockerFileContent = dockerFileContent.replace(ConfigKey.DOCKER_EXAMPLE_COPY_KEY, copyJarCommand);
-        FileExtendUtils.write2File(buildConfiguration.getDockerFile(), dockerFileContent);
+        FileExtendUtils.write2File(buildConfiguration.getTargetDockerFilePath(), dockerFileContent);
     }
 
     private void updateDnsConfigMap() {
-        if (buildConfiguration.deploy_dns_update_enable && HomoServiceSetterFactory.isStatefulService()) {
+        if (buildConfiguration.deploy_dns_update_enable && isStatefulService()) {
             try {
                 V1ConfigMap dnsConfigMap = k8sExtendClient.coreV1Api.readNamespacedConfigMap("coredns", "kube-system", null, true, null);
-                String homoDomains = dnsConfigMap.getData().get("homoDomains");
+                String homoDomains = dnsConfigMap.getData().get("customdomains");
                 homoDomains = normalizeHostContent(homoDomains);
-                log.info("updateDnsConfigMap load homoDomains {}", homoDomains);
-                String buildServiceFilePath = FileExtendUtils.mergePath(project.getBasedir().toString(), buildConfiguration.getCloud_service_build_temp_yaml());
+                log.debug("updateDnsConfigMap load homoDomains {}", homoDomains);
+                String buildServiceFilePath = buildConfiguration.getCloudServiceBuildFile();
                 List<KubernetesType> kubeObjs = FileExtendUtils.readFileToK8sObjs(buildServiceFilePath, false);
-                String statefulService = HomoServiceSetterFactory.mainServiceSetter.getServiceName();
+                String statefulService = "";
+                for (KubernetesType kubeObj : kubeObjs) {
+                    V1Service service = (V1Service) kubeObj;
+                    Map<String, String> labels = service.getMetadata().getLabels();
+                    if (labels != null && labels.containsKey(ConfigKey.STATEFUL_LABELS)) {
+                        statefulService = labels.get(ConfigKey.STATEFUL_LABELS);
+                        break;
+                    }
+                }
                 String service0Domain = buildConfiguration.getStatefulService0Domain(statefulService);
                 String dnsEntry = buildConfiguration.getLocal_ip() + " " + service0Domain;
                 if (buildConfiguration.getLocal_debug()) {
@@ -269,8 +308,8 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
                     homoDomains = removeALine(homoDomains, dnsEntry, service0Domain);
                 }
                 homoDomains = normalizeHostContent(homoDomains);
-                dnsConfigMap.getData().put("homoDomains", homoDomains);
-                log.info("updateDnsConfigMap update homoDomains {}", homoDomains);
+                dnsConfigMap.getData().put("customdomains", homoDomains);
+                log.debug("updateDnsConfigMap update homoDomains {}", homoDomains);
 //                k8sExtendClient.updateConfigMap("kube-system", dnsConfigMap);
             } catch (Exception e) {
                 log.error("updateDnsConfigMap error", e);
@@ -323,7 +362,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         Map<String, String> data = new HashMap<>();
         String k8sNamespace = buildConfiguration.getK8s_namespace();
         StringBuilder configDataBuilder = new StringBuilder()
-                .append("apollo.meta=").append(buildConfiguration.getApollo_addr()).append("\n")
+                .append("apollo.meta=").append(buildConfiguration.apollo_addr).append("\n")
                 .append("env=").append(buildConfiguration.apollo_env).append("\n")
                 .append("dic=").append(buildConfiguration.apollo_idc).append("\n");
         data.put("server.properties", configDataBuilder.toString());
@@ -332,6 +371,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         meta.setNamespace(k8sNamespace);
         configMap.setMetadata(meta);
         configMap.setData(data);
+        log.info("updateApolloConfigMap server.properties {}", configDataBuilder);
         k8sExtendClient.updateConfigMap(k8sNamespace, configMap);
     }
 
@@ -343,6 +383,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
             V1PersistentVolumeClaimList pvcList = k8sExtendClient.coreV1Api.listNamespacedPersistentVolumeClaim(k8sNamespace, null, false, null, fileSelect, null, 1, null, null, false);
             if (pvcList == null || pvcList.getItems().size() == 0) {
                 log.info("checkAndCreatePvc create k8sNamespace {} pvc {}", k8sNamespace, pvc);
+                FileExtendUtils.writeK8sObjToFile(buildConfiguration.getPvcFileName(), pvc);
                 k8sExtendClient.coreV1Api.createNamespacedPersistentVolumeClaim(k8sNamespace, pvc, null, null, null);
             } else {
                 log.info("checkAndCreatePvc k8sNamespace {} pvc {} is exist", k8sNamespace, pvc);
@@ -356,21 +397,24 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
 
     private void updateApollo() throws IOException {
         if (buildConfiguration.deploy_apollo_update_enable) {
-            Map<String, Properties> propertiesMap = FileExtendUtils.loadPropertiesFormResourceDirectory("devops/apollo");
+            Map<String, Properties> propertiesMap = FileExtendUtils.readPropertiesFiles("devops/apollo");
             String apolloUpdateStrategy = buildConfiguration.getDeploy_apollo_update_strategy();
             for (Properties properties : propertiesMap.values()) {
-                String appId = properties.getProperty("appId");
-                String cluster = properties.getProperty("cluster");
-                String namespace = properties.getProperty("namespace");
-                boolean isPublic = Boolean.parseBoolean((String) properties.getOrDefault("public", "false"));
+                String appId = properties.getProperty(ConfigKey.APOLLO_APP_ID);
+                String cluster = properties.getProperty(ConfigKey.APOLLO_CLUSTER);
+                String namespace = properties.getProperty(ConfigKey.APOLLO_NAMESPACE);
+                boolean isPublic = Boolean.parseBoolean((String) properties.getOrDefault(ConfigKey.APOLLO_NAMESPACE_PUBLIC, "false"));
                 Map<String, String> propertyMap = new HashMap<>();
                 for (String key : properties.stringPropertyNames()) {
-                    propertyMap.put(key, properties.getProperty(key));
+                    if (!ConfigKey.APOLLO_APP_ID.equals(key) && !ConfigKey.APOLLO_CLUSTER.equals(key) &&
+                            !ConfigKey.APOLLO_NAMESPACE.equals(key) && !ConfigKey.APOLLO_NAMESPACE_PUBLIC.equals(key)) {
+                        propertyMap.put(key, properties.getProperty(key));
+                    }
                 }
                 if (ConfigKey.APOLLO_UPDATE_STRATEGY_VALUE_SET.equals(apolloUpdateStrategy)) {
-                    apolloExtendClient.createOrUpdateNamespace(appId, buildConfiguration.apollo_env, cluster, buildConfiguration.getApollo_editor(), isPublic, namespace, propertyMap);
+                    apolloExtendClient.createOrUpdateNamespaceCoverValue(appId, buildConfiguration.apollo_env, cluster, buildConfiguration.getApollo_editor(), isPublic, namespace, propertyMap);
                 } else if (ConfigKey.APOLLO_UPDATE_STRATEGY_VALUE_SET_ABSENT.equals(apolloUpdateStrategy)) {
-                    apolloExtendClient.createOrUpdateNamespaceOnAbsent(appId, buildConfiguration.apollo_env, cluster, buildConfiguration.getApollo_editor(), isPublic, namespace, propertyMap);
+                    apolloExtendClient.createOrUpdateNamespaceUpdateIfAbsent(appId, buildConfiguration.apollo_env, cluster, buildConfiguration.getApollo_editor(), isPublic, namespace, propertyMap);
                 } else {
                     log.info("updateApollo apolloUpdateStrategy is error!");
                 }
@@ -382,7 +426,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
 
     public void createJarIfAbsent() throws IOException {
         MavenProject mavenProject = getProject();
-        String targetDirectory = mavenProject.getBuild().getOutputDirectory();
+        String targetDirectory = mavenProject.getBuild().getDirectory();//target目录
         String jarName = mavenProject.getBuild().getFinalName() + ".jar";
         File jarFile = new File(targetDirectory, jarName);
         boolean jarFileExist = jarFile.exists();
@@ -407,8 +451,8 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
     private void initConfig() throws IOException {
         buildConfiguration = BuildConfiguration.getInstance();
         buildConfiguration.init(this);
-        k8sExtendClient = new K8sExtendClient(buildConfiguration.getK8s_cert_config());
-        apolloExtendClient = new ApolloExtendClient(buildConfiguration.getApollo_addr(), buildConfiguration.apollo_token);
-        dockerExtentClient = new DockerExtentClient(buildConfiguration.getDocker_repo_username(), buildConfiguration.getDocker_repo_password());
+        k8sExtendClient = new K8sExtendClient(buildConfiguration.getK8sConfig());
+        apolloExtendClient = new ApolloExtendClient(buildConfiguration.getApollo_addr(), buildConfiguration.getApollo_token());
+        dockerExtendClient = new DockerExtendClient(buildConfiguration.getDocker_repo_username(), buildConfiguration.getDocker_repo_password());
     }
 }

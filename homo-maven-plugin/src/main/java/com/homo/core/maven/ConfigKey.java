@@ -1,29 +1,36 @@
 package com.homo.core.maven;
 
 public interface ConfigKey {
-    String SCAN_CLASS_PATH_KEY = "scan.path";//插件基础配置
+    String SCAN_CLASS_PATH_KEY = "server.scan.path";//插件基础配置
     String SCAN_CLASS_PATH_DEFAULT_VALUE = "com.homo";//插件基础配置
-    String SCAN_SCOPE_KEY = "scan.scope";
-    String DEFAULT_SCAN_SCOPE_DEFAULT_VALUE = "com.compile";
+    String SCAN_SCOPE_KEY = "server.scan.scope";
+    String DEFAULT_SCAN_SCOPE_DEFAULT_VALUE = "compile";
     String PROPERTY_FROM_KEY = "property.from";//资源加载来源 PROPERTY APOLLO
+    String LOCAL_IP ="127.0.0.1";
     String EMPTY_CONFIG_VALUE = "EMPTY_VALUE";//表示空值
+    String BOOLEAN_FALSE = "false";
     String CUSTOM_BUILD_NS_VALUE = "homo_build_config";//从哪个namespace读取构建配置
-    String DEPLOY_DNS_UPDATE_ENABLE_KEY = "deploy.dns.update.enable";
+    String DEPLOY_DNS_UPDATE_ENABLE_KEY = "deploy.dns.config.enable";
     String DEPLOY_FILESYSTEM_PVC_ENABLE_KEY = "deploy.filesystem.pvc.enable";
-    String LOCAL_DEBUG_KEY = "local_debug";
-    String LOCAL_IP_KEY = "local_ip";
+    String LOCAL_DEBUG_KEY = "local.debug";
+    String LOCAL_IP_KEY = "local.ip";
     String KUBE_SYSTEM_NAMESPACE = "kube-system";
+    String APOLLO_APP_ID = "appId";
+    String APOLLO_CLUSTER = "cluster";
+    String APOLLO_NAMESPACE = "namespace";
+    String APOLLO_NAMESPACE_PUBLIC = "public";
     /**
      * 工程根路径
      */
     String PROJECT_BASE_DIR = "PROJECT_BASE_DIR";
+    String APOLLO_SERVER_PROPERTIES_PATH = "devops/apollo/server.properties";
     String PROJECT_GIT_IGNORE_DEVOPS_DIR_NAME = "devops";
     /**
      * dockerfile 文件 占位符
      */
     String DOCKER_EXAMPLE_COPY_KEY = "EXAMPLE-COPY";
     String DOCKER_EXAMPLE_COPY_TEMP = "COPY target/%s.jar /tmp/app.jar";
-    String DOCKER_TARGET_FILE = "DockerFile";
+    String DOCKER_TARGET_FILE_PATH = "DockerFile";
     /**
      * 镜像配置
      */
@@ -35,6 +42,7 @@ public interface ConfigKey {
     String DOCKER_DEPLOY_ADDR_KEY = "docker.deploy.addr";
     String DOCKER_DEPLOY_DIR_KEY = "docker.deploy.dir";
     String DOCKER_PUSH_KEY = "docker.force.push";
+    String DEPLOY_DOCKER_FILE_KEY = "docker.dockerfile.path";
     /**
      * apollo 配置文件
      */
@@ -44,6 +52,8 @@ public interface ConfigKey {
     String APOLLO_IDC_KEY = "apollo.idc";
     String APOLLO_ADDR_KEY = "apollo.addr";
     String APOLLO_TOKEN_KEY = "apollo.token";
+    String APOLLO_EDITOR_KEY = "apollo.editor";
+    String APOLLO_EDITOR_DEFAULT_VALUE = "homoEditor";
     String APOLLO_PROPERTY_FORMAT_VALUE = "properties";
     String DEPLOY_APOLLO_UPDATE_ENABLE_KEY = "apollo.update.enable";
     String APOLLO_UPDATE_STRATEGY_KEY = "apollo.update.strategy";
@@ -52,10 +62,11 @@ public interface ConfigKey {
     /**
      * k8s 配置文件
      */
-    String K8S_FILE_KEY = "k8s.file";
+    String K8S_CONFIG_FILE_KEY = "k8s.file";
     String K8S_CERT_CONFIG_KEY = "kube.cert.config";
     String K8S_NAMESPACE_KEY = "k8s.namespace";
     String K8S_CERT_CONFIG_FILE_KEY = "kube.cert.config.file";
+    String K8S_CONFIG_FILE_DEFAULT_VALUE = "devops/k8s/kubeconfig.yaml";
     String DEPLOYMENT_TEMP_YAML = "devops/k8s/deployment_temp.yaml";
     String DEPLOYMENT_BUILD_YAML = "devops/k8s/deployment_build.yaml";
     String STATEFUL_SET_TEMP_YAML = "devops/k8s/statefulSet_temp.yaml";
@@ -78,12 +89,14 @@ public interface ConfigKey {
     String APP = "app";
     String CONTAINER = "container";
     String DEPLOYMENT = "deployment";
+    String STATEFUL_LABELS = "isStateful";
     String ENV_GROUP = "HOMO_GROUP";
     String ENV_ARTIFACT = "HOMO_ARTIFACT";
     String ENV_VERSION = "HOMO_VERSION";
     String FILE_SYSTEM_PVC_SUFFIX = "-file-system-pvc";
     String PVC_SUB_DIR_LABEL = "dir";
     String DOMAIN_SUFFIX = ".svc.cluster.local";
+    String DEFAULT_POD_NUM = "1";
     String CONTAINER_PARAM_REQUEST_CPU_DEFAULT_VALUE = "0";
     String CONTAINER_PARAM_LIMIT_CPU_DEFAULT_VALUE = "1";
     String CONTAINER_PARAM_REQUEST_MEMORY_DEFAULT_VALUE = "0";
@@ -143,4 +156,6 @@ public interface ConfigKey {
     String ENDPOINTS_TEMP_YAML_KEY = "endpoints.temp.yaml";
     String CLOUD_SERVICE_BUILD_YAML_KEY = "cloudService.build.yaml";
     String LOCAL_SERVICE_BUILD_YAML_KEY = "localService.build.yaml";
+
+
 }

@@ -24,30 +24,8 @@ public class ApolloExtendClient {
                 .withToken(token)
                 .build();
     }
-
-    public void createNamespace(String appId, String env, String cluster, String editor, boolean isPublic, String namespace, Map<String, String> propertyMap) {
-        OpenNamespaceDTO namespaceDTO = client.getNamespace(appId, env, cluster, namespace);
-        if (namespaceDTO == null) {
-            OpenAppNamespaceDTO openAppNamespaceDTO = new OpenAppNamespaceDTO();
-            openAppNamespaceDTO.setAppId(appId);
-            openAppNamespaceDTO.setFormat("properties");
-            openAppNamespaceDTO.setName(namespace);
-            openAppNamespaceDTO.setPublic(isPublic);
-            openAppNamespaceDTO.setComment("auto create");
-            openAppNamespaceDTO.setDataChangeCreatedBy(editor);
-            client.createAppNamespace(openAppNamespaceDTO);
-            propertyMap.forEach((key, value) -> {
-                OpenItemDTO openItemDTO = new OpenItemDTO();
-                openItemDTO.setKey(key);
-                openItemDTO.setValue(value);
-                client.createOrUpdateItem(appId, env, cluster, namespace, openItemDTO);
-            });
-        } else {
-            log.info("createNamespace fail,namespace is exist.\nappId: {},env: {},cluster: {},namespace: {}", appId, env, cluster, namespace);
-        }
-    }
-
-    public void createOrUpdateNamespace(String appId, String env, String cluster, String editor, boolean isPublic, String namespace, Map<String, String> propertyMap) {
+    public void createOrUpdateNamespaceCoverValue(String appId, String env, String cluster, String editor, boolean isPublic, String namespace, Map<String, String> propertyMap) {
+        createAndInitNamespace(appId, env, cluster, editor, isPublic, namespace, null);
         OpenNamespaceDTO namespaceDTO = client.getNamespace(appId, env, cluster, namespace);
         if (namespaceDTO != null) {
             propertyMap.forEach((key, value) -> {
@@ -57,11 +35,12 @@ public class ApolloExtendClient {
                 client.createOrUpdateItem(appId, env, cluster, namespace, openItemDTO);
             });
         } else {
-            createNamespace(appId, env, cluster, editor, isPublic, namespace, propertyMap);
+            log.info("createOrUpdateNamespaceOnAbsent fail,namespace is absent.\nappId: {},env: {},cluster: {},namespace: {}", appId, env, cluster, namespace);
         }
     }
 
-    public void createOrUpdateNamespaceOnAbsent(String appId, String env, String cluster, String editor, boolean isPublic, String namespace, Map<String, String> propertyMap) {
+    public void createOrUpdateNamespaceUpdateIfAbsent(String appId, String env, String cluster, String editor, boolean isPublic, String namespace, Map<String, String> propertyMap) {
+        createAndInitNamespace(appId, env, cluster, editor, isPublic, namespace, propertyMap);
         OpenNamespaceDTO namespaceDTO = client.getNamespace(appId, env, cluster, namespace);
         if (namespaceDTO != null) {
             Map<String, String> oldPropertyMap = namespaceDTO.getItems().stream().collect(Collectors.toMap(OpenItemDTO::getKey, OpenItemDTO::getValue));
@@ -75,7 +54,37 @@ public class ApolloExtendClient {
                 client.createOrUpdateItem(appId, env, cluster, namespace, openItemDTO);
             });
         } else {
-            createNamespace(appId, env, cluster, editor, isPublic, namespace, propertyMap);
+           log.info("createOrUpdateNamespaceOnAbsent fail,namespace is absent.\nappId: {},env: {},cluster: {},namespace: {}", appId, env, cluster, namespace);
+        }
+    }
+
+    private void createAndInitNamespace(String appId, String env, String cluster, String editor, boolean isPublic, String namespace, Map<String, String> propertyMap) {
+        List<OpenNamespaceDTO> namespaces = client.getNamespaces(appId, env, cluster);
+        boolean haveNamespace = false;
+        for (OpenNamespaceDTO openNamespaceDTO : namespaces) {
+            if (openNamespaceDTO.getNamespaceName().equals(namespace)) {
+                haveNamespace = true;
+                break;
+            }
+        }
+        if (!haveNamespace) {
+            log.info("createOrUpdateNamespaceOnAbsent fail,namespace is absent.\nappId: {},env: {},cluster: {},namespace: {}", appId, env, cluster, namespace);
+            OpenAppNamespaceDTO openAppNamespaceDTO = new OpenAppNamespaceDTO();
+            openAppNamespaceDTO.setAppId(appId);
+            openAppNamespaceDTO.setFormat("properties");
+            openAppNamespaceDTO.setName(namespace);
+            openAppNamespaceDTO.setPublic(isPublic);
+            openAppNamespaceDTO.setComment("auto create");
+            openAppNamespaceDTO.setDataChangeCreatedBy(editor);
+            OpenAppNamespaceDTO appNamespace = client.createAppNamespace(openAppNamespaceDTO);
+
+            propertyMap.forEach((key, value) -> {
+                OpenItemDTO openItemDTO = new OpenItemDTO();
+                openItemDTO.setKey(key);
+                openItemDTO.setValue(value);
+                client.createOrUpdateItem(appId, env, cluster, namespace, openItemDTO);
+            });
+
         }
     }
 
@@ -200,4 +209,6 @@ public class ApolloExtendClient {
         }
         return false;
     }
+
+
 }

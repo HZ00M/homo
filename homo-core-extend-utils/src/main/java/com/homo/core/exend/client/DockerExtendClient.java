@@ -12,11 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 @Slf4j
-public class DockerExtentClient {
+public class DockerExtendClient {
     public final static String WINDOW_DOCKER_SOCKET = "tcp://localhost:2375";
     public final static String UNIX_DOCKER_SOCKET = "unix:///var/run/docker.sock";
     public DockerClient dockerClient;
-    public DockerExtentClient(String userName, String password) {
+    public DockerExtendClient(String userName, String password) {
         String host = isOsWindows() ? WINDOW_DOCKER_SOCKET: UNIX_DOCKER_SOCKET;
         DockerClientConfig dockerConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost(host)

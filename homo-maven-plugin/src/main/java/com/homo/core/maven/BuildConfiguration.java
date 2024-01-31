@@ -24,7 +24,7 @@ import java.util.*;
 @Data
 @ToString(exclude = {"k8s_file"})
 public class BuildConfiguration {
-    protected static AbsHomoMojo homoMojo;
+    public static AbsHomoMojo homoMojo;
     /////////////////////////////////////////////////////////////
     public String deploy_scan_class_path;
     public String deploy_service_scan_scope;
@@ -37,7 +37,7 @@ public class BuildConfiguration {
 
 
     /////////////////////////////////////////////////////////////
-    public String apollo_meta;
+    public String apollo_meta = ConfigKey.EMPTY_CONFIG_VALUE;
     public String apollo_env;
     public String apollo_idc;
     public String apollo_addr;
@@ -72,6 +72,7 @@ public class BuildConfiguration {
     public String local_service_file = ConfigKey.LOCAL_SERVICE_BUILD_YAML;
     public String pvc_temp_yaml = ConfigKey.PVC_TEMP_YAML;
     public String docker_file_temp = ConfigKey.DEPLOY_DOCKER_FILE_TEMP;
+    public String docker_file_path = ConfigKey.DOCKER_TARGET_FILE_PATH;
     public File k8s_file;
     /////////////////////////////////////////////////////////////
     public String container_java_base_options = ConfigKey.CONTAINER_PARAM_JAVA_OPTIONS_DEFAULT_VALUE;
@@ -98,7 +99,8 @@ public class BuildConfiguration {
     //名字缓存
     public static Map<String, Map<String, String>> nameMap = new HashMap<>();
     private static BuildConfiguration instant;
-
+    private Properties properties;
+    private Config apolloCustomerConfig;
 
     private BuildConfiguration() {
     }
@@ -116,9 +118,18 @@ public class BuildConfiguration {
         if (selector != null) {
             selector.put(ConfigKey.APP, getAppName());
         }
-        service.getMetadata().setName(serviceSetter.getServiceName());
+        V1ObjectMeta metadata = service.getMetadata();
+        if (serviceSetter.isStateful()){
+            if (metadata.getLabels()==null){
+                metadata.setLabels(new HashMap<>());
+            }
+            metadata.getLabels().put(ConfigKey.STATEFUL_LABELS, serviceSetter.getServiceName());
+        }
+        metadata.setName(serviceSetter.getServiceName());
         V1ServicePort servicePort = service.getSpec().getPorts().get(0);
-        servicePort.setPort(serviceSetter.getServicePort());
+        Integer port = serviceSetter.getServicePort();
+        servicePort.setPort(port);
+        servicePort.setTargetPort(new IntOrString(port));
         return service;
     }
 
@@ -160,205 +171,139 @@ public class BuildConfiguration {
     }
 
     public void loadProperties() {
-        String propertySourceFrom = System.getProperty(ConfigKey.PROPERTY_FROM_KEY, PropertySource.PROPERTY.name());
+
+        String propertySourceFrom = System.getProperty(ConfigKey.PROPERTY_FROM_KEY, PropertySource.APOLLO.name());
         log.info("loadProperties from {}", propertySourceFrom);
         PropertySource propertySource = PropertySource.valueOf(propertySourceFrom);
         switch (propertySource) {
             case PROPERTY:
-                loadPropertiesFromProperty();
+                properties = System.getProperties();
+                //加载apollo配置
+                apollo_meta = properties.getProperty(ConfigKey.APOLLO_META_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
+                log.info("apollo_meta {}", apollo_meta);
+                apollo_env = properties.getProperty(ConfigKey.APOLLO_ENV_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
+                log.info("apollo_env {}", apollo_env);
+                apollo_idc = properties.getProperty(ConfigKey.APOLLO_IDC_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
                 break;
             case APOLLO:
-                loadPropertiesFormApollo();
+                MetaServerProvider metaServerProvider = ServiceLoader.load(MetaServerProvider.class).iterator().next();
+                CustomServerProvider serverProvider = CustomServerProvider.getInstance();
+                String envType = serverProvider.getEnvType();
+                if (StringUtils.isEmpty(envType)) {
+                    throw new RuntimeException("loadPropertiesFormApollo fail envType is empty");
+                }
+                //加载apollo配置
+                apollo_meta = metaServerProvider.getMetaServerAddress(Env.fromString(envType));
+                log.info("apollo_meta {}", apollo_meta);
+                apollo_env = envType;
+                log.info("apollo_env {}", apollo_env);
+                apollo_idc = serverProvider.getDataCenter();
+                log.info("apollo_idc {}", apollo_idc);
+                apolloCustomerConfig = ConfigService.getConfig(ConfigKey.CUSTOM_BUILD_NS_VALUE);
+                if (apolloCustomerConfig == null) {
+                    throw new RuntimeException(String.format("loadPropertiesFormApollo fail config null,please check namespace %s ", ConfigKey.CUSTOM_BUILD_NS_VALUE));
+                }
                 break;
             default:
                 log.error("loadProperties propertySourceFrom {} not found", propertySource);
+                break;
         }
-        log.info("BuildConfiguration load success {}", this);
+        loadProperties(propertySource);
     }
 
-    private void loadPropertiesFormApollo() {
-        MetaServerProvider metaServerProvider = ServiceLoader.load(MetaServerProvider.class).iterator().next();
-        CustomServerProvider serverProvider = CustomServerProvider.getInstance();
-        String envType = serverProvider.getEnvType();
-        if (StringUtils.isEmpty(envType)) {
-            throw new RuntimeException("loadPropertiesFormApollo fail envType is empty");
+    public String getProperty(String key, String defaultValue, PropertySource propertySource) {
+        String value = ConfigKey.EMPTY_CONFIG_VALUE;
+        if (propertySource == PropertySource.PROPERTY) {
+            value = properties.getProperty(key, defaultValue);
         }
-        //加载apollo配置
-        apollo_meta = metaServerProvider.getMetaServerAddress(Env.fromString(envType));
-        apollo_env = envType;
-        apollo_idc = serverProvider.getDataCenter();
-        Config buildApolloConfig = ConfigService.getConfig(ConfigKey.CUSTOM_BUILD_NS_VALUE);
-        if (buildApolloConfig == null) {
-            throw new RuntimeException(String.format("loadPropertiesFormApollo fail config null,please check namespace %s ", ConfigKey.CUSTOM_BUILD_NS_VALUE));
+        if (propertySource == PropertySource.APOLLO) {
+            value = apolloCustomerConfig.getProperty(key, defaultValue);
         }
+        log.info("properties {} value {} defaultValue {}", key, value, defaultValue);
+        return value;
+    }
+
+    private void loadProperties(PropertySource propertySource) {
+        log.info("loadProperties from {}", propertySource);
         //调试配置
-        local_debug = Boolean.parseBoolean(buildApolloConfig.getProperty(ConfigKey.LOCAL_DEBUG_KEY, "false"));
-        local_ip = buildApolloConfig.getProperty(ConfigKey.LOCAL_IP_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        k8s_namespace = buildApolloConfig.getProperty(ConfigKey.K8S_NAMESPACE_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
+
+        local_debug = Boolean.parseBoolean(getProperty(ConfigKey.LOCAL_DEBUG_KEY, ConfigKey.BOOLEAN_FALSE, propertySource));
+        local_ip = getProperty(ConfigKey.LOCAL_IP_KEY, ConfigKey.EMPTY_CONFIG_VALUE, propertySource);
+        k8s_namespace = getProperty(ConfigKey.K8S_NAMESPACE_KEY, apollo_idc, propertySource);
         //类扫描配置
-        deploy_scan_class_path = buildApolloConfig.getProperty(ConfigKey.SCAN_CLASS_PATH_KEY, ConfigKey.SCAN_CLASS_PATH_DEFAULT_VALUE);
-        deploy_service_scan_scope = buildApolloConfig.getProperty(ConfigKey.SCAN_SCOPE_KEY, ConfigKey.DEFAULT_SCAN_SCOPE_DEFAULT_VALUE);
+        deploy_scan_class_path = getProperty(ConfigKey.SCAN_CLASS_PATH_KEY, ConfigKey.SCAN_CLASS_PATH_DEFAULT_VALUE, propertySource);
+        deploy_service_scan_scope = getProperty(ConfigKey.SCAN_SCOPE_KEY, ConfigKey.DEFAULT_SCAN_SCOPE_DEFAULT_VALUE, propertySource);
         //apollo配置
-        apollo_addr = buildApolloConfig.getProperty(ConfigKey.APOLLO_ADDR_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        apollo_token = buildApolloConfig.getProperty(ConfigKey.APOLLO_TOKEN_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        apollo_format = buildApolloConfig.getProperty(ConfigKey.APOLLO_PROPERTY_FORMAT_VALUE, ConfigKey.EMPTY_CONFIG_VALUE);
-        deploy_apollo_update_enable = Boolean.parseBoolean(buildApolloConfig.getProperty(ConfigKey.DEPLOY_APOLLO_UPDATE_ENABLE_KEY, "false"));
-        deploy_dns_update_enable = Boolean.parseBoolean(buildApolloConfig.getProperty(ConfigKey.DEPLOY_DNS_UPDATE_ENABLE_KEY, "false"));
-        deploy_apollo_update_strategy = buildApolloConfig.getProperty(ConfigKey.APOLLO_UPDATE_STRATEGY_KEY, ConfigKey.APOLLO_UPDATE_STRATEGY_VALUE_SET_ABSENT);
+        apollo_addr = getProperty(ConfigKey.APOLLO_ADDR_KEY, apollo_meta, propertySource);
+        apollo_token = getProperty(ConfigKey.APOLLO_TOKEN_KEY, ConfigKey.EMPTY_CONFIG_VALUE, propertySource);
+        apollo_editor = getProperty(ConfigKey.APOLLO_EDITOR_KEY, ConfigKey.APOLLO_EDITOR_DEFAULT_VALUE, propertySource);
+        apollo_format = getProperty(ConfigKey.APOLLO_PROPERTY_FORMAT_VALUE, ConfigKey.APOLLO_PROPERTY_FORMAT_VALUE, propertySource);
+        deploy_apollo_update_enable = Boolean.parseBoolean(getProperty(ConfigKey.DEPLOY_APOLLO_UPDATE_ENABLE_KEY, ConfigKey.BOOLEAN_FALSE, propertySource));
+        deploy_apollo_update_strategy = getProperty(ConfigKey.APOLLO_UPDATE_STRATEGY_KEY, ConfigKey.APOLLO_UPDATE_STRATEGY_VALUE_SET_ABSENT, propertySource);
         //k8s模板文件配置
-        deployment_temp_yaml = buildApolloConfig.getProperty(ConfigKey.DEPLOYMENT_TEMP_YAML_KEY, ConfigKey.DEPLOYMENT_TEMP_YAML);
-        deployment_build_temp_yaml = buildApolloConfig.getProperty(ConfigKey.DEPLOYMENT_BUILD_YAML_KEY, ConfigKey.DEPLOYMENT_BUILD_YAML);
-        statefulSet_temp_yaml = buildApolloConfig.getProperty(ConfigKey.STATEFUL_SET_TEMP_YAML_KEY, ConfigKey.STATEFUL_SET_TEMP_YAML);
-        statefulSet_build_temp_yaml = buildApolloConfig.getProperty(ConfigKey.STATEFUL_SET_BUILD_YAML_KEY, ConfigKey.STATEFUL_SET_BUILD_YAML);
-        headless_service_temp_yaml = buildApolloConfig.getProperty(ConfigKey.HEADLESS_SERVICE_TEMP_YAML_KEY, ConfigKey.HEADLESS_SERVICE_TEMP_YAML);
-        cluster_service_temp_yaml = buildApolloConfig.getProperty(ConfigKey.CLUSTER_SERVICE_TEMP_YAML_KEY, ConfigKey.CLUSTER_SERVICE_TEMP_YAML);
-        endpoint_temp_yaml = buildApolloConfig.getProperty(ConfigKey.ENDPOINTS_TEMP_YAML_KEY, ConfigKey.ENDPOINTS_TEMP_YAML);
-        cloud_service_build_temp_yaml = buildApolloConfig.getProperty(ConfigKey.CLOUD_SERVICE_BUILD_YAML_KEY, ConfigKey.CLOUD_SERVICE_BUILD_YAML);
-        local_service_build_temp_yaml = buildApolloConfig.getProperty(ConfigKey.LOCAL_SERVICE_BUILD_YAML_KEY, ConfigKey.LOCAL_SERVICE_BUILD_YAML);
-        cloud_service_file = buildApolloConfig.getProperty(ConfigKey.CLOUD_SERVICE_BUILD_YAML_KEY, ConfigKey.CLOUD_SERVICE_YAML);
-        local_service_file = buildApolloConfig.getProperty(ConfigKey.LOCAL_SERVICE_BUILD_YAML_KEY, ConfigKey.LOCAL_SERVICE_YAML);
+        deployment_temp_yaml = getProperty(ConfigKey.DEPLOYMENT_TEMP_YAML_KEY, ConfigKey.DEPLOYMENT_TEMP_YAML, propertySource);
+        deployment_build_temp_yaml = getProperty(ConfigKey.DEPLOYMENT_BUILD_YAML_KEY, ConfigKey.DEPLOYMENT_BUILD_YAML, propertySource);
+        statefulSet_temp_yaml = getProperty(ConfigKey.STATEFUL_SET_TEMP_YAML_KEY, ConfigKey.STATEFUL_SET_TEMP_YAML, propertySource);
+        statefulSet_build_temp_yaml = getProperty(ConfigKey.STATEFUL_SET_BUILD_YAML_KEY, ConfigKey.STATEFUL_SET_BUILD_YAML, propertySource);
+        headless_service_temp_yaml = getProperty(ConfigKey.HEADLESS_SERVICE_TEMP_YAML_KEY, ConfigKey.HEADLESS_SERVICE_TEMP_YAML, propertySource);
+        cluster_service_temp_yaml = getProperty(ConfigKey.CLUSTER_SERVICE_TEMP_YAML_KEY, ConfigKey.CLUSTER_SERVICE_TEMP_YAML, propertySource);
+        endpoint_temp_yaml = getProperty(ConfigKey.ENDPOINTS_TEMP_YAML_KEY, ConfigKey.ENDPOINTS_TEMP_YAML, propertySource);
+        cloud_service_build_temp_yaml = getProperty(ConfigKey.CLOUD_SERVICE_BUILD_YAML_KEY, ConfigKey.CLOUD_SERVICE_BUILD_YAML, propertySource);
+        local_service_build_temp_yaml = getProperty(ConfigKey.LOCAL_SERVICE_BUILD_YAML_KEY, ConfigKey.LOCAL_SERVICE_BUILD_YAML, propertySource);
+        cloud_service_file = getProperty(ConfigKey.CLOUD_SERVICE_BUILD_YAML_KEY, ConfigKey.CLOUD_SERVICE_YAML, propertySource);
+        local_service_file = getProperty(ConfigKey.LOCAL_SERVICE_BUILD_YAML_KEY, ConfigKey.LOCAL_SERVICE_YAML, propertySource);
         //加载k8s相关配置
-        String k8s_cert_config_file_name = buildApolloConfig.getProperty(ConfigKey.K8S_CERT_CONFIG_FILE_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
+        String k8s_cert_config_file_name = getProperty(ConfigKey.K8S_CERT_CONFIG_FILE_KEY, ConfigKey.EMPTY_CONFIG_VALUE, propertySource);
         if (ConfigKey.EMPTY_CONFIG_VALUE.equals(k8s_cert_config_file_name)) {
-            String cert_config_str = buildApolloConfig.getProperty(ConfigKey.K8S_CERT_CONFIG_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-            if (ConfigKey.EMPTY_CONFIG_VALUE.equals(cert_config_str)) {
-                log.error("k8s_cert_config is null");
-                throw new RuntimeException(String.format("loadPropertiesFormApollo fail k8s_cert_config is empty,please check param %s ",
-                        ConfigKey.K8S_CERT_CONFIG_KEY));
-            } else {
-                k8s_cert_config = cert_config_str;
-            }
+            k8s_cert_config = getProperty(ConfigKey.K8S_CERT_CONFIG_KEY, ConfigKey.EMPTY_CONFIG_VALUE, propertySource);
         } else {
             try {
                 k8s_cert_config = FileExtendUtils.readCharacterFileToUtf8Str(k8s_cert_config_file_name, false);
             } catch (Exception e) {
-                log.error("k8s_cert_config load error", e);
-                throw new RuntimeException(String.format("loadPropertiesFormApollo fail %s can't access,please check file !",
-                        k8s_cert_config_file_name));
+                log.warn("k8s_cert_config load error {}", k8s_cert_config_file_name, e);
+                k8s_cert_config = ConfigKey.EMPTY_CONFIG_VALUE;
             }
         }
-        String k8s_file_name = buildApolloConfig.getProperty(ConfigKey.K8S_FILE_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
+        String k8s_file_name = getProperty(ConfigKey.K8S_CONFIG_FILE_KEY, ConfigKey.K8S_CONFIG_FILE_DEFAULT_VALUE, propertySource);
         if (ConfigKey.EMPTY_CONFIG_VALUE.equals(k8s_file_name)) {
             log.warn("k8s_file_name is null");
         } else {
-            k8s_file = new File(k8s_file_name);
+            String pathName = homoMojo.getProject().getBasedir().toString() + File.separator + k8s_file_name;
+            k8s_file = new File(pathName);
         }
 
         //加载镜像仓库配置
-        docker_repo_username = buildApolloConfig.getProperty(ConfigKey.DOCKER_REPO_USERNAME_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        docker_repo_password = buildApolloConfig.getProperty(ConfigKey.DOCKER_REPO_PASSWORD_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        docker_repo_pull_addr = buildApolloConfig.getProperty(ConfigKey.DOCKER_REPO_ADDR_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        docker_repo_pull_dir = buildApolloConfig.getProperty(ConfigKey.DOCKER_REPO_DIR_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        docker_repo_push_addr = buildApolloConfig.getProperty(ConfigKey.DOCKER_DEPLOY_ADDR_KEY, docker_repo_pull_addr);
-        docker_repo_push_dir = buildApolloConfig.getProperty(ConfigKey.DOCKER_DEPLOY_DIR_KEY, docker_repo_pull_dir);
-        docker_repo_imageSuffix = buildApolloConfig.getProperty(ConfigKey.DOCKER_BUILD_SUFFIX_KEY, "");
-        docker_force_push = Boolean.parseBoolean(buildApolloConfig.getProperty(ConfigKey.DOCKER_PUSH_KEY, "false"));
-        //容器启动参数
-        container_java_base_options = buildApolloConfig.getProperty(ConfigKey.CONTAINER_PARAM_JAVA_OPTIONS_KEY, ConfigKey.CONTAINER_PARAM_JAVA_OPTIONS_DEFAULT_VALUE);
-        container_request_cpu = buildApolloConfig.getProperty(ConfigKey.CONTAINER_PARAM_REQUEST_CPU_KEY, ConfigKey.CONTAINER_PARAM_REQUEST_CPU_DEFAULT_VALUE);
-        container_request_memory = buildApolloConfig.getProperty(ConfigKey.CONTAINER_PARAM_REQUEST_MEMORY_KEY, ConfigKey.CONTAINER_PARAM_REQUEST_MEMORY_DEFAULT_VALUE);
-        container_limit_cpu = buildApolloConfig.getProperty(ConfigKey.CONTAINER_PARAM_LIMIT_CPU_KEY, ConfigKey.CONTAINER_PARAM_LIMIT_CPU_DEFAULT_VALUE);
-        container_limit_memory = buildApolloConfig.getProperty(ConfigKey.CONTAINER_PARAM_LIMIT_MEMORY_KEY, ConfigKey.CONTAINER_PARAM_LIMIT_MEMORY_DEFAULT_VALUE);
+        docker_repo_pull_addr = getProperty(ConfigKey.DOCKER_REPO_ADDR_KEY, ConfigKey.EMPTY_CONFIG_VALUE, propertySource);
+        docker_repo_pull_dir = getProperty(ConfigKey.DOCKER_REPO_DIR_KEY, ConfigKey.EMPTY_CONFIG_VALUE, propertySource);
+        docker_repo_push_addr = getProperty(ConfigKey.DOCKER_DEPLOY_ADDR_KEY, docker_repo_pull_addr, propertySource);
+        docker_repo_push_dir = getProperty(ConfigKey.DOCKER_DEPLOY_DIR_KEY, docker_repo_pull_dir, propertySource);
+        docker_repo_username = getProperty(ConfigKey.DOCKER_REPO_USERNAME_KEY, ConfigKey.EMPTY_CONFIG_VALUE, propertySource);
+        docker_repo_password = getProperty(ConfigKey.DOCKER_REPO_PASSWORD_KEY, ConfigKey.EMPTY_CONFIG_VALUE, propertySource);
+        docker_repo_imageSuffix = getProperty(ConfigKey.DOCKER_BUILD_SUFFIX_KEY, "", propertySource);
+        docker_force_push = Boolean.parseBoolean(getProperty(ConfigKey.DOCKER_PUSH_KEY, ConfigKey.BOOLEAN_FALSE, propertySource));
+        docker_file_path = getProperty(ConfigKey.DEPLOY_DOCKER_FILE_KEY, ConfigKey.DOCKER_TARGET_FILE_PATH, propertySource);
+        //容器启动参数  TODO 待优化，需要模块间各自独立
+        container_java_base_options = getProperty(ConfigKey.CONTAINER_PARAM_JAVA_OPTIONS_KEY, ConfigKey.CONTAINER_PARAM_JAVA_OPTIONS_DEFAULT_VALUE, propertySource);
+        container_request_cpu = getProperty(ConfigKey.CONTAINER_PARAM_REQUEST_CPU_KEY, ConfigKey.CONTAINER_PARAM_REQUEST_CPU_DEFAULT_VALUE, propertySource);
+        container_request_memory = getProperty(ConfigKey.CONTAINER_PARAM_REQUEST_MEMORY_KEY, ConfigKey.CONTAINER_PARAM_REQUEST_MEMORY_DEFAULT_VALUE, propertySource);
+        container_limit_cpu = getProperty(ConfigKey.CONTAINER_PARAM_LIMIT_CPU_KEY, ConfigKey.CONTAINER_PARAM_LIMIT_CPU_DEFAULT_VALUE, propertySource);
+        container_limit_memory = getProperty(ConfigKey.CONTAINER_PARAM_LIMIT_MEMORY_KEY, ConfigKey.CONTAINER_PARAM_LIMIT_MEMORY_DEFAULT_VALUE, propertySource);
         //skywalking
-        sw_agent_enable = Boolean.parseBoolean(buildApolloConfig.getProperty(ConfigKey.SW_TRACING_ENABLE_KEY, "false"));
-        sw_backend_service = buildApolloConfig.getProperty(ConfigKey.SW_ENV_BACKEND_SERVICE_KEY, ConfigKey.SW_ENV_BACKEND_NAME_VALUE);
+        sw_agent_enable = Boolean.parseBoolean(getProperty(ConfigKey.SW_TRACING_ENABLE_KEY, ConfigKey.BOOLEAN_FALSE, propertySource));
+        sw_backend_service = getProperty(ConfigKey.SW_ENV_BACKEND_SERVICE_KEY, ConfigKey.SW_ENV_BACKEND_NAME_VALUE, propertySource);
         //文件系统
-        volume_filesystem_enable = Boolean.parseBoolean(buildApolloConfig.getProperty(ConfigKey.K8S_FILESYSTEM_VOLUME_ENABLE_KEY, "false"));
-        volume_filesystem_name = buildApolloConfig.getProperty(ConfigKey.K8S_FILESYSTEM_VOLUME_NAME_KEY, ConfigKey.K8S_FILESYSTEM_VOLUME_NAME_DEFAULT_VALUE);
+        deploy_dns_update_enable = Boolean.parseBoolean(getProperty(ConfigKey.DEPLOY_DNS_UPDATE_ENABLE_KEY, ConfigKey.BOOLEAN_FALSE, propertySource));
+        volume_filesystem_enable = Boolean.parseBoolean(getProperty(ConfigKey.K8S_FILESYSTEM_VOLUME_ENABLE_KEY, ConfigKey.BOOLEAN_FALSE, propertySource));
+        volume_filesystem_name = getProperty(ConfigKey.K8S_FILESYSTEM_VOLUME_NAME_KEY, ConfigKey.K8S_FILESYSTEM_VOLUME_NAME_DEFAULT_VALUE, propertySource);
         //健康检查
-        readiness_probe_enable = Boolean.parseBoolean(buildApolloConfig.getProperty(ConfigKey.READINESS_PROBE_CHECK_ENABLE_KEY, "false"));
-        readiness_probe_type = buildApolloConfig.getProperty(ConfigKey.READINESS_PROBE_TYPE_KEY, ConfigKey.READINESS_PROBE_TYPE_CMD);
-        readiness_probe_cmd = buildApolloConfig.getProperty(ConfigKey.READINESS_PROBE_CMD_KEY, ConfigKey.READINESS_PROBE_CMD_DEFAULT_VALUE);
-        readiness_probe_tcp_port = buildApolloConfig.getProperty(ConfigKey.READINESS_PROBE_TYPE_TCP_PORT_KEY, ConfigKey.READINESS_PROBE_TYPE_TCP_PORT_DEFAULT_VALUE);
-        readiness_probe_http_path = buildApolloConfig.getProperty(ConfigKey.READINESS_PROBE_TYPE_HTTP_PATH_KEY, ConfigKey.READINESS_PROBE_TYPE_HTTP_PATH_DEFAULT_VALUE);
-        readiness_probe_http_port = Integer.parseInt(buildApolloConfig.getProperty(ConfigKey.READINESS_PROBE_TYPE_HTTP_PORT_KEY, ConfigKey.READINESS_PROBE_TYPE_HTTP_PORT_DEFAULT_VALUE));
+        readiness_probe_enable = Boolean.parseBoolean(getProperty(ConfigKey.READINESS_PROBE_CHECK_ENABLE_KEY, ConfigKey.BOOLEAN_FALSE, propertySource));
+        readiness_probe_type = getProperty(ConfigKey.READINESS_PROBE_TYPE_KEY, ConfigKey.READINESS_PROBE_TYPE_CMD, propertySource);
+        readiness_probe_cmd = getProperty(ConfigKey.READINESS_PROBE_CMD_KEY, ConfigKey.READINESS_PROBE_CMD_DEFAULT_VALUE, propertySource);
+        readiness_probe_tcp_port = getProperty(ConfigKey.READINESS_PROBE_TYPE_TCP_PORT_KEY, ConfigKey.READINESS_PROBE_TYPE_TCP_PORT_DEFAULT_VALUE, propertySource);
+        readiness_probe_http_path = getProperty(ConfigKey.READINESS_PROBE_TYPE_HTTP_PATH_KEY, ConfigKey.READINESS_PROBE_TYPE_HTTP_PATH_DEFAULT_VALUE, propertySource);
+        readiness_probe_http_port = Integer.parseInt(getProperty(ConfigKey.READINESS_PROBE_TYPE_HTTP_PORT_KEY, ConfigKey.READINESS_PROBE_TYPE_HTTP_PORT_DEFAULT_VALUE, propertySource));
         //pod数量
-        spec_pod_num = Integer.parseInt(buildApolloConfig.getProperty(ConfigKey.SPEC_POD_NUM, "1"));
-    }
-
-    private void loadPropertiesFromProperty() {
-        Properties properties = System.getProperties();
-        deploy_scan_class_path = properties.getProperty(ConfigKey.SCAN_CLASS_PATH_KEY, ConfigKey.SCAN_CLASS_PATH_DEFAULT_VALUE);
-        deploy_service_scan_scope = properties.getProperty(ConfigKey.SCAN_SCOPE_KEY, ConfigKey.DEFAULT_SCAN_SCOPE_DEFAULT_VALUE);
-        deploy_filesystem_pvc_enable = Boolean.parseBoolean(properties.getProperty(ConfigKey.DEPLOY_FILESYSTEM_PVC_ENABLE_KEY, "false"));
-        deploy_dns_update_enable = Boolean.parseBoolean(properties.getProperty(ConfigKey.DEPLOY_DNS_UPDATE_ENABLE_KEY, "false"));
-        deploy_apollo_update_enable = Boolean.parseBoolean(properties.getProperty(ConfigKey.DEPLOY_APOLLO_UPDATE_ENABLE_KEY, "false"));
-        //加载k8s相关配置
-        String k8s_cert_config_file_name = properties.getProperty(ConfigKey.K8S_CERT_CONFIG_FILE_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        if (ConfigKey.EMPTY_CONFIG_VALUE.equals(k8s_cert_config_file_name)) {
-            log.warn("loadPropertiesFromProperty property {} not found", ConfigKey.K8S_CERT_CONFIG_FILE_KEY);
-            String cert_config_str = properties.getProperty(ConfigKey.K8S_CERT_CONFIG_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-            if (ConfigKey.EMPTY_CONFIG_VALUE.equals(cert_config_str)) {
-                log.warn("loadPropertiesFromProperty property {} not found", ConfigKey.K8S_CERT_CONFIG_KEY);
-//                throw new RuntimeException(String.format("loadPropertiesFromProperty fail k8s_cert_config is empty,please check param %s ",
-//                        ConfigKey.K8S_CERT_CONFIG));
-            } else {
-                k8s_cert_config = cert_config_str;
-            }
-        } else {
-            try {
-                k8s_cert_config = FileExtendUtils.readCharacterFileToUtf8Str(k8s_cert_config_file_name, false);
-            } catch (Exception e) {
-                log.error("k8s_cert_config load error", e);
-                throw new RuntimeException(String.format("loadPropertiesFromProperty fail %s can't access,please check file !",
-                        k8s_cert_config_file_name));
-            }
-        }
-
-        String k8s_file_name = properties.getProperty(ConfigKey.K8S_FILE_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        if (ConfigKey.EMPTY_CONFIG_VALUE.equals(k8s_file_name)) {
-            log.warn("loadPropertiesFromProperty property {} not found", ConfigKey.K8S_FILE_KEY);
-        } else {
-            k8s_file = new File(k8s_file_name);
-//            k8sConfig = gson.fromJson(new FileReader(getK8s_file()), K8sConfig.class);
-        }
-        //调试配置
-        local_debug = Boolean.parseBoolean(properties.getProperty(ConfigKey.LOCAL_DEBUG_KEY, "false"));
-        local_ip = properties.getProperty(ConfigKey.LOCAL_IP_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        k8s_namespace = properties.getProperty(ConfigKey.K8S_NAMESPACE_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        //加载apollo配置
-        apollo_meta = properties.getProperty(ConfigKey.APOLLO_META_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        apollo_env = properties.getProperty(ConfigKey.APOLLO_ENV_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        apollo_idc = properties.getProperty(ConfigKey.APOLLO_IDC_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        apollo_addr = properties.getProperty(ConfigKey.APOLLO_ADDR_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        apollo_token = properties.getProperty(ConfigKey.APOLLO_TOKEN_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        apollo_format = properties.getProperty(ConfigKey.APOLLO_PROPERTY_FORMAT_VALUE, ConfigKey.EMPTY_CONFIG_VALUE);
-        deploy_apollo_update_strategy = properties.getProperty(ConfigKey.APOLLO_UPDATE_STRATEGY_KEY, ConfigKey.APOLLO_UPDATE_STRATEGY_VALUE_SET_ABSENT);
-        //k8s模板文件配置
-        deployment_temp_yaml = properties.getProperty(ConfigKey.DEPLOYMENT_TEMP_YAML_KEY, ConfigKey.DEPLOYMENT_TEMP_YAML);
-        deployment_build_temp_yaml = properties.getProperty(ConfigKey.DEPLOYMENT_BUILD_YAML_KEY, ConfigKey.DEPLOYMENT_BUILD_YAML);
-        statefulSet_temp_yaml = properties.getProperty(ConfigKey.STATEFUL_SET_TEMP_YAML_KEY, ConfigKey.STATEFUL_SET_TEMP_YAML);
-        statefulSet_build_temp_yaml = properties.getProperty(ConfigKey.STATEFUL_SET_BUILD_YAML_KEY, ConfigKey.STATEFUL_SET_BUILD_YAML);
-        headless_service_temp_yaml = properties.getProperty(ConfigKey.HEADLESS_SERVICE_TEMP_YAML_KEY, ConfigKey.HEADLESS_SERVICE_TEMP_YAML);
-        cluster_service_temp_yaml = properties.getProperty(ConfigKey.CLUSTER_SERVICE_TEMP_YAML_KEY, ConfigKey.CLUSTER_SERVICE_TEMP_YAML);
-        endpoint_temp_yaml = properties.getProperty(ConfigKey.ENDPOINTS_TEMP_YAML_KEY, ConfigKey.ENDPOINTS_TEMP_YAML);
-        cloud_service_build_temp_yaml = properties.getProperty(ConfigKey.CLOUD_SERVICE_BUILD_YAML_KEY, ConfigKey.CLOUD_SERVICE_BUILD_YAML);
-        local_service_build_temp_yaml = properties.getProperty(ConfigKey.LOCAL_SERVICE_BUILD_YAML_KEY, ConfigKey.LOCAL_SERVICE_BUILD_YAML);
-        //加载镜像仓库配置
-        docker_repo_username = properties.getProperty(ConfigKey.DOCKER_REPO_USERNAME_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        docker_repo_password = properties.getProperty(ConfigKey.DOCKER_REPO_PASSWORD_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        docker_repo_pull_addr = properties.getProperty(ConfigKey.DOCKER_REPO_ADDR_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        docker_repo_pull_dir = properties.getProperty(ConfigKey.DOCKER_REPO_ADDR_KEY, ConfigKey.EMPTY_CONFIG_VALUE);
-        docker_repo_push_addr = properties.getProperty(ConfigKey.DOCKER_DEPLOY_ADDR_KEY, docker_repo_pull_addr);
-        docker_repo_push_dir = properties.getProperty(ConfigKey.DOCKER_DEPLOY_DIR_KEY, docker_repo_pull_dir);
-        docker_repo_imageSuffix = properties.getProperty(ConfigKey.DOCKER_BUILD_SUFFIX_KEY, "");
-        docker_force_push = Boolean.parseBoolean(properties.getProperty(ConfigKey.DOCKER_PUSH_KEY, "false"));
-
-        //加载skywalking配置
-        sw_agent_enable = Boolean.parseBoolean(properties.getProperty(ConfigKey.SW_TRACING_ENABLE_KEY, "false"));
-        sw_backend_service = properties.getProperty(ConfigKey.SW_ENV_BACKEND_SERVICE_KEY, ConfigKey.SW_ENV_BACKEND_NAME_VALUE);
-
-        //挂载文件系统
-        volume_filesystem_enable = Boolean.parseBoolean(properties.getProperty(ConfigKey.K8S_FILESYSTEM_VOLUME_ENABLE_KEY, "false"));
-        volume_filesystem_name = properties.getProperty(ConfigKey.K8S_FILESYSTEM_VOLUME_NAME_KEY, ConfigKey.K8S_FILESYSTEM_VOLUME_NAME_DEFAULT_VALUE);
-
-        //健康检查
-        readiness_probe_enable = Boolean.parseBoolean(properties.getProperty(ConfigKey.READINESS_PROBE_CHECK_ENABLE_KEY, "false"));
-        readiness_probe_type = properties.getProperty(ConfigKey.READINESS_PROBE_TYPE_KEY, ConfigKey.READINESS_PROBE_TYPE_CMD);
-        readiness_probe_cmd = properties.getProperty(ConfigKey.READINESS_PROBE_CMD_KEY, ConfigKey.READINESS_PROBE_CMD_DEFAULT_VALUE);
-        readiness_probe_tcp_port = properties.getProperty(ConfigKey.READINESS_PROBE_TYPE_TCP_PORT_KEY, ConfigKey.READINESS_PROBE_TYPE_TCP_PORT_DEFAULT_VALUE);
-        readiness_probe_http_path = properties.getProperty(ConfigKey.READINESS_PROBE_TYPE_HTTP_PATH_KEY, ConfigKey.READINESS_PROBE_TYPE_HTTP_PATH_DEFAULT_VALUE);
-        readiness_probe_http_port = Integer.parseInt(properties.getProperty(ConfigKey.READINESS_PROBE_TYPE_HTTP_PORT_KEY, ConfigKey.READINESS_PROBE_TYPE_HTTP_PORT_DEFAULT_VALUE));
+        spec_pod_num = Integer.parseInt(getProperty(ConfigKey.SPEC_POD_NUM, ConfigKey.DEFAULT_POD_NUM, propertySource));
     }
 
     public void appendDeployTemplateInfo(V1PodTemplateSpec template) {
@@ -373,7 +318,16 @@ public class BuildConfiguration {
         setSkyWalking(template);
         setFileSystemVolume(template);
         setReadinessProbe(container);
+    }
 
+    public String getK8sConfig() throws IOException {
+        String kubeConfigStr = null;
+        if (!ConfigKey.EMPTY_CONFIG_VALUE.equals(k8s_cert_config)) {
+            kubeConfigStr = k8s_cert_config;
+        } else if (k8s_file != null && k8s_file.exists()) {
+            kubeConfigStr = FileExtendUtils.readCharacterFileToUtf8Str(k8s_file);
+        }
+        return kubeConfigStr;
     }
 
     private void setReadinessProbe(V1Container container) {
@@ -559,6 +513,10 @@ public class BuildConfiguration {
         limits.put("memory", new Quantity(container_limit_memory));
     }
 
+    public String getPvcFileName() {
+        return FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), ConfigKey.PVC_YAML);
+    }
+
     public String getStatefulSetFileName() {
         return FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), ConfigKey.DEPLOY_STATEFUL_FILE);
     }
@@ -582,7 +540,6 @@ public class BuildConfiguration {
     public String getCloudServiceFile() {
         return FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), cloud_service_file);
     }
-
 
     public enum PropertySource {
         PROPERTY,
@@ -621,6 +578,10 @@ public class BuildConfiguration {
     public String getDeploymentBuildYaml() {
         return FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), deployment_build_temp_yaml);
     }
+    public String getDevopsRootDir() {
+        return FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), "devops");
+    }
+
 
     public String getStatefulSetBuildYaml() {
         return FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), statefulSet_build_temp_yaml);
@@ -646,15 +607,15 @@ public class BuildConfiguration {
     }
 
     public String getImageNameWithRepo() {
-        return getDocker_repo_push_addr() + getDocker_repo_push_dir() + homoMojo.getProjectName();
+        return getDocker_repo_push_addr() + "/" + getDocker_repo_push_dir()+ "/" + homoMojo.getProjectName();
     }
 
     public String getImageTag() {
         return homoMojo.getProject().getVersion() + getDocker_repo_imageSuffix();
     }
 
-    public String getDockerFile() {
-        String dockerFilePath = FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), ConfigKey.DOCKER_TARGET_FILE);
+    public String getTargetDockerFilePath() {
+        String dockerFilePath = FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), ConfigKey.DOCKER_TARGET_FILE_PATH);
         return dockerFilePath;
     }
 
@@ -751,7 +712,6 @@ public class BuildConfiguration {
         }
         for (HomoServiceSetter serviceSetter : HomoServiceSetterFactory.setterMap.values()) {
             V1ContainerPort containerPort = new V1ContainerPort();
-            containerPort.setName(serviceSetter.getServiceName());
             containerPort.setContainerPort(serviceSetter.getServicePort());
             ports.add(containerPort);
         }
