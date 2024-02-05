@@ -156,6 +156,5 @@ public interface ConfigKey {
     String ENDPOINTS_TEMP_YAML_KEY = "endpoints.temp.yaml";
     String CLOUD_SERVICE_BUILD_YAML_KEY = "cloudService.build.yaml";
     String LOCAL_SERVICE_BUILD_YAML_KEY = "localService.build.yaml";
-
-
+    String APPLICATION_PROPERTIES_FILE_NAME = "application.properties";
 }

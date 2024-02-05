@@ -50,7 +50,7 @@ public class HomoServiceSetterFactory {
     }
 
     public static boolean isStatefulService() {
-        return mainServiceSetter.getServiceExport().isStateful();
+        return mainServiceSetter != null && mainServiceSetter.getServiceExport().isStateful();
     }
 
     public static void loadServices() throws IOException, DependencyResolutionRequiredException, ClassNotFoundException {

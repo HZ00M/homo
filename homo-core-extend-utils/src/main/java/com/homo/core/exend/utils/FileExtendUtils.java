@@ -248,6 +248,26 @@ public class FileExtendUtils {
         }
     }
 
+    public Properties readPropertiesFile(String filePath) {
+        Properties properties = new Properties();
+        try (FileInputStream fis = new FileInputStream(filePath)) {
+            properties.load(fis);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties;
+    }
+
+    public Properties readResourcePropertiesFile(String filePath) {
+        Properties properties = new Properties();
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath)) {
+            properties.load(is);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties;
+    }
+
 
     public static List<KubernetesType> readFileToK8sObjs(String buildServiceFilePath, boolean isResource) throws IOException {
         String content = readCharacterFileToUtf8Str(buildServiceFilePath, isResource);

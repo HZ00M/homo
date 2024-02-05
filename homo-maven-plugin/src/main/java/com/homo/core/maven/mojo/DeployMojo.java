@@ -20,6 +20,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -59,15 +60,15 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
             //部署应用
             deployApplication();
             //服务发现
-            updateDiscover();
+            updateService();
 
-        }catch (DockerException dockerException) {
-            log.error("homoDeploy error StackTrace {} ", dockerException.getStackTrace(),dockerException);
+        } catch (DockerException dockerException) {
+            log.error("homoDeploy error StackTrace {} ", dockerException.getStackTrace(), dockerException);
             throw new MojoFailureException("dockerException error", dockerException);
-        }catch (ApiException apiException){
-            log.error("homoDeploy error StackTrace {} ", apiException.getResponseBody(),apiException);
+        } catch (ApiException apiException) {
+            log.error("homoDeploy error StackTrace {} ", apiException.getResponseBody(), apiException);
             throw new MojoFailureException("apiException error", apiException);
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("homoDeploy error", e);
             throw new MojoFailureException("Exception error", e);
         }
@@ -90,7 +91,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         return FileExtendUtils.readYamlToObj(buildConfiguration.getStatefulSetFileName(), V1StatefulSet.class, false).getMetadata().getName();
     }
 
-    private void updateDiscover() throws ApiException, IOException {
+    private void updateService() throws ApiException, IOException {
         String serviceDeployFile;
         if (buildConfiguration.local_debug) {
             serviceDeployFile = buildConfiguration.getLocalServiceFile();
@@ -98,26 +99,31 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
             serviceDeployFile = buildConfiguration.getCloudServiceFile();
         }
         if (isStatefulService() && buildConfiguration.local_debug) {
-            log.info("updateDiscover isStatefulService {} local_debug {} skip update serviceDeployFile", isStatefulService, buildConfiguration.local_debug);
+            log.info("updateService isStatefulService {} local_debug {} skip update serviceDeployFile", isStatefulService, buildConfiguration.local_debug);
             //有状态服务在本地调试下需要关闭远端服务才能生效...
             k8sExtendClient.findAndDeleteStatefulSet(buildConfiguration.getK8s_namespace(), getStatefulName());
         } else {
             List<KubernetesType> kubeObjs = new ArrayList<>();
             try {
                 kubeObjs = FileExtendUtils.readFileToK8sObjs(serviceDeployFile, false);
+            } catch (FileNotFoundException e) {
+                log.warn("updateService serviceDeployFile serviceDeployFile {} not found ,skip updateService", serviceDeployFile, e);
             } catch (IOException e) {
-                log.warn("discoveryService serviceDeployFile serviceDeployFile {} fail", serviceDeployFile, e);
+                log.warn("updateService serviceDeployFile serviceDeployFile {} fail", serviceDeployFile, e);
             }
             for (KubernetesType kubeObj : kubeObjs) {
                 if (kubeObj instanceof V1Service) {
                     V1Service service = (V1Service) kubeObj;
-                    k8sExtendClient.updateService(buildConfiguration.getK8s_namespace(), service, false);
+                    k8sExtendClient.updateService(buildConfiguration.getK8s_namespace(), service, true);
+                    log.info("updateService updateService {}", service.getMetadata().getName());
                 }
                 if (kubeObj instanceof V1Endpoints) {
                     V1Endpoints endpoints = (V1Endpoints) kubeObj;
                     k8sExtendClient.updateEndpoints(buildConfiguration.getK8s_namespace(), endpoints);
+                    log.info("updateService updateEndpoints {}", endpoints.getSubsets().get(0).getAddresses().get(0).getIp());
                 }
             }
+
         }
 
     }
@@ -179,7 +185,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
                     }
                 }
             } else {
-                V1Deployment v1Deployment = FileExtendUtils.readYamlToObj(buildConfiguration.getStatefulSetFileName(), V1Deployment.class, false);
+                V1Deployment v1Deployment = FileExtendUtils.readYamlToObj(buildConfiguration.getDeploymentFileName(), V1Deployment.class, false);
                 String deploymentName = v1Deployment.getMetadata().getName();
                 String fileSelector = String.format("metadata.name=%s", deploymentName);
                 V1DeploymentList deploymentList = k8sExtendClient.appsV1Api.listNamespacedDeployment(namespace, null, false,
@@ -259,7 +265,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         log.info("buildImage buildImageCmd success imageId {}", imageId);
         String imageNameWithRepo = buildConfiguration.getImageNameWithRepo();
         String imageTag = buildConfiguration.getImageTag();
-        dockerExtendClient.dockerClient.tagImageCmd(imageId,imageNameWithRepo,imageTag);
+        dockerExtendClient.dockerClient.tagImageCmd(imageId, imageNameWithRepo, imageTag);
         dockerExtendClient.dockerClient.pushImageCmd(imageNameWithRepo)
                 .withTag(imageTag)
                 .start().awaitCompletion();
@@ -364,7 +370,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         StringBuilder configDataBuilder = new StringBuilder()
                 .append("apollo.meta=").append(buildConfiguration.apollo_addr).append("\n")
                 .append("env=").append(buildConfiguration.apollo_env).append("\n")
-                .append("dic=").append(buildConfiguration.apollo_idc).append("\n");
+                .append("idc=").append(buildConfiguration.apollo_idc).append("\n");
         data.put("server.properties", configDataBuilder.toString());
         V1ObjectMeta meta = new V1ObjectMeta();
         meta.setName("apollo-config");

@@ -35,6 +35,8 @@ public class K8sExtendClient {
             meta.setName(namespace);
             v1Namespace.setMetadata(meta);
             coreV1Api.createNamespace(v1Namespace,null,null,null);
+        }else {
+            log.info("createNamespaceIfAbsent namespace {} is exist,skip it",namespace);
         }
     }
 
@@ -60,9 +62,8 @@ public class K8sExtendClient {
         }else {
 
             if(delIfExist){
-                log.info("updateService namespace {} service {} is exist,delete it", namespace, serviceName);
+                log.info("updateService namespace {} service {} is exist,delete and create new", namespace, serviceName);
                 coreV1Api.deleteNamespacedService(serviceName, namespace, null, null, 1, null, null, null);
-                log.info("updateService namespace {} service {} is exist,create it", namespace, serviceName);
                 coreV1Api.createNamespacedService(namespace, service, null, null, null);
             }else {
                 log.info("updateService namespace {} service {} is exist,skip it", namespace, serviceName);
@@ -81,10 +82,10 @@ public class K8sExtendClient {
         try {
             V1EndpointsList v1EndpointsList = coreV1Api.listNamespacedEndpoints(namespace, null, false, null, filterSelector, null, 1, null, null, false);
             if (v1EndpointsList == null || v1EndpointsList.getItems().size() == 0) {
-                log.info("updateEndpoints namespace {} endpoints {} is absent,create it", namespace, endpoints);
+                log.info("updateEndpoints namespace {} endpoints {} is absent,create it", namespace, endpoints.getSubsets().get(0).getAddresses().get(0).getIp());
                 coreV1Api.createNamespacedEndpoints(namespace, endpoints, null, null, null);
             }else {
-                log.info("updateEndpoints namespace {} endpoints {} is exist,update it", namespace, endpoints);
+                log.info("updateEndpoints namespace {} endpoints {} is exist,update it", namespace, endpoints.getSubsets().get(0).getAddresses().get(0).getIp());
                 coreV1Api.replaceNamespacedEndpoints(endpointName, namespace, endpoints, null, null, null);
             }
         } catch (ApiException e) {
