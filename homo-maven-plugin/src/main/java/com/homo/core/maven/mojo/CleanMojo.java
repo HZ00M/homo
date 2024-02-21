@@ -25,18 +25,20 @@ public class CleanMojo extends AbsHomoMojo<CleanMojo> {
             initConfig();
             List<String> deleteFileList = new ArrayList<>();
             //build文件
-//            deleteFileList.add(buildConfiguration.getDeploymentBuildYaml());
-//            deleteFileList.add(buildConfiguration.getStatefulSetBuildYaml());
-//            deleteFileList.add(buildConfiguration.getLocalServiceBuildFile());
-//            deleteFileList.add(buildConfiguration.getCloudServiceBuildFile());
+            deleteFileList.add(buildConfiguration.getDeploymentBuildYaml());
+            deleteFileList.add(buildConfiguration.getStatefulSetBuildYaml());
+            deleteFileList.add(buildConfiguration.getLocalServiceBuildFile());
+            deleteFileList.add(buildConfiguration.getLocalServiceFile());
+            deleteFileList.add(buildConfiguration.getCloudServiceBuildFile());
+            deleteFileList.add(buildConfiguration.getCloudServiceFile());
             //image文件
             deleteFileList.add(buildConfiguration.getTargetDockerFilePath());
             //deploy文件
-//            deleteFileList.add(buildConfiguration.getDeploymentFileName());
-//            deleteFileList.add(buildConfiguration.getStatefulSetFileName());
+            deleteFileList.add(buildConfiguration.getDeploymentFileName());
+            deleteFileList.add(buildConfiguration.getStatefulSetFileName());
             FileExtendUtils.deleteFiles(deleteFileList.toArray(new String[0]));
             log.info("homoClean clean finish deleteFileList {}", deleteFileList);
-            deleteDirectory(new File(buildConfiguration.getDevopsRootDir()));
+//            deleteDirectory(new File(buildConfiguration.getDevopsRootDir()));
         } catch (Exception e) {
             log.error("homoClean clean error", e);
         }

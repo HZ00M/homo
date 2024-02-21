@@ -48,7 +48,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>1.0.0.4</revision>
+        <revision>1.0.0.6-SNAPSHOT</revision>
         <spring.boot.version>2.3.12.RELEASE</spring.boot.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -938,4 +938,14 @@
             </plugins>
         </pluginManagement>
     </build>
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <url>http://10.100.2.94:8081/repository/java/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://10.100.2.94:8081/repository/java-snapshot/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

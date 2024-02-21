@@ -57,6 +57,8 @@ public interface ConfigKey {
     String APOLLO_PROPERTY_FORMAT_VALUE = "properties";
     String DEPLOY_APOLLO_UPDATE_ENABLE_KEY = "apollo.update.enable";
     String APOLLO_UPDATE_STRATEGY_KEY = "apollo.update.strategy";
+    String APOLLO_UPDATE_PATH = "apollo.update.path";
+    String APOLLO_UPDATE_PATH_DEFAULT_VALUE = "devops/apollo";
     String APOLLO_UPDATE_STRATEGY_VALUE_SET_ABSENT = "SET_ABSENT";
     String APOLLO_UPDATE_STRATEGY_VALUE_SET = "SET";
     /**

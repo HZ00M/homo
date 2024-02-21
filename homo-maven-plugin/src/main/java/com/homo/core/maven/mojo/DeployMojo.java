@@ -41,7 +41,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         try {
             //初始化配置
             initConfig();
-            //更新apollo配置 todo 待验证
+            //更新apollo配置
             updateApollo();
             //检查k8s命名空间
             checkAndCreateK8sNamespace();
@@ -403,19 +403,17 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
 
     private void updateApollo() throws IOException {
         if (buildConfiguration.deploy_apollo_update_enable) {
-            Map<String, Properties> propertiesMap = FileExtendUtils.readPropertiesFiles("devops/apollo");
+            Map<String, Properties> propertiesMap = FileExtendUtils.readPropertiesFiles(buildConfiguration.getApolloUpdatePath());
             String apolloUpdateStrategy = buildConfiguration.getDeploy_apollo_update_strategy();
-            for (Properties properties : propertiesMap.values()) {
-                String appId = properties.getProperty(ConfigKey.APOLLO_APP_ID);
-                String cluster = properties.getProperty(ConfigKey.APOLLO_CLUSTER);
-                String namespace = properties.getProperty(ConfigKey.APOLLO_NAMESPACE);
+            for (Map.Entry<String, Properties> entry : propertiesMap.entrySet()) {
+                String namespace = entry.getKey();
+                Properties properties = entry.getValue();
+                String appId = buildConfiguration.getProperty0(ConfigKey.APOLLO_APP_ID,"homo");
+                String cluster = buildConfiguration.apollo_idc;
                 boolean isPublic = Boolean.parseBoolean((String) properties.getOrDefault(ConfigKey.APOLLO_NAMESPACE_PUBLIC, "false"));
                 Map<String, String> propertyMap = new HashMap<>();
                 for (String key : properties.stringPropertyNames()) {
-                    if (!ConfigKey.APOLLO_APP_ID.equals(key) && !ConfigKey.APOLLO_CLUSTER.equals(key) &&
-                            !ConfigKey.APOLLO_NAMESPACE.equals(key) && !ConfigKey.APOLLO_NAMESPACE_PUBLIC.equals(key)) {
-                        propertyMap.put(key, properties.getProperty(key));
-                    }
+                    propertyMap.put(key, properties.getProperty(key));
                 }
                 if (ConfigKey.APOLLO_UPDATE_STRATEGY_VALUE_SET.equals(apolloUpdateStrategy)) {
                     apolloExtendClient.createOrUpdateNamespaceCoverValue(appId, buildConfiguration.apollo_env, cluster, buildConfiguration.getApollo_editor(), isPublic, namespace, propertyMap);

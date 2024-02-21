@@ -45,7 +45,7 @@ public class BuildConfiguration {
     public String apollo_token;
     public String apollo_format;
     public String apollo_editor;
-
+    public String apollo_auto_update_path;
 
     /////////////////////////////////////////////////////////////
     public String docker_repo_pull_addr;
@@ -69,8 +69,8 @@ public class BuildConfiguration {
     public String endpoint_temp_yaml = ConfigKey.ENDPOINTS_TEMP_YAML;
     public String cloud_service_build_temp_yaml = ConfigKey.CLOUD_SERVICE_BUILD_YAML;
     public String local_service_build_temp_yaml = ConfigKey.LOCAL_SERVICE_BUILD_YAML;
-    public String cloud_service_file = ConfigKey.CLOUD_SERVICE_BUILD_YAML;
-    public String local_service_file = ConfigKey.LOCAL_SERVICE_BUILD_YAML;
+    public String cloud_service_file = ConfigKey.CLOUD_SERVICE_YAML;
+    public String local_service_file = ConfigKey.LOCAL_SERVICE_YAML;
     public String pvc_temp_yaml = ConfigKey.PVC_TEMP_YAML;
     public String docker_file_temp = ConfigKey.DEPLOY_DOCKER_FILE_TEMP;
     public String docker_file_path = ConfigKey.DOCKER_TARGET_FILE_PATH;
@@ -112,7 +112,20 @@ public class BuildConfiguration {
             instant = new BuildConfiguration();
         }
         return instant;
-    } 
+    }
+    public void init(AbsHomoMojo homoMojo) {
+        BuildConfiguration.homoMojo = homoMojo;
+        systemProperties = System.getProperties();
+        try {
+            Map<String, Properties> resourceProperties = getResourceProperties();
+            applicationProperties = resourceProperties.get(ConfigKey.APPLICATION_PROPERTIES_FILE_NAME);
+            apolloCustomerConfig = ConfigService.getConfig(ConfigKey.CUSTOM_BUILD_NS_VALUE);
+        } catch (Exception e) {
+            log.warn("init apolloCustomerConfig  {} fail", ConfigKey.CUSTOM_BUILD_NS_VALUE);
+        }
+        initApolloMeta();
+        loadProperties();
+    }
     public void initApolloMeta() {
         MetaServerProvider metaServerProvider = ServiceLoader.load(MetaServerProvider.class).iterator().next();
         CustomServerProvider serverProvider = CustomServerProvider.getInstance();
@@ -144,6 +157,7 @@ public class BuildConfiguration {
         apollo_format = getProperty0(ConfigKey.APOLLO_PROPERTY_FORMAT_VALUE, ConfigKey.APOLLO_PROPERTY_FORMAT_VALUE);
         deploy_apollo_update_enable = Boolean.parseBoolean(getProperty0(ConfigKey.DEPLOY_APOLLO_UPDATE_ENABLE_KEY, ConfigKey.BOOLEAN_FALSE));
         deploy_apollo_update_strategy = getProperty0(ConfigKey.APOLLO_UPDATE_STRATEGY_KEY, ConfigKey.APOLLO_UPDATE_STRATEGY_VALUE_SET_ABSENT);
+        apollo_auto_update_path = getProperty0(ConfigKey.APOLLO_UPDATE_PATH, ConfigKey.APOLLO_UPDATE_PATH_DEFAULT_VALUE);
         //k8s模板文件配置
         deployment_temp_yaml = getProperty0(ConfigKey.DEPLOYMENT_TEMP_YAML_KEY, ConfigKey.DEPLOYMENT_TEMP_YAML);
         deployment_build_temp_yaml = getProperty0(ConfigKey.DEPLOYMENT_BUILD_YAML_KEY, ConfigKey.DEPLOYMENT_BUILD_YAML);
@@ -231,6 +245,8 @@ public class BuildConfiguration {
         return service;
     }
 
+
+
     public V1PersistentVolumeClaim createPvcTemp() throws IOException {
         String pcvName = instant.getK8s_namespace() + ConfigKey.FILE_SYSTEM_PVC_SUFFIX;
         V1PersistentVolumeClaim pvc = FileExtendUtils.readYamlToObj(pvc_temp_yaml, V1PersistentVolumeClaim.class, true);
@@ -262,34 +278,20 @@ public class BuildConfiguration {
         subPort.setPort(serviceSetter.getServicePort());
         return endpoint;
     }
-
-    public void init(AbsHomoMojo homoMojo) {
-        BuildConfiguration.homoMojo = homoMojo;
-        systemProperties = System.getProperties();
-        try {
-            applicationProperties = getApplicationPropertiesFile();
-            apolloCustomerConfig = ConfigService.getConfig(ConfigKey.CUSTOM_BUILD_NS_VALUE);
-        } catch (Exception e) {
-            log.warn("init apolloCustomerConfig  {} fail", ConfigKey.CUSTOM_BUILD_NS_VALUE);
-        }
-        initApolloMeta();
-        loadProperties();
-    }
-
-
-    public Properties getApplicationPropertiesFile(){
+    public Map<String, Properties> getResourceProperties(){
         List<Resource> resources = homoMojo.getProject().getResources();
-        Properties properties = new Properties();
+        Map<String, Properties> propertiesMap = new HashMap<>();
         for (Resource resource : resources) {
             File file = new File(resource.getDirectory());
             if (file.exists()) {
                 File[] files = file.listFiles();
                 if (files != null) {
                     for (File file1 : files) {
-                        if (file1.getName().contains(ConfigKey.APPLICATION_PROPERTIES_FILE_NAME)) {
+                        if (file1.getName().endsWith(".properties")) {
                             try {
+                                Properties properties = new Properties();
                                 properties.load(file1.toURI().toURL().openStream());
-                                break;
+                                propertiesMap.put(file1.getName(), properties);
                             } catch (IOException e) {
                                 log.error("getApplicationPropertiesFile load {} fail", file1.getName());
                             }
@@ -298,7 +300,7 @@ public class BuildConfiguration {
                 }
             }
         }
-        return properties;
+        return propertiesMap;
     }
 
 
@@ -377,6 +379,8 @@ public class BuildConfiguration {
     public String getFileSystemPvcName() {
         return k8s_namespace + ConfigKey.K8S_FILESYSTEM_PVC_SUFFIX;
     }
+
+
 
     private void setFileSystemVolume(V1PodTemplateSpec template) {
         if (volume_filesystem_enable) {
@@ -523,7 +527,9 @@ public class BuildConfiguration {
         limits.put("cpu", new Quantity(container_limit_cpu));
         limits.put("memory", new Quantity(container_limit_memory));
     }
-
+    public String getApolloUpdatePath() {
+        return FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), apollo_auto_update_path);
+    }
     public String getPvcFileName() {
         return FileExtendUtils.mergePath(homoMojo.getProject().getBasedir().toString(), ConfigKey.PVC_YAML);
     }
@@ -616,15 +622,17 @@ public class BuildConfiguration {
      */
     public String getPushImageName() {
         String imageName = getImageNameWithRepo() + ":" + getImageTag();
-        return imageName.toLowerCase();
+        return imageName;
     }
 
     public String getImageNameWithRepo() {
-        return getDocker_repo_push_addr() + "/" + getDocker_repo_push_dir() + "/" + homoMojo.getProjectName();
+        String getImageName = getDocker_repo_push_addr() + "/" + getDocker_repo_push_dir() + "/" + homoMojo.getProjectName();
+        return getImageName.toLowerCase();
     }
 
     public String getImageTag() {
-        return homoMojo.getProject().getVersion() + getDocker_repo_imageSuffix();
+        String tag = homoMojo.getProject().getVersion() + getDocker_repo_imageSuffix();
+        return tag;
     }
 
     public String getTargetDockerFilePath() {
