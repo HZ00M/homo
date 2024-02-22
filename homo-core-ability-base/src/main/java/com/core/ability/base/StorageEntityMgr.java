@@ -160,7 +160,7 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
     }
 
     @Override
-    public void close() {
+    public void beforeClose() {
         removeAllEntity();
         assert storageSystem.allEntityLanded();
     }

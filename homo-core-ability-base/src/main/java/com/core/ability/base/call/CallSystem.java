@@ -82,7 +82,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
     }
 
     @Override
-    public void close() {
+    public void beforeClose() {
         //注册拒绝请求回调
 //        GetBeanUtil.getBean(RpcServerMgr.class).delegate.addToTail((srcService, funName, param) -> {
 //            if(funName.equals(EntityConstant.ENTITY_CALL_METHOD_NAME)){

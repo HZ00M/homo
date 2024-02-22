@@ -162,8 +162,8 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
         String loadTimestamp = LoadTimestamp.join(load, System.currentTimeMillis());
         Map<String, String> dataMap = new HashMap<>();
         dataMap.put(podNumStr, loadTimestamp);
-        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
-        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+//        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+//        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
         Homo<Boolean> warp = Homo.warp(asyncRedisPool.hsetAsyncReactive(stateQueryKey, dataMap))
                 .nextDo(ret -> {
                     log.trace("setServiceState ret appId {} regionId {} logicType {} serviceName {} podId {} load {} loadTimestamp {} ret {}",
@@ -178,7 +178,8 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
                         return Homo.result(false);
                     }
                 });
-        return warp.switchThread(localQueue, storageSpan).consumerValue(ret -> storageSpan.finish());
+        return warp;
+//        return warp.switchThread(localQueue, storageSpan).consumerValue(ret -> storageSpan.finish());
     }
 
     @Override

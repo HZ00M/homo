@@ -7,6 +7,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.homo.core.configurable.rpc.ServerStateProperties;
 import com.homo.core.facade.cache.CacheDriver;
 import com.homo.core.facade.module.RootModule;
+import com.homo.core.facade.module.SupportModule;
 import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.facade.service.StatefulDriver;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +53,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     boolean isStateful = false;
     //有状态服务当前状态（值越高代表压力越大）
     private int load;
+    public static int UNAVAILABLE = -1;
     private String podName;
     private Integer podIndex;
     private RootModule rootModule;
@@ -126,6 +129,25 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                 }, 10000, serverStateProperties.getServiceStateUpdatePeriodMillSeconds(), HomoTimerMgr.UNLESS_TIMES);
             }
         });
+    }
+
+    @Override
+    public void beforeClose() {
+        String serviceName = serviceMgr.getMainService().getHostName();
+        String appId = rootModule.getServerInfo().appId;
+        String regionId = rootModule.getServerInfo().namespace;
+        statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, UNAVAILABLE)
+                .consumerValue(ret -> {
+                    if (ret) {
+                        log.info("beforeClose set service state success, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
+                    } else {
+                        log.error("beforeClose set service state fail, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
+                    }
+                })
+                .catchError(throwable -> {
+                    log.error("beforeClose set service state error, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE, throwable);
+
+                }).block(Duration.ofMillis(10000));
     }
 
     /**
@@ -381,11 +403,15 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                         int range = serverStateProperties.getGoodStateRange().getOrDefault(serviceName,
                                 serverStateProperties.getDefaultRange());
                         ArrayList<Map.Entry<Integer, Integer>> stateList = new ArrayList<>(map.entrySet());
-                        stateList.sort(Comparator.comparingInt(Map.Entry::getValue));
+                        List<Map.Entry<Integer, Integer>> filterStateList = stateList.stream()
+                                .filter(i -> !i.getKey().equals(UNAVAILABLE))
+                                .sorted(Comparator.comparingInt(Map.Entry::getValue))
+                                .collect(Collectors.toList());
+
                         //寻找goodServices，取负载最优的服务加上基数作为比较值，小于这个值表示服务状态良好
                         List<Integer> goodServices = new ArrayList<>();
-                        int limit = stateList.get(0).getValue() + range;
-                        for (Map.Entry<Integer, Integer> entry : stateList) {
+                        int limit = filterStateList.get(0).getValue() + range;
+                        for (Map.Entry<Integer, Integer> entry : filterStateList) {
                             if (entry.getValue() <= limit) {
                                 goodServices.add(entry.getKey());
                             } else {
@@ -393,7 +419,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                             }
                         }
                         goodServiceMap.put(serviceName, goodServices);
-                        List<Integer> aliveServices = stateList.stream().map(Map.Entry::getKey).collect(Collectors.toList());
+                        List<Integer> aliveServices = filterStateList.stream().map(Map.Entry::getKey).collect(Collectors.toList());
                         availableServiceMap.put(serviceName, aliveServices);
                     }
                     return Homo.result(true);
@@ -430,7 +456,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                 .catchError(throwable -> {
                     log.error("get tag {} error!", tag, throwable);
                 });
-        return warp.switchThread(localQueue,span).consumerValue(ret->span.finish());
+        return warp.switchThread(localQueue, span).consumerValue(ret -> span.finish());
     }
 
     @Override
@@ -448,7 +474,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                                 log.info("setServiceNameTag ret serviceInfo {} serviceName {} tag {} ret {}", SERVICE_INFO_KEY, serviceInfo, tag, ret);
                             });
                 })
-                .switchThread(localQueue,storageSpan);
+                .switchThread(localQueue, storageSpan);
     }
 
     @Override

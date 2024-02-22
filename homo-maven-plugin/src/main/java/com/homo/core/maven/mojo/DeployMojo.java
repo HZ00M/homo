@@ -405,6 +405,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         if (buildConfiguration.deploy_apollo_update_enable) {
             Map<String, Properties> propertiesMap = FileExtendUtils.readPropertiesFiles(buildConfiguration.getApolloUpdatePath());
             String apolloUpdateStrategy = buildConfiguration.getDeploy_apollo_update_strategy();
+            log.info("updateApollo {} start ,apolloUpdateStrategy {}",ConfigKey.DEPLOY_APOLLO_UPDATE_ENABLE_KEY,apolloUpdateStrategy);
             for (Map.Entry<String, Properties> entry : propertiesMap.entrySet()) {
                 String namespace = entry.getKey();
                 Properties properties = entry.getValue();
@@ -415,6 +416,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
                 for (String key : properties.stringPropertyNames()) {
                     propertyMap.put(key, properties.getProperty(key));
                 }
+                log.info("updateApollo namespace {} appId {} cluster {} isPublic {} {}",namespace,appId,cluster,isPublic,propertyMap);
                 if (ConfigKey.APOLLO_UPDATE_STRATEGY_VALUE_SET.equals(apolloUpdateStrategy)) {
                     apolloExtendClient.createOrUpdateNamespaceCoverValue(appId, buildConfiguration.apollo_env, cluster, buildConfiguration.getApollo_editor(), isPublic, namespace, propertyMap);
                 } else if (ConfigKey.APOLLO_UPDATE_STRATEGY_VALUE_SET_ABSENT.equals(apolloUpdateStrategy)) {
@@ -424,7 +426,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
                 }
             }
         } else {
-            log.info("updateApollo updateApollo close!");
+            log.info("updateApollo {} close",ConfigKey.DEPLOY_APOLLO_UPDATE_ENABLE_KEY);
         }
     }
 
