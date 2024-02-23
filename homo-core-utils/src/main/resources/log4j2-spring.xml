@@ -7,12 +7,14 @@
         <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
         <Property name="LOG_LEVEL_PATTERN">%5p</Property>
         <Property name="LOG_DATEFORMAT_PATTERN">yyyy-MM-dd HH:mm:ss.SSS</Property>
-        <Property name="LOG_PATTERN">     %clr{%d{${sys:LOG_DATEFORMAT_PATTERN}}}{faint} %clr{${sys:LOG_LEVEL_PATTERN}} %clr{%pid}{magenta} %clr{---}{faint} [%X{traceId}] %clr{[%15.15t]}{faint} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
+        <Property name="LOG_PATTERN">     %clr{%d{${sys:LOG_DATEFORMAT_PATTERN}}}{faint} %clr{${sys:LOG_LEVEL_PATTERN}} %clr{%pid}{magenta} %clr{---}{faint} [%X{traceId}] %clr{[%20.20t]}{faint} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
     </Properties>
     <Appenders>
         <!-- 打印出所有的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档 -->
+<!--        <RollingRandomAccessFile name="verboseFile" fileName="${logFileDir}/server-verbose.log"-->
+<!--                                 immediateFlush="false"-->
+<!--                                 filePattern="${logFileGzDir}/$${date:yyyy-MM}/%d{yyyy-MM-dd}-%i.server-verbose.gz">-->
         <RollingRandomAccessFile name="verboseFile" fileName="${logFileDir}/server-verbose.log"
-                                 immediateFlush="false"
                                  filePattern="${logFileGzDir}/$${date:yyyy-MM}/%d{yyyy-MM-dd}-%i.server-verbose.gz">
             <PatternLayout pattern="${LOG_PATTERN}"/>
 
@@ -24,7 +26,6 @@
             <DefaultRolloverStrategy max="50"/>
         </RollingRandomAccessFile>
         <RollingRandomAccessFile name="noticeFile" fileName="${logFileDir}/server-notice.log"
-                                 immediateFlush="false"
                                  filePattern="${logFileGzDir}/$${date:yyyy-MM}/%d{yyyy-MM-dd}-%i.server-notice.gz">
             <PatternLayout pattern="${LOG_PATTERN}"/>
 

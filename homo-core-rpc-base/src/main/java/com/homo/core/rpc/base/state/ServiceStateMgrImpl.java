@@ -41,6 +41,8 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     HomoSerializationProcessor homoSerializationProcessor;
     @Autowired(required = false)
     private ServerStateProperties serverStateProperties;
+    @Autowired
+    RootModule rootModule;
     @Autowired(required = false)
     private ServiceMgr serviceMgr;
     @Autowired(required = false)
@@ -56,7 +58,6 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     public static int UNAVAILABLE = -1;
     private String podName;
     private Integer podIndex;
-    private RootModule rootModule;
     private long lastUpdateStateTime;
     private final String stateLogicType = "state";
     private final String POD_INDEX_CACHE = "%s-%s";
@@ -74,8 +75,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     };
 
     @Override
-    public void init(RootModule rootModule) {
-        this.rootModule = rootModule;
+    public void init() {
         isStateful = getServerInfo().isStateful;
         load = 0;
         localUserServicePodCache = Caffeine.newBuilder()
@@ -95,7 +95,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         this.loadFun = loadFun;
     }
 
-    private void scheduleUpdateLoad() {//todo 服务端没有更新
+    private void scheduleUpdateLoad() { // 定时更新服务器状态
         CallQueueMgr.getInstance().frameTask(new Runnable() {
             @Override
             public void run() {
@@ -134,20 +134,25 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     @Override
     public void beforeClose() {
         String serviceName = serviceMgr.getMainService().getHostName();
-        String appId = rootModule.getServerInfo().appId;
-        String regionId = rootModule.getServerInfo().namespace;
-        statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, UNAVAILABLE)
-                .consumerValue(ret -> {
-                    if (ret) {
-                        log.info("beforeClose set service state success, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
-                    } else {
-                        log.error("beforeClose set service state fail, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
-                    }
-                })
-                .catchError(throwable -> {
-                    log.error("beforeClose set service state error, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE, throwable);
+        String appId = getServerInfo().appId;
+        String regionId = getServerInfo().namespace;
+        if (isStateful){
+            log.info("beforeClose set service state, appId {} regionId {} service {} podIndex {} load {}  ",
+                    appId, regionId, serviceName, load, UNAVAILABLE);
+            statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, UNAVAILABLE)
+                    .consumerValue(ret -> {
+                        if (ret) {
+                            log.info("beforeClose set service state success, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
+                        } else {
+                            log.error("beforeClose set service state fail, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
+                        }
+                    })
+                    .catchError(throwable -> {
+                        log.error("beforeClose set service state error, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE, throwable);
 
-                }).block(Duration.ofMillis(10000));
+                    }).block(Duration.ofMillis(10000));
+        }
+
     }
 
     /**
