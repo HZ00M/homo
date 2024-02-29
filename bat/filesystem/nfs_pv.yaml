@@ -1,0 +1,15 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: EXAMPLE-NAME
+spec:
+  capacity:
+    storage: 100Mi
+  nfs:
+    server: EXAMPLE-NFS-IP
+    path: /home/nfs-share/nfs-subdir-auto/EXAMPLE-NAMESPACE
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: nfs-subdir-client
+  volumeMode: Filesystem

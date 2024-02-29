@@ -1,0 +1,39 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: mysql
+  namespace: EXAMPLE-NAMESPACE
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mysql
+    spec:
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: EXAMPLE-PVC-NAME
+      containers:
+        - name: mysql
+          image: mysql:5.6
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: password
+            - name: MYSQL_ROOT
+              value: homo
+          resources: {}
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent

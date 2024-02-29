@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-export
+  namespace: homo-prometheus
+  labels:
+    app: node-export
+spec:
+  selector:
+    matchLabels:
+      app: node-export
+  template:
+    metadata:
+      labels:
+        app: node-export
+    spec:
+      containers:
+        - name: node-export
+          image: prom/node-exporter:v0.18.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9100
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-export
+  namespace: homo-prometheus
+  labels:
+    app: node-export
+spec:
+  selector:
+    app: node-export
+#  type: LoadBalancer
+#  ports:
+#    - port: 30001
+#      targetPort: 9100
+  type: NodePort
+  ports:
+    - port: 9100        # 内部集群端口
+      nodePort: 30001   # 指定的NodePort端口号，注意范围是30000-32767
+      protocol: TCP

@@ -22,7 +22,7 @@ spec:
         - command:
             - java
             - '-jar'
-            - app.jar
+#            - app.jar
           env:
             - name: POD_NAME
               valueFrom:

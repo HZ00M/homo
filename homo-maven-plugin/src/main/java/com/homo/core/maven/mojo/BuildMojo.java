@@ -80,7 +80,7 @@ public class BuildMojo extends AbsHomoMojo<BuildMojo> {
             statefulSet.getSpec().setServiceName(HomoServiceSetterFactory.mainServiceSetter.getServiceName());
             BuildConfiguration.appendContainerEnvInfo(container);
             //生成服务配置  1 暴露服务端口
-            BuildConfiguration.appendContainerExportPortInfo(container);
+            exportServicePort(container);
             String statefulSetBuildYaml = buildConfiguration.getStatefulSetBuildYaml();
             FileExtendUtils.writeK8sObjToFile(statefulSetBuildYaml, statefulSet);
             log.info("generateAppDeployFile statefulSet success path {}", statefulSetBuildYaml);
@@ -89,12 +89,20 @@ public class BuildMojo extends AbsHomoMojo<BuildMojo> {
             BuildConfiguration.appendDeploymentLabelsInfo(deployment);
             BuildConfiguration.appendContainerEnvInfo(container);
             //生成服务配置  1 暴露服务端口
-            BuildConfiguration.appendContainerExportPortInfo(container);
+            exportServicePort(container);
             String deploymentBuildYaml = buildConfiguration.getDeploymentBuildYaml();
             FileExtendUtils.writeK8sObjToFile(deploymentBuildYaml, deployment);
             log.info("generateAppDeployFile deployment success path {}", deploymentBuildYaml);
         }
 //        FileExtendUtils.saveStringFile(new File(getCompleteFilePath()),"complete");
+    }
+
+    public void exportServicePort(V1Container container){
+        for (HomoServiceSetter serviceSetter : HomoServiceSetterFactory.setterMap.values()) {
+            V1ContainerPort containerPort = new V1ContainerPort();
+            containerPort.setContainerPort(serviceSetter.getServicePort());
+            BuildConfiguration.appendContainerExportPortInfo(container,containerPort);
+        }
     }
 
     private void generateServiceFile() throws IOException {

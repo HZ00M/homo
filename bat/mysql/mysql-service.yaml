@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql
+  namespace: EXAMPLE-NAMESPACE
+spec:
+  ports:
+    - protocol: TCP
+      port: 30006
+      targetPort: 3306
+  selector:
+    app: mysql
+  type: LoadBalancer

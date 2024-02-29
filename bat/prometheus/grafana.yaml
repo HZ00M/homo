@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: homo-prometheus
+  labels:
+    app: grafana
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - image: grafana/grafana
+          name: grafana
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GF_AUTH_BASIC_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 3000
+          volumeMounts:
+            - name: grafana-data
+              mountPath: /var/lib/grafana
+            - name: ca-certificates
+              mountPath: /etc/ssl/certs
+              readOnly: true
+      volumes:
+        - name: ca-certificates
+          hostPath:
+            path: /etc/ssl/certs
+        - name: grafana-data
+          emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: homo-prometheus
+  labels:
+    app: grafana
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 3000
+  selector:
+    app: grafana

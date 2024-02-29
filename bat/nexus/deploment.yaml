@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-deployment
+  namespace: EXAMPLE-NAMESPACE
+spec:
+  replicas: 1 # 根据需要设置副本数量
+  selector:
+    matchLabels:
+      app: nexus-app
+  template:
+    metadata:
+      labels:
+        app: nexus-app
+    spec:
+      containers:
+        - name: nexus-container
+          image: sonatype/nexus3 # 使用Nexus官方Docker镜像或自定义镜像
+          ports:
+            - containerPort: 8081 # Nexus默认端口号，根据需要进行更改
+          volumeMounts:
+            - name: nexus-volume
+              mountPath: /nexus-data # 将持久化数据挂载到容器内部的路径（可根据实际情况调整）
+      volumes:
+        - name: nexus-volume
+          persistentVolumeClaim:
+            claimName: EXAMPLE-PVC-NAME # 定义用于存储Nexus数据的PersistentVolumeClaim名称（需提前创建）
+

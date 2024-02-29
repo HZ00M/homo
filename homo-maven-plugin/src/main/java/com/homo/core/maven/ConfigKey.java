@@ -124,6 +124,15 @@ public interface ConfigKey {
     String SW_CONFIG_MAP_VOLUME_NAME = "volume-skyalking";
     String SW_CONFIG_MAP_VOLUME_MOUNT = "/opt/skywalking/config/";
     /**
+     * prometheus
+     */
+    String PROMETHEUS_ENABLE = "prometheus.enable";
+    String PROMETHEUS_EXPORT_PORTS = "prometheus.exporter.ports";
+    String PROMETHEUS_LABELS = "prometheus.lables";
+    String PROMETHEUS_EXPORT_JAVA_AGENT_VALUE = "-javaagent:/jmx-prometheus/jmx_prometheus_javaagent-0.19.0.jar=6789:/jmx-prometheus/config.yaml";
+    String PROMETHEUS_EXPORT_PORT_VALUE = "6789:jmx-metric-port";
+    String PROMETHEUS_LABEL_VALUE = "prometheus-operator-metrics:homo-jvm";
+    /**
      * 磁盘挂载
      */
     String K8S_FILESYSTEM_VOLUME_ENABLE_KEY = "k8s.filesystem.enable";

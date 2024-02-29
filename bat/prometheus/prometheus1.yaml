@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-deploy
+  namespace: homo-prometheus
+  labels:
+    app: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - image: prom/prometheus:v2.15.2
+          imagePullPolicy: IfNotPresent
+          name: prometheus
+          command:
+            - /bin/prometheus
+            - --config.file=/etc/prometheus/prometheus.yml  #指定配置文件
+            - --storage.tsdb.path=/prometheus    #数据存储目录
+            - --storage.tsdb.retention=360h       #数据保存时长
+            - --web.enable-lifecycle                   #开启热加载
+          ports:
+            - containerPort: 9090
+              protocol: TCP
+          volumeMounts:
+            - mountPath: "/prometheus"
+              name: data
+            - mountPath: "/etc/prometheus"
+              name: conf
+      serviceAccountName: homo-prometheus
+      volumes:
+        - name: data
+          emptyDir: {}  #不挂载到磁盘
+        - name: conf
+          configMap:
+            name: prometheus-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-service
+  namespace: homo-prometheus
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 9090
+      targetPort: 9090
+  selector:
+    app: prometheus

@@ -95,6 +95,10 @@ public class BuildConfiguration {
     public String readiness_probe_http_path;
     public int readiness_probe_http_port;
     /////////////////////////////////////////////////////////////
+    public boolean prometheus_enable;
+    public String prometheus_jmx_agent_exporter_ports;
+    public String prometheus_labels;
+    /////////////////////////////////////////////////////////////
     public int spec_pod_num;
 
     //名字缓存
@@ -209,6 +213,10 @@ public class BuildConfiguration {
         //skywalking
         sw_agent_enable = Boolean.parseBoolean(getProperty0(ConfigKey.SW_TRACING_ENABLE_KEY, ConfigKey.BOOLEAN_FALSE));
         sw_backend_service = getProperty0(ConfigKey.SW_ENV_BACKEND_SERVICE_KEY, ConfigKey.SW_ENV_BACKEND_NAME_VALUE);
+        //prometheus
+        prometheus_enable = Boolean.parseBoolean(getProperty0(ConfigKey.PROMETHEUS_ENABLE, ConfigKey.BOOLEAN_FALSE));
+        prometheus_jmx_agent_exporter_ports = getProperty0(ConfigKey.PROMETHEUS_EXPORT_PORTS, ConfigKey.PROMETHEUS_EXPORT_PORT_VALUE);
+        prometheus_labels = getProperty0(ConfigKey.PROMETHEUS_LABELS, ConfigKey.PROMETHEUS_LABEL_VALUE);
         //文件系统
         deploy_dns_update_enable = Boolean.parseBoolean(getProperty0(ConfigKey.DEPLOY_DNS_UPDATE_ENABLE_KEY, ConfigKey.BOOLEAN_FALSE));
         volume_filesystem_enable = Boolean.parseBoolean(getProperty0(ConfigKey.K8S_FILESYSTEM_VOLUME_ENABLE_KEY, ConfigKey.BOOLEAN_FALSE));
@@ -325,6 +333,8 @@ public class BuildConfiguration {
         container.setImage(getPushImageName());
         //机器配置
         setCpuAndMem(container);
+        //prometheus
+        setPrometheus(template);
         //java启动参数
         setJavaOptions(container);
         //skyWalking
@@ -440,6 +450,13 @@ public class BuildConfiguration {
         }
     }
 
+    public static void appendContainerLabelInfo(V1PodTemplateSpec template, String key, String value) {
+        V1ObjectMeta metadata = template.getMetadata();
+        if (metadata.getLabels() == null) {
+            metadata.setLabels(new HashMap<>());
+        }
+        metadata.getLabels().put(key, value);
+    }
     public void removeVolume(V1PodTemplateSpec templateSpec, V1Container container, String volumeName) {
         List<V1Volume> volumes = templateSpec.getSpec().getVolumes();
         List<V1VolumeMount> volumeMounts = container.getVolumeMounts();
@@ -495,6 +512,34 @@ public class BuildConfiguration {
         }
         for (String option : options) {
             appendCommand(container, option);
+        }
+        appendCommand(container,"app.jar");
+    }
+
+    private void setPrometheus(V1PodTemplateSpec template){
+        V1Container container = template.getSpec().getContainers().get(0);
+        if (prometheus_enable){
+            List<String> containerCommand = container.getCommand();
+            if (containerCommand == null) {
+                containerCommand = new ArrayList<>();
+                container.setCommand(containerCommand);
+            }
+            appendCommand(container, ConfigKey.PROMETHEUS_EXPORT_JAVA_AGENT_VALUE);
+        }
+        String[] ports = prometheus_jmx_agent_exporter_ports.split(",");
+        for (String port : ports) {
+            String[] split  = port.split(":");
+            V1ContainerPort containerPort = new V1ContainerPort();
+            containerPort.setContainerPort(Integer.parseInt(split[0]));
+            if (split.length > 1) {
+                containerPort.setName(split[1].trim());
+            }
+            appendContainerExportPortInfo(container, containerPort);
+        }
+        String[] labels= prometheus_labels.split(",");
+        for (String label : labels) {
+            String[] split = label.split(":");
+            appendContainerLabelInfo(template, split[0], split[1].trim());
         }
     }
 
@@ -726,16 +771,12 @@ public class BuildConfiguration {
         }
     }
 
-    public static void appendContainerExportPortInfo(V1Container container) {
+    public static void appendContainerExportPortInfo(V1Container container,V1ContainerPort port) {
         List<V1ContainerPort> ports = container.getPorts();
         if (ports == null) {
             ports = new ArrayList<>();
         }
-        for (HomoServiceSetter serviceSetter : HomoServiceSetterFactory.setterMap.values()) {
-            V1ContainerPort containerPort = new V1ContainerPort();
-            containerPort.setContainerPort(serviceSetter.getServicePort());
-            ports.add(containerPort);
-        }
+        ports.add(port);
         container.setPorts(ports);
     }
 

@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  namespace: EXAMPLE-NAMESPACE
+spec:
+  ports:
+    - protocol: TCP
+      port: 30379
+      targetPort: 6379
+  selector:
+    app: bcia
+    ms-name: redis
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster

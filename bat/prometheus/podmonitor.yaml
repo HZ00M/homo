@@ -1,0 +1,20 @@
+#需要helm支持该组件才能生效
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: jmx-metrics
+  namespace: homo-prometheus
+  labels:
+    prometheus-operator-metrics: homo-jvm
+spec:
+  selector:
+    matchLabels:
+      prometheus-operator-metrics: homo-jvm
+  namespaceSelector:
+    any: true
+#    matchNames:
+#      - default # 监控的命名空间，可以根据需求修改
+  podMetricsEndpoints:
+    - port: jmx-metric-port # 指定要监控的端口号，可以根据实际情况修改
+      interval: 30s # 指标采集的间隔时间，可以根据需求修改
+      jobLabel: jmx-metrics-job

@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-config
+  namespace: homo-prometheus
+data:
+  prometheus.yml: |
+    global:           #指定Prometheus的全局配置，比如采集间隔等
+      scrape_interval: 15s      #采集目标主机监控数据的时间间隔，默认1m
+      scrape_timeout: 10s     #数据采集超时时间，默认10s
+      evaluation_interval: 1m       #触发告警生成alert时间，默认1m
+    scrape_configs:            #配置数据源
+    - job_name: 'kubernetes-node'  #"kubernetes-node"是Prometheus配置文件中定义的一个数据源，用于采集Kubernetes节点相关的监控数据
+      kubernetes_sd_configs:              #指定k8s的服务发现
+      - role: node
+      relabel_configs:
+      - source_labels: [__address__]          #配置的原始标签，匹配地址
+        regex: '(.*):10250'          #匹配带有10250的URL
+        replacement: '${1}:30001'         #把匹配到的10250的地址保留 
+        target_label: __address__             #新生成的URL是${1}获取到的ip:30001，这个端口是node-exporter服务暴露的端口（通常是 30001），如果没有暴露端口（不是nodeport类型），就是实际容器的端口
+        action: replace
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)   #正则匹配
+    - job_name: 'kubernetes-node-cadvisor' #kubernetes-node-cadvisor是一个开源项目，用于在Kubernetes集群中监控和收集节点上的容器资源使用情况。
+      kubernetes_sd_configs:
+      - role: node
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      relabel_configs:
+      - action: labelmap      #把匹配到的标签保留
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+    - job_name: 'kubernetes-apiserver'
+      kubernetes_sd_configs:
+      - role: endpoints
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep          #采集满足条件的实例，其他实例不采集
+        regex: default;kubernetes;https          #正则匹配
+    - job_name: 'kubernetes-service-endpoints'
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+        action: replace
+        target_label: __scheme__
+        regex: (https?)
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+        action: replace
+        target_label: __address__
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2    #暴露自定义的应用端口
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: __address__
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2    #暴露自定义的应用端口
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        action: replace
+        target_label: kubernetes_name
+    - job_name: 'jmx-metrics-job'
+      kubernetes_sd_configs:
+        - role: pod
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_label_prometheus_operator_metrics]
+          action: keep
+          regex: homo-jvm
+        - source_labels: [__address__]
+          action: keep
+          regex: "(.*):6789" 
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: instance 
+        - source_labels: [__meta_kubernetes_pod_label_app]
+          target_label: service
+          action: replace
