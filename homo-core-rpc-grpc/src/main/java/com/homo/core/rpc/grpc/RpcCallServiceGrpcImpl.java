@@ -5,6 +5,7 @@ import com.google.protobuf.ByteString;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.serial.JsonRpcContent;
+import com.homo.core.rpc.base.trace.SpanInterceptor;
 import com.homo.core.rpc.grpc.proccessor.CallErrorProcessor;
 import com.homo.core.rpc.grpc.proccessor.JsonCallErrorProcessor;
 import com.homo.core.rpc.grpc.proccessor.StreamCallErrorProcessor;
@@ -16,106 +17,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImplBase {
     private final RpcServer rpcServer;
-
     public RpcCallServiceGrpcImpl(RpcServer rpcServer) {
         this.rpcServer = rpcServer;
     }
-
-    private void processMsgResult(StreamObserver<Res> responseObserver, Req req, byte[][] resData) {
-        Res.Builder builder = Res.newBuilder().setMsgId(req.getMsgId());
-        if (resData != null) {
-            for (byte[] resDatum : resData) {
-                if (resDatum == null) {
-                    //不支持包含间断的空返回
-                    break;
-                }
-                builder.addMsgContent(ByteString.copyFrom(resDatum));
-            }
-        }
-        Res res = builder.build();
-        responseObserver.onNext(res);
-        responseObserver.onCompleted();
-    }
-
-    private void processMsgError(StreamObserver<Res> responseObserver, Req req, Throwable throwable) {
-        try {
-            Res res = CallErrorProcessor.processError(req, throwable);
-            responseObserver.onNext(res);
-            responseObserver.onCompleted();
-            ZipkinUtil.currentSpan()
-                    .tag(ZipkinUtil.FINISH_TAG, "processError done")
-                    .error(throwable);
-        } catch (Exception e) {
-            responseObserver.onError(e);
-            ZipkinUtil.currentSpan()
-                    .tag(ZipkinUtil.FINISH_TAG, "processError catch")
-                    .error(e);
-        }
-    }
-
-    private void processStreamResult(StreamObserver<StreamRes> responseObserver, StreamReq req, byte[][] resData) {
-        StreamRes.Builder builder = StreamRes.newBuilder().setMsgId(req.getMsgId());
-        if (resData != null) {
-            for (byte[] resDatum : resData) {
-                if (resDatum == null) {
-                    break;
-                }
-                builder.addMsgContent(ByteString.copyFrom(resDatum));
-            }
-        }
-        builder.setReqId(req.getReqId());
-        StreamRes res = builder.build();
-        // 这里就是要对单个的responseObserver加锁
-        synchronized (responseObserver) {
-            responseObserver.onNext(res);
-        }
-    }
-
-    private void processStreamError(StreamObserver<StreamRes> responseObserver, StreamReq req, Throwable throwable) {
-        try {
-            StreamRes res = StreamCallErrorProcessor.processError(req, throwable);
-            synchronized (responseObserver) {
-                responseObserver.onNext(res);
-            }
-            ZipkinUtil.currentSpan()
-                    .tag(ZipkinUtil.FINISH_TAG, "processStreamError done")
-                    .error(throwable);
-        } catch (Exception e) {
-            synchronized (responseObserver) {
-                responseObserver.onError(e);
-            }
-            ZipkinUtil.currentSpan()
-                    .tag(ZipkinUtil.FINISH_TAG, "processStreamError catch")
-                    .error(e);
-        }
-    }
-
-    private void processJsonResult(StreamObserver<JsonRes> responseObserver, JsonReq req, String resData) {
-        JsonRes.Builder builder = JsonRes.newBuilder().setMsgId(req.getMsgId()).setMsgContent(resData);
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
-    }
-
-    private void processJsonError(StreamObserver<JsonRes> responseObserver, JsonReq req, Throwable throwable) {
-        try {
-            JsonRes errorRes = JsonCallErrorProcessor.processError(req, throwable);
-            responseObserver.onNext(errorRes);
-            responseObserver.onCompleted();
-            ZipkinUtil.currentSpan()
-                    .tag(ZipkinUtil.FINISH_TAG, "processJsonError done")
-                    .error(throwable);
-        } catch (Exception e) {
-            responseObserver.onError(e);
-            ZipkinUtil.currentSpan()
-                    .tag(ZipkinUtil.FINISH_TAG, "processJsonError catch")
-                    .error(e);
-        }
-    }
-
-
     @Override
     public void rpcCall(Req req, StreamObserver<Res> responseObserver) {
-        Span span = ZipkinUtil.currentSpan();
+        Span span = SpanInterceptor.getSpan(req.getMsgId(), req.getTraceInfo());
         byte[][] params = new byte[req.getMsgContentCount()][];
         for (int i = 0; i < req.getMsgContentCount(); i++) {
             params[i] = req.getMsgContent(i).toByteArray();
@@ -123,12 +30,33 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
         try {
             rpcServer.onCall(req.getSrcService(), req.getMsgId(), new ByteRpcContent(params, span))
                     .consumerValue(ret -> {
-                        processMsgResult(responseObserver, req, ret);
+                        Res.Builder builder = Res.newBuilder().setMsgId(req.getMsgId());
+                        if (ret != null) {
+                            for (byte[] resDatum : ret) {
+                                if (resDatum == null) {
+                                    //不支持包含间断的空返回
+                                    break;
+                                }
+                                builder.addMsgContent(ByteString.copyFrom(resDatum));
+                            }
+                        }
+                        Res res = builder.build();
+                        span.annotate(ZipkinUtil.SERVER_SEND_TAG).finish();
+                        responseObserver.onNext(res);
+                        responseObserver.onCompleted();
                     })
-                    .catchError(e -> {
-                        processMsgError(responseObserver, req, e);
+                    .catchError(throwable -> {
+                        try {
+                            span.error(throwable);
+                            Res res = CallErrorProcessor.processError(req, throwable);
+                            responseObserver.onNext(res);
+                            responseObserver.onCompleted();
+                        } catch (Exception e) {
+                            responseObserver.onError(e);
+                        }
                     }).start();
         } catch (Exception e) {
+            span.error(e);
             log.error("rpcCall SrcService {} MsgId {} error e", req.getSrcService(), req.getMsgId(), e);
         }
 
@@ -146,13 +74,36 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
                         params[i] = req.getMsgContent(i).toByteArray();
                     }
                     rpcServer.onCall(req.getSrcService(), req.getMsgId(), new ByteRpcContent(params, span))
-                            .consumerValue(ret -> {
-                                span.finish();
-                                processStreamResult(responseObserver, req, ret);
+                            .consumerValue(resData -> {
+                                StreamRes.Builder builder = StreamRes.newBuilder().setMsgId(req.getMsgId());
+                                if (resData != null) {
+                                    for (byte[] resDatum : resData) {
+                                        if (resDatum == null) {
+                                            break;
+                                        }
+                                        builder.addMsgContent(ByteString.copyFrom(resDatum));
+                                    }
+                                }
+                                builder.setReqId(req.getReqId());
+                                StreamRes res = builder.build();
+                                // 这里就是要对单个的responseObserver加锁
+                                synchronized (responseObserver) {
+                                    span.annotate(ZipkinUtil.SERVER_SEND_TAG).finish();
+                                    responseObserver.onNext(res);
+                                }
                             })
-                            .catchError(err -> {
-                                span.error((Throwable) err);
-                                processStreamError(responseObserver, req, err);
+                            .catchError(throwable -> {
+                                try {
+                                    span.error(throwable);
+                                    StreamRes res = StreamCallErrorProcessor.processError(req, throwable);
+                                    synchronized (responseObserver) {
+                                        responseObserver.onNext(res);
+                                    }
+                                } catch (Exception e) {
+                                    synchronized (responseObserver) {
+                                        responseObserver.onError(e);
+                                    }
+                                }
                             }).start();
                 } catch (Exception e) {
                     log.error("streamCall SrcService {} MsgId {} error e", req.getSrcService(), req.getMsgId(), e);
@@ -167,6 +118,7 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
 
             @Override
             public void onCompleted() {
+                ZipkinUtil.getTracing().tracer().currentSpan().tag(ZipkinUtil.FINISH_TAG, "streamCall_onCompleted");
                 log.error("RpcCallServiceImpl streamCall onCompleted responseObserver {}", responseObserver);
             }
         };
@@ -176,18 +128,27 @@ public class RpcCallServiceGrpcImpl extends RpcCallServiceGrpc.RpcCallServiceImp
     @Override
     public void jsonCall(JsonReq req, StreamObserver<JsonRes> responseObserver) {
         String msgContent = req.getMsgContent();
-        Span span = ZipkinUtil.currentSpan().annotate("jsonCall start");
+        Span span = SpanInterceptor.getSpan(req.getMsgId(), req.getTraceInfo());
         try {
-            rpcServer.onCall(req.getSrcService(), req.getMsgId(), JsonRpcContent.builder().data(msgContent).build())
-                    .consumerValue(ret -> {
-                        processJsonResult(responseObserver, req, ret);
-                        span.annotate("jsonCall done");
+            rpcServer.onCall(req.getSrcService(), req.getMsgId(), JsonRpcContent.builder().data(msgContent).span(span).build())
+                    .consumerValue(resData -> {
+                        JsonRes.Builder builder = JsonRes.newBuilder().setMsgId(req.getMsgId()).setMsgContent(resData);
+                        responseObserver.onNext(builder.build());
+                        responseObserver.onCompleted();
                     })
-                    .catchError(e -> {
-                        processJsonError(responseObserver, req, e);
-                        span.annotate("jsonCall error").error((e).getCause());
+                    .catchError(throwable -> {
+                        try {
+                            JsonRes errorRes = JsonCallErrorProcessor.processError(req, throwable);
+                            span.annotate(ZipkinUtil.SERVER_SEND_TAG).finish();
+                            responseObserver.onNext(errorRes);
+                            responseObserver.onCompleted();
+                        } catch (Exception e) {
+                            span.error(throwable);
+                            responseObserver.onError(e);
+                        }
                     }).start();
         } catch (Exception e) {
+            span.error(e);
             log.error("jsonCall SrcService {} MsgId {} error e", req.getSrcService(), req.getMsgId(), e);
         }
 

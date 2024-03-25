@@ -1,7 +1,6 @@
 package com.homo.core.rpc.base;
 
-import brave.Span;
-import com.homo.core.utils.concurrent.event.AbstractBaseEvent;
+import com.homo.core.utils.concurrent.event.AbstractTraceEvent;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.queue.CallQueueProducer;
 import com.homo.core.utils.exception.HomoError;
@@ -14,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 
 @Slf4j
-public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
+public class CallEvent extends AbstractTraceEvent implements CallQueueProducer {
     private CallData callData;
     private final HomoSink sink;
 
@@ -22,56 +21,37 @@ public class CallEvent extends AbstractBaseEvent implements CallQueueProducer {
         this.id = String.format("CallEvent_%s_%s", callData.getSrcName(), callData.getMethodDispatchInfo().getMethod().getName());
         this.callData = callData;
         this.sink = homoSink;
+        this.span =callData.getSpan();
     }
 
     @Override
     public void process() {
-        final long start = System.currentTimeMillis();
-        Span span = ZipkinUtil.getTracing().tracer().newChild(callData.getSpan().context()).start();
-        if (span == null) {
-            log.warn("o {} method {} form {} currentSpan is null!", callData.getO().getClass(), callData.getMethodDispatchInfo().getMethod(), callData);
-        } else {
-            span.name("process").annotate(ZipkinUtil.SERVER_RECEIVE_TAG).tag("callMethod", callData.getMethodDispatchInfo().getMethod().getName());
-        }
-        TraceLogUtil.setTraceIdBySpan(span, "CallEvent process");
-        String methodName = callData.getMethodDispatchInfo().getMethod().getName();
-        Class<?> handlerClazz = callData.getO() == null ? null : callData.getO().getClass();
         try {
+            TraceLogUtil.setTraceIdBySpan(span,id);
             if (Homo.class.isAssignableFrom(callData.getMethodDispatchInfo().getMethod().getReturnType())) {
                 Homo<?> homo = (Homo<?>) callData.invoke(callData.getO(), callData.getParams());
                 homo.consumerEmpty(() -> {
-                            log.debug("CallEvent consumerEmpty method ret, take {} milliseconds, o {}, methodName {}", System.currentTimeMillis() - start, handlerClazz, methodName);
-
-                            sink.error(HomoError.throwError(HomoError.callEmpty));
+                             sink.error(HomoError.throwError(HomoError.callEmpty));
                         })
                         .consumerValue(ret -> {
-                            log.debug("CallEvent consumerValue method ret, take {} milliseconds, o {}, methodName {}", System.currentTimeMillis() - start, handlerClazz, methodName);
-                            Object[] resParam = new Object[]{ret};
+                             Object[] resParam = new Object[]{ret};
                             Object serializeParamForBack = callData.getMethodDispatchInfo().serializeForReturn(resParam);
-                            if (span == null) {
-                                log.warn("o {} method {} form {} currentSpan is null!", callData.getO().getClass(), callData.getMethodDispatchInfo().getMethod(), callData);
-                            } else {
-                                span.finish();
-                            }
                             sink.success(serializeParamForBack);
                         })
                         .catchError(throwable -> {
-                            log.debug("CallEvent catchError method ret, take {} milliseconds, o {}, methodName {}", System.currentTimeMillis() - start, handlerClazz, methodName);
-                            span.error(throwable);
                             sink.error(throwable);
                         })
                         .start();
             } else {
                 try {
                     Object invoke = callData.invoke(callData.getO(), callData.getParams());
-                    if (sink != null) sink.success(invoke);
+                     if (sink != null) sink.success(invoke);
                 } catch (Exception e) {
-                    if (sink != null) sink.error(e);
+                     if (sink != null) sink.error(e);
                 }
             }
         } catch (Throwable e) {
-            log.error("CallEvent precess finished with error, o {}, methodName {} milliseconds {}", handlerClazz, methodName, System.currentTimeMillis() - start, e);
-            sink.error(e);
+             sink.error(e);
         }
     }
 

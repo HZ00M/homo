@@ -59,7 +59,7 @@ public class BuildMojo extends AbsHomoMojo<BuildMojo> {
             //生成service文件
             generateServiceFile();
         } catch (Exception e) {
-            throw new MojoFailureException("homoClean generate fail!", e);
+            throw new MojoFailureException("BuildMojo generate fail!", e.getCause());
         }
     }
 
@@ -129,6 +129,8 @@ public class BuildMojo extends AbsHomoMojo<BuildMojo> {
             String writeHeadlessFilePath = buildConfiguration.getCloudServiceBuildFile();
             FileExtendUtils.writeYamlObjToFile(writeHeadlessFilePath, cloudService.iterator());
             log.info("generateServiceFile cloudService success path {}", writeHeadlessFilePath);
+        }else {
+            log.info("generateServiceFile setters is empty ,skip !");
         }
     }
 

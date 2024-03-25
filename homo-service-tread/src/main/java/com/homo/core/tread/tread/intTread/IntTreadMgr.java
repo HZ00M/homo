@@ -91,7 +91,7 @@ public class IntTreadMgr extends AbstractTreadMgr<Integer> {
     }
 
     @Override
-    public void init() {
+    public void moduleInit() {
         baseTypeMap.put(Integer.class, Integer.class);
         baseTypeMap.put(int.class, Integer.class);
         init(Integer.class, treadProperties.scanPath);

@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-common</artifactId>
+            <artifactId>homo-core-utils</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>

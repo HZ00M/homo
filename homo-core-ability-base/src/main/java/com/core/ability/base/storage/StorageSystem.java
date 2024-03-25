@@ -1,9 +1,9 @@
 package com.core.ability.base.storage;
 
-import brave.Span;
 import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.*;
-import com.homo.core.facade.module.ServiceModule;
+import com.homo.core.utils.module.RootModule;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.facade.storege.SaveObject;
 import com.homo.core.storage.ByteStorage;
 import com.homo.core.storage.ObjStorage;
@@ -13,7 +13,6 @@ import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
-import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +34,8 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
     ObjStorage storage;
     @Autowired(required = false)
     HomoSerializationProcessor serializationProcessor;
+    @Autowired
+    private RootModule rootModule;
     HomoTimerMgr timerMgr = HomoTimerMgr.getInstance();
 
     @Override
@@ -63,7 +64,7 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
     Map<String, SaveCache> survivorEntityMap2 = new ConcurrentHashMap<>();
 
     @Override
-    public void init() {
+    public void afterAllModuleInit() {
         saveEntityMap = survivorEntityMap1;
         landEntity();
     }
@@ -90,7 +91,7 @@ public class StorageSystem implements AbilitySystem, ServiceModule {
         List<Homo<Boolean>> storagePromiseList = new ArrayList<>();
         for (SaveCache saveCache : lastEntityMap.values()) {
             SaveObject saveObject = saveCache.saveObject;
-            Homo<Boolean> savePromise = storage.save(getServerInfo().appId, getServerInfo().regionId, saveObject.getLogicType(), saveObject.getOwnerId(), ByteStorage.DEFAULT_DATA_KEY, saveCache.getData())
+            Homo<Boolean> savePromise = storage.save(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, saveObject.getLogicType(), saveObject.getOwnerId(), ByteStorage.DEFAULT_DATA_KEY, saveCache.getData())
                     .consumerValue(ret -> {
                         if (ret) {
                             saveCache.setSave(true);

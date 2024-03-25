@@ -1,9 +1,10 @@
 package com.homo.core.rpc.base.service;
 
-import com.homo.core.facade.module.DriverModule;
+import com.homo.core.utils.module.DriverModule;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceStateMgr;
+import com.homo.core.utils.module.RootModule;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
@@ -31,34 +32,34 @@ public class ServiceMgr implements DriverModule {
     private ServiceStateMgr serviceStateMgr;
     private Map<String, ServiceExport> serviceExportMap = new HashMap<>();
     private Service mainService;
-
+    @Autowired
+    private RootModule rootModule;
     @Override
-    public void init() {
+    public void moduleInit() {
         scanServiceDefine();
-        services.forEach(service -> {
+        for (Service service : services) {
             ServiceExport serviceExport = service.getServiceExport();
             if (serviceExport != null) {
                 if (serviceExport.isStateful()) {
-                    getServerInfo().setStateful(true);
+                    rootModule.getServerInfo().setStateful(true);
                 }
                 if (serviceExport.isMainServer()) {
-                    getServerInfo().setServerName(serviceExport.tagName());
                     mainService = service;
                 }
             }
             if (service instanceof BaseService) {
-                ((BaseService) service).init(this);
+                ((BaseService) service).init();
                 log.info("service {} init start", service.getTagName());
                 localServiceMap.put(service.getTagName(), service);
             } else {
                 log.error("service must extend BaseService yet");
             }
-
-        });
+        }
         if (mainService == null){
             log.error("main service not found");
             System.exit(-1);
         }
+        rootModule.getServerInfo().setServerName(mainService.getTagName());
     }
 
     private void scanServiceDefine() {

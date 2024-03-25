@@ -1,8 +1,9 @@
 package com.homo.core.storage;
 
-import com.homo.core.facade.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.storege.SaveObject;
 import com.homo.core.utils.lang.Pair;
+import com.homo.core.utils.module.RootModule;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,8 @@ public class ObjStorage implements Module {
     ByteStorage storage;
     @Autowired(required = false)
     HomoSerializationProcessor serializationProcessor;
-
+    @Autowired
+    private RootModule rootModule;
     public String warpAppId(String appId){
         return appId;
     }
@@ -30,7 +32,7 @@ public class ObjStorage implements Module {
         byte[] bytes = serializationProcessor.writeByte(obj);
         Map<String,byte[]> map = new HashMap<>();
         map.put(OBJECT_KEY,bytes);
-        return storage.update(getServerInfo().getAppId(),getServerInfo().getRegionId(),obj.getLogicType(),obj.getOwnerId(),map)
+        return storage.update(rootModule.getServerInfo().getAppId(),rootModule.getServerInfo().getRegionId(),obj.getLogicType(),obj.getOwnerId(),map)
                 .nextDo(ret-> Homo.result(ret.getKey()));
     }
 
@@ -53,7 +55,7 @@ public class ObjStorage implements Module {
 
 
     public <T extends SaveObject> Homo<T> load(String logicType, String ownerId,Class<T> clazz) {
-        return load(warpAppId(getServerInfo().getAppId()), getServerInfo().getRegionId(), logicType, ownerId, OBJECT_KEY,clazz);
+        return load(warpAppId(rootModule.getServerInfo().getAppId()), rootModule.getServerInfo().getRegionId(), logicType, ownerId, OBJECT_KEY,clazz);
     }
 
     public <T extends Serializable> Homo<T> load(

@@ -13,7 +13,6 @@ import javax.annotation.PostConstruct;
 @Slf4j
 @Component
 public class TreadServiceImpl  implements TreadService{
- 
 
     @Autowired
     IntTreadMgr treadMgr;

@@ -1,8 +1,9 @@
 package com.homo.core.storage;
 
-import com.homo.core.facade.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.storege.StorageDriver;
 import com.homo.core.utils.lang.Pair;
+import com.homo.core.utils.module.RootModule;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,11 @@ public class ByteStorage implements Module {
     @Autowired(required = false)
     StorageDriver storage;
 
+    @Autowired
+    private RootModule rootModule;
+
     public Homo<Pair<Boolean, Map<String, byte[]>>> update(String logicType, String ownerId, Map<String, byte[]> keyList) {
-        return update(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, keyList);
+        return update(rootModule.getServerInfo().getAppId(), rootModule.getServerInfo().getRegionId(), logicType, ownerId, keyList);
     }
 
     public Homo<Pair<Boolean, Map<String, byte[]>>> update(String appId, String regionId, String logicType, String ownerId, Map<String, byte[]> keyList) {
@@ -27,7 +31,7 @@ public class ByteStorage implements Module {
     }
 
     public Homo<Boolean> save(String logicType, String ownerId, String key, byte[] data) {
-        return save(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, key, data);
+        return save(rootModule.getServerInfo().getAppId(), rootModule.getServerInfo().getRegionId(), logicType, ownerId, key, data);
     }
 
     public Homo<Boolean> save(String appId, String regionId, String logicType, String ownerId, String key, byte[] data) {
@@ -39,7 +43,7 @@ public class ByteStorage implements Module {
     }
 
     public Homo<byte[]> get(String logicType, String ownerId, String key) {
-        return get(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, key);
+        return get(rootModule.getServerInfo().getAppId(), rootModule.getServerInfo().getRegionId(), logicType, ownerId, key);
     }
 
     public Homo<byte[]> get(String appId, String regionId, String logicType, String ownerId, String key) {
@@ -59,7 +63,7 @@ public class ByteStorage implements Module {
     }
 
     public Homo<Map<String, byte[]>> get(String logicType, String ownerId, List<String> keyList) {
-        return get(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, keyList);
+        return get(rootModule.getServerInfo().getAppId(), rootModule.getServerInfo().getRegionId(), logicType, ownerId, keyList);
     }
 
     public Homo<Map<String, byte[]>> get(String appId, String regionId, String logicType, String ownerId, List<String> keyList) {
@@ -69,7 +73,7 @@ public class ByteStorage implements Module {
     }
 
     public Homo<Map<String, byte[]>> getAll(String logicType, String ownerId) {
-        return getAll(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId);
+        return getAll(rootModule.getServerInfo().getAppId(), rootModule.getServerInfo().getRegionId(), logicType, ownerId);
     }
 
     public Homo<Map<String, byte[]>> getAll(String appId, String regionId, String logicType, String ownerId) {
@@ -79,7 +83,7 @@ public class ByteStorage implements Module {
     }
 
     public Homo<List<String>> removeKeys(String logicType, String ownerId, List<String> keys) {
-        return removeKeys(getServerInfo().getAppId(), getServerInfo().getRegionId(), logicType, ownerId, keys);
+        return removeKeys(rootModule.getServerInfo().getAppId(), rootModule.getServerInfo().getRegionId(), logicType, ownerId, keys);
     }
 
     public Homo<List<String>> removeKeys(String appId, String regionId, String logicType, String ownerId, List<String> keys) {

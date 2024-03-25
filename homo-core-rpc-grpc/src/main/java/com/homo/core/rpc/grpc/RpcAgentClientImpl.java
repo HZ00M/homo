@@ -49,12 +49,11 @@ public class RpcAgentClientImpl implements RpcAgentClient {
         return targetServiceName;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Homo rpcCall(String funName, RpcContent param) {
-        try (Tracer.SpanInScope ignored = ZipkinUtil.getTracing().tracer().withSpanInScope(ZipkinUtil.newCSSpan())) {
-            CallQueue currentCallQueue = CallQueueMgr.getInstance().getLocalQueue();
-            Assert.notNull(currentCallQueue,"rpcCall callQueue is null funName " + funName);
-
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name(funName).tag("type","rpcCall").tag("funName",funName);
+        try(Tracer.SpanInScope spanInScope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)){
             Homo rpcResult;
             if (param.getType().equals(RpcContentType.BYTES)) {
                 ByteRpcContent byteRpcContent = (ByteRpcContent) param;
@@ -75,27 +74,39 @@ public class RpcAgentClientImpl implements RpcAgentClient {
                 log.error("asyncCall contentType unknown, targetServiceName {} funName {} contentType {}", targetServiceName, funName, param.getType());
                 rpcResult = Homo.error(new RuntimeException("rpcCall contentType unknown"));
             }
-            return rpcResult.switchThread(currentCallQueue,ZipkinUtil.getTracing().tracer().nextSpan());
-        } catch (Exception e) {
-            log.error("rpcCall {} {} error ", funName, param != null ? param.getType() : "null", e);
+            return rpcResult.consumerValue(ret->span.finish());
+        }catch (Exception e){
             return Homo.error(e);
         }
+
     }
 
     private  Homo asyncBytesCall(String funName, byte[][] data) {
-        Span span = ZipkinUtil.currentSpan().name("asyncBytesCall");
+        Span span = ZipkinUtil.currentSpan();
         Req.Builder builder = Req.newBuilder().setSrcService(srcServiceName).setMsgId(funName);
         if (data != null) {
             for (byte[] datum : data) {
                 builder.addMsgContent(ByteString.copyFrom(datum));
             }
         }
-        Req req = builder.build();
+        Req req1 = builder.build();
+        TraceInfo traceInfo = TraceInfo.newBuilder()
+                .setTraceId(span.context().traceId())
+                .setSpanId(span.context().spanId())
+                .setSample(span.context().sampled())
+                .build();
+        String reqId = new StringBuilder()
+                .append(req1.hashCode())
+                .append(":")
+                .append(System.currentTimeMillis())
+                .append(":")
+                .append(RandomUtils.nextInt()).toString();
+        Req req = builder.setReqId(reqId).setTraceInfo(traceInfo).build();
         return rpcClient.asyncBytesCall(req);
     }
 
     private  Homo asyncBytesStreamCall(String funName, byte[][] data) {
-        Span span = ZipkinUtil.currentSpan().name("asyncBytesStreamCall");
+        Span span = ZipkinUtil.currentSpan();
         StreamReq.Builder builder = StreamReq.newBuilder()
                 .setSrcService(srcServiceName)
                 .setMsgId(funName)
@@ -124,13 +135,24 @@ public class RpcAgentClientImpl implements RpcAgentClient {
     }
 
     private  Homo asyncJsonCall(String funName, String data) {
-        Span span = ZipkinUtil.currentSpan().name("asyncJsonCall");
+        Span span = ZipkinUtil.currentSpan();
         JsonReq.Builder builder = JsonReq.newBuilder()
                 .setSrcService(srcServiceName)
                 .setMsgId(funName)
                 .setMsgContent(data);
-
-        JsonReq jsonReq = builder.build();
+        TraceInfo traceInfo = TraceInfo.newBuilder()
+                .setTraceId(span.context().traceId())
+                .setSpanId(span.context().spanId())
+                .setSample(span.context().sampled())
+                .build();
+        JsonReq jsonReq1 = builder.build();
+        String reqId = new StringBuilder()
+                .append(jsonReq1.hashCode())
+                .append(":")
+                .append(System.currentTimeMillis())
+                .append(":")
+                .append(RandomUtils.nextInt()).toString();
+        JsonReq jsonReq = builder.setReqId(reqId).setTraceInfo(traceInfo).build();
         return rpcClient.asyncJsonCall(jsonReq);
     }
 

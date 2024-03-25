@@ -1,5 +1,6 @@
 package com.homo.core.rpc.base.serial;
 
+import brave.Span;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -19,6 +20,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class JsonRpcContent implements RpcContent<String, String> {
     private String data;
+    private Span span;
 
     @Override
     public RpcContentType getType() {
@@ -105,5 +107,10 @@ public class JsonRpcContent implements RpcContent<String, String> {
             retStr = JSON.toJSONString(params);
         }
         return retStr;
+    }
+
+    @Override
+    public Span getSpan() {
+        return span;
     }
 }

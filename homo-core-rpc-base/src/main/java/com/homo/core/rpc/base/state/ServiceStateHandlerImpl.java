@@ -2,12 +2,14 @@ package com.homo.core.rpc.base.state;
 
 import com.homo.core.configurable.rpc.ServerStateProperties;
 import com.homo.core.facade.cache.CacheDriver;
-import com.homo.core.facade.module.Module;
+import com.homo.core.facade.service.LoadInfo;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.service.ServiceStateHandler;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.exception.HomoError;
+import com.homo.core.utils.module.RootModule;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +37,10 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
     @Autowired(required = false)
     private ServiceStateMgr stateMgr;
     Map<String, String> tagToServiceNameMap = new ConcurrentHashMap<>();
-
+    @Autowired
+    private RootModule rootModule;
     @Override
-    public void init() {
+    public void afterAllModuleInit() {
         scheduleUpdate();
     }
 
@@ -90,20 +93,19 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
                         //缓存符合条件的service
                         int range = serverStateProperties.getGoodStateRange().getOrDefault(serviceName,
                                 serverStateProperties.getDefaultRange());
-                        ArrayList<Map.Entry<Integer, Integer>> stateList = new ArrayList<>(map.entrySet());
-                        stateList.sort(Comparator.comparingInt(Map.Entry::getValue));
+                        List<LoadInfo> stateList = new ArrayList<>(map.values());
                         //寻找goodServices，取负载最优的服务加上基数作为比较值，小于这个值表示服务状态良好
                         List<Integer> goodServices = new ArrayList<>();
-                        int limit = stateList.get(0).getValue() + range;
-                        for (Map.Entry<Integer, Integer> entry : stateList) {
-                            if (entry.getValue() <= limit) {
-                                goodServices.add(entry.getKey());
+                        int limit = stateList.get(0).load + range;
+                        for (LoadInfo loadInfo : stateList) {
+                            if (loadInfo.load <= limit) {
+                                goodServices.add(loadInfo.id);
                             } else {
                                 break;
                             }
                         }
                         goodServiceMap.put(serviceName, goodServices);
-                        List<Integer> aliveServices = stateList.stream().map(Map.Entry::getKey).collect(Collectors.toList());
+                        List<Integer> aliveServices = stateList.stream().map(item->item.id).collect(Collectors.toList());
                         availableServiceMap.put(serviceName, aliveServices);
                     }
                     return Homo.result(true);
@@ -124,7 +126,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
         return Homo.warp(homoSink -> {
             ArrayList<String> fields = new ArrayList<>();
             fields.add(tag);
-            cacheDriver.asyncGetByFields(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag, fields)
+            cacheDriver.asyncGetByFields(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, SERVICE_NAME_TAG, tag, fields)
                     .consumerValue(ret -> {
                         byte[] bytes = ret.get(tag);
                         if (bytes == null) {
@@ -148,7 +150,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
         return Homo.warp(homoSink -> {
             Map<String, byte[]> saveMap = new HashMap<>();
             saveMap.put(tag, serviceName.getBytes(StandardCharsets.UTF_8));
-            cacheDriver.asyncUpdate(getServerInfo().appId, getServerInfo().regionId, SERVICE_NAME_TAG, tag, saveMap);
+            cacheDriver.asyncUpdate(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, SERVICE_NAME_TAG, tag, saveMap);
         });
     }
 
@@ -186,7 +188,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
     }
 
     @Override
-    public Homo<Map<Integer, Integer>> getServiceAllStateInfo(String serviceName) {
+    public Homo<Map<Integer, LoadInfo>> getServiceAllStateInfo(String serviceName) {
         return stateMgr.geAllStateInfo(serviceName);
     }
 

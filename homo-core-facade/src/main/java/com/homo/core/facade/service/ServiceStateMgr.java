@@ -1,6 +1,6 @@
 package com.homo.core.facade.service;
 
-import com.homo.core.facade.module.ServiceModule;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.utils.rector.Homo;
 
 import java.util.List;
@@ -102,7 +102,7 @@ public interface ServiceStateMgr extends ServiceModule {
      * @param serviceName
      * @return
      */
-    Homo<Map<Integer,Integer>> geAllStateInfo(String serviceName);
+    Homo<Map<Integer,LoadInfo>> geAllStateInfo(String serviceName);
 
     Homo<Boolean> setServiceInfo(String tag, ServiceInfo serviceInfo);
 
@@ -114,5 +114,5 @@ public interface ServiceStateMgr extends ServiceModule {
 
     Homo<Integer> choiceBestPod(String serviceName);
 
-    Homo<Map<Integer, Integer>> getServiceAllStateInfo(String serviceName);
+    Homo<Map<Integer, LoadInfo>> getServiceAllStateInfo(String serviceName);
 }

@@ -90,7 +90,7 @@ public class StringTreadMgr extends AbstractTreadMgr<String> {
     }
 
     @Override
-    public void init() {
+    public void moduleInit() {
         baseTypeMap.put(String.class, String.class);
         init(String.class, treadProperties.scanPath);
         registerMgr(String.class, this);

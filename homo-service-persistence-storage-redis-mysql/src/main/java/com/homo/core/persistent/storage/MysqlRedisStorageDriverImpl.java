@@ -9,6 +9,8 @@ import com.homo.core.mysql.entity.DataObject;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.factory.RedisInfoHolder;
 import com.homo.core.redis.lua.LuaScriptHelper;
+import com.homo.core.utils.concurrent.queue.CallQueue;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.lang.Pair;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.TraceLogUtil;
@@ -42,7 +44,7 @@ import java.util.*;
 @Slf4j
 public class MysqlRedisStorageDriverImpl implements StorageDriver {
 
-//    private static final String REDIS_KEY_TMPL = "slug-data:{%s:%s:%s:%s}";
+    //    private static final String REDIS_KEY_TMPL = "slug-data:{%s:%s:%s:%s}";
     private static final String REDIS_EXIST_KEY_TMPL = "slug-exist:{%s:%s:%s:%s:exist}";
 
     @Autowired(required = false)
@@ -70,12 +72,13 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
         for (int i = 0; i < fieldList.size(); i++) {
             args[i + 1] = fieldList.get(i).getBytes(StandardCharsets.UTF_8);
         }
-        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncGetByFields").tag("type","storage") .annotate(ZipkinUtil.CLIENT_SEND_TAG);
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(queryFieldsScript, keys, args);
-        return Homo.warp(homoSink -> {
+        Homo<Map<String, byte[]>> warp = Homo.warp(homoSink -> {
             resultFlux.subscribe(ret -> {
                 try {
-                    TraceLogUtil.setTraceIdBySpan(span,"storage asyncGetByFields");
+                    TraceLogUtil.setTraceIdBySpan(span, "storage asyncGetByFields");
                     log.trace("asyncGetByFields subscribe appId {} regionId {} logicType {} ownerId {} fieldList {}", appId, regionId, logicType, ownerId, fieldList);
                     List arrayList = (ArrayList) ret;
                     Map<String, byte[]> map = new HashMap<>();
@@ -115,18 +118,22 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
                                     }
                                     //redis取的数据是全的，直接返回
                                     log.info("asyncGetByFields hotFields appId {} regionId {} logicType {} ownerId {} fieldList {}", appId, regionId, logicType, ownerId, fieldList);
+                                    span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
                                     homoSink.success(map);
                                 }).start();
                     } else {
                         //redis取的数据是全的，直接返回
                         log.info("asyncGetByFields complete appId {} regionId {} logicType {} ownerId {} fieldList {}", appId, regionId, logicType, ownerId, fieldList);
+                        span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
                         homoSink.success(map);
                     }
                 } catch (Exception e) {
+                    span.error(e);
                     homoSink.error(e);
                 }
             }, homoSink::error);
         });
+        return warp.switchThread(callQueue,span);
     }
 
     @Override
@@ -137,39 +144,43 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
         String queryAllKeyScript = LuaScriptHelper.queryAllFieldsScript;
         String[] keys = {redisKey, persistenceKey};
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(queryAllKeyScript, keys, redisInfoHolder.getExpireTime().toString().getBytes(StandardCharsets.UTF_8));
-        Sinks.One<Map<String, byte[]>> one = Sinks.one();
-        Homo<Map<String, byte[]>> homo = new Homo<>(one.asMono());
-        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
-        resultFlux.subscribe(ret -> {
-            try {
-                TraceLogUtil.setTraceIdBySpan(span,"storage asyncGetAll");
-                ArrayList list = (ArrayList) ret;
-                Map<String, byte[]> map = new HashMap<>();
-                if (list.size() == 1 && list.get(0).equals(0L)) {//数据库里有数据但内存里的数据不是最新的
-                    DBDataHolder.hotAllField(appId, regionId, logicType, ownerId, redisKey)
-                            .consumerValue(bool -> {
-                                //重新从redis拿
-                                asyncGetAll(appId, regionId, logicType, ownerId).start();
-                                one.tryEmitValue(new HashMap<>());
-                            });
-                    return;
-                }
-                if (!(list.size() == 1 && list.get(0).equals(-1L))) {//如果返回的是-1，即没有全量的key，跳过整合map的步骤
-                    log.trace("asyncGetAll load from redis success appId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
-                    for (int i = 0; i < list.size(); i += 2) {
-                        if (list.get(i + 1) != null) {
-                            String filed = new String((byte[]) list.get(i), StandardCharsets.UTF_8);
-                            byte[] bytes = (byte[]) list.get(i + 1);
-                            map.put(filed, bytes);
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncGetAll").tag("type","storage").annotate(ZipkinUtil.CLIENT_SEND_TAG);
+        Homo<Map<String, byte[]>> warp = Homo.warp(homoSink -> {
+            resultFlux.subscribe(ret -> {
+                try {
+                    TraceLogUtil.setTraceIdBySpan(span, "storage asyncGetAll");
+                    ArrayList list = (ArrayList) ret;
+                    Map<String, byte[]> map = new HashMap<>();
+                    if (list.size() == 1 && list.get(0).equals(0L)) {//数据库里有数据但内存里的数据不是最新的
+                        DBDataHolder.hotAllField(appId, regionId, logicType, ownerId, redisKey)
+                                .consumerValue(bool -> {
+                                    //重新从redis拿
+                                    asyncGetAll(appId, regionId, logicType, ownerId).start();
+                                    span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
+                                    homoSink.success(new HashMap<>());
+                                });
+                        return;
+                    }
+                    if (!(list.size() == 1 && list.get(0).equals(-1L))) {//如果返回的是-1，即没有全量的key，跳过整合map的步骤
+                        log.trace("asyncGetAll load from redis success appId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
+                        for (int i = 0; i < list.size(); i += 2) {
+                            if (list.get(i + 1) != null) {
+                                String filed = new String((byte[]) list.get(i), StandardCharsets.UTF_8);
+                                byte[] bytes = (byte[]) list.get(i + 1);
+                                map.put(filed, bytes);
+                            }
                         }
                     }
+                    span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
+                    homoSink.success(map);
+                } catch (Exception exception) {
+                    span.error(exception);
+                    homoSink.error(exception);
                 }
-                one.tryEmitValue(map);
-            } catch (Exception exception) {
-                one.tryEmitError(exception);
-            }
-        }, one::tryEmitError);
-        return homo;
+            }, homoSink::error);
+        });
+        return warp.switchThread(callQueue,span);
     }
 
 
@@ -191,25 +202,28 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
             index += 2;
             dirtyHelper.update(appId, regionId, logicType, ownerId, field);
         }
-        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
-        Sinks.One<Pair<Boolean, Map<String, byte[]>>> one = Sinks.one();
-        Homo<Pair<Boolean, Map<String, byte[]>>> homo = new Homo<>(one.asMono());
-        log.trace("asyncUpdate exec appId {} regionId {} logicType {} ownerId {} keys {} args {}", appId, regionId, logicType, ownerId,keys,args);
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncUpdate").tag("type","storage").annotate(ZipkinUtil.CLIENT_SEND_TAG);
+        log.trace("asyncUpdate exec appId {} regionId {} logicType {} ownerId {} keys {} args {}", appId, regionId, logicType, ownerId, keys, args);
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(updateFieldsScript, keys, args);
-        resultFlux.subscribe(ret -> {
-            try {
-                TraceLogUtil.setTraceIdBySpan(span,"storage asyncUpdate");
-                log.trace("asyncUpdate finish appId {} regionId {} logicType {} ownerId {} ret {}", appId, regionId, logicType, ownerId, ret);
-                dirtyDriver.dirtyUpdate(dirtyHelper.build())
-                        .consumerValue(res -> {
-                            Pair<Boolean, Map<String, byte[]>> pair = new Pair<>(true, new HashMap<>());
-                            one.tryEmitValue(pair);
-                        }).start();
-            } catch (Exception e) {
-                one.tryEmitError(e);
-            }
-        }, one::tryEmitError);
-        return homo;
+        Homo<Pair<Boolean, Map<String, byte[]>>> warp = Homo.warp(homoSink -> {
+            resultFlux.subscribe(ret -> {
+                try {
+                    TraceLogUtil.setTraceIdBySpan(span, "storage asyncUpdate");
+                    log.trace("asyncUpdate finish appId {} regionId {} logicType {} ownerId {} ret {}", appId, regionId, logicType, ownerId, ret);
+                    dirtyDriver.dirtyUpdate(dirtyHelper.build())
+                            .consumerValue(res -> {
+                                Pair<Boolean, Map<String, byte[]>> pair = new Pair<>(true, new HashMap<>());
+                                span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
+                                homoSink.success(pair);
+                            }).start();
+                } catch (Exception e) {
+                    span.error(e);
+                    homoSink.error(e);
+                }
+            }, homoSink::error);
+        });
+        return warp.switchThread(callQueue,span);
     }
 
     @Override
@@ -228,47 +242,51 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
             args[index + 1] = String.valueOf(dataEntry.getValue());
             index += 2;
         }
-        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
-        Sinks.One<Pair<Boolean, Map<String, Long>>> one = Sinks.one();
-        Homo<Pair<Boolean, Map<String, Long>>> homo = new Homo<>(one.asMono());
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncIncr").tag("type","storage").annotate(ZipkinUtil.CLIENT_SEND_TAG);
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(asyncIncrScript, keys, args);
-        resultFlux.subscribe(ret -> {
-            try {
-                TraceLogUtil.setTraceIdBySpan(span,"storage asyncIncr");
-                log.trace("asyncIncr subscribe appId {} regionId {} logicType {} ownerId {} result {}", appId, regionId, logicType, ownerId, ret);
-                ArrayList list = (ArrayList) ret;
-                Map<String, Long> retMap = new HashMap<>();
-                Pair<Boolean, Map<String, Long>> pair = new Pair<>(true, retMap);
-                if (!CollectionUtils.isEmpty(list)) {
-                    if (list.size() == 1 && list.get(0).equals("unCachedAllKey")) {
-                        DBDataHolder.hotAllField(appId, regionId, logicType, ownerId, redisKey)
-                                .consumerValue(res ->
-                                        asyncIncr(appId, regionId, logicType, ownerId, incrData)
-                                                .consumerValue(res2 -> {
-                                                            one.tryEmitValue(res2);
-                                                        }
-                                                ).start()
-                                )
-                                .catchError(one::tryEmitError).start();
-                        return;
-                    }
-                    DirtyHelper dirtyHelper = DirtyHelper.create(redisKey);
-                    for (int i = 0; i < list.size(); i += 2) {
-                        retMap.put((String) list.get(i), (Long) list.get(i + 1));
-                        dirtyHelper.incr(appId, regionId, logicType, ownerId, (String) list.get(i), (Long) list.get(i + 1));
-                    }
+        Homo<Pair<Boolean, Map<String, Long>>> warp = Homo.warp(homoSink -> {
+            resultFlux.subscribe(ret -> {
+                try {
+                    TraceLogUtil.setTraceIdBySpan(span, "storage asyncIncr");
+                    log.trace("asyncIncr subscribe appId {} regionId {} logicType {} ownerId {} result {}", appId, regionId, logicType, ownerId, ret);
+                    ArrayList list = (ArrayList) ret;
+                    Map<String, Long> retMap = new HashMap<>();
+                    Pair<Boolean, Map<String, Long>> pair = new Pair<>(true, retMap);
+                    if (!CollectionUtils.isEmpty(list)) {
+                        if (list.size() == 1 && list.get(0).equals("unCachedAllKey")) {
+                            DBDataHolder.hotAllField(appId, regionId, logicType, ownerId, redisKey)
+                                    .consumerValue(res ->
+                                            asyncIncr(appId, regionId, logicType, ownerId, incrData)
+                                                    .consumerValue(res2 -> {
+                                                                span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
+                                                                homoSink.success(res2);
+                                                            }
+                                                    ).start()
+                                    )
+                                    .catchError(homoSink::error).start();
+                            return;
+                        }
+                        DirtyHelper dirtyHelper = DirtyHelper.create(redisKey);
+                        for (int i = 0; i < list.size(); i += 2) {
+                            retMap.put((String) list.get(i), (Long) list.get(i + 1));
+                            dirtyHelper.incr(appId, regionId, logicType, ownerId, (String) list.get(i), (Long) list.get(i + 1));
+                        }
 
-                    dirtyDriver.dirtyUpdate(dirtyHelper.build())
-                            .consumerValue(res -> {
-                                log.trace("asyncIncr complete appId {} regionId {} logicType {} ownerId {} incrData {}", appId, regionId, logicType, ownerId, ret);
-                                one.tryEmitValue(pair);
-                            }).start();
+                        dirtyDriver.dirtyUpdate(dirtyHelper.build())
+                                .consumerValue(res -> {
+                                    log.trace("asyncIncr complete appId {} regionId {} logicType {} ownerId {} incrData {}", appId, regionId, logicType, ownerId, ret);
+                                    span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
+                                    homoSink.success(pair);
+                                }).start();
+                    }
+                } catch (Exception e) {
+                    span.error(e);
+                    homoSink.error(e);
                 }
-            } catch (Exception e) {
-                one.tryEmitError(e);
-            }
-        }, one::tryEmitError);
-        return homo;
+            }, homoSink::error);
+        });
+        return warp.switchThread(callQueue,span);
     }
 
     @Override
@@ -287,29 +305,34 @@ public class MysqlRedisStorageDriverImpl implements StorageDriver {
             index += 1;
             dirtyHelper.remove(appId, regionId, logicType, ownerId, remField);
         }
-        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
-        Sinks.One<Boolean> one = Sinks.one();
-        Homo<Boolean> homo = new Homo<>(one.asMono());
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncRemoveKeys").tag("type","storage").annotate(ZipkinUtil.CLIENT_SEND_TAG);
         Flux<Object> resultFlux = redisPool.evalAsyncReactive(removeFieldsScript, keys, args);
-        resultFlux.subscribe(ret -> {
-            TraceLogUtil.setTraceIdBySpan(span,"storage asyncRemoveKeys");
-            log.trace("asyncRemoveKeys subscribe appId {} regionId {} logicType {} ownerId {} keys {}", appId, regionId, logicType, ownerId, remKeys);
-            ArrayList list = (ArrayList) ret;
-            if (list.size() == 1 && list.get(0).equals("unCachedAllKey")) {
-                DBDataHolder
-                        .hotAllField(appId, regionId, logicType, ownerId, redisKey)
-                        .nextDo(res ->
-                                asyncRemoveKeys(appId, regionId, logicType, ownerId, remKeys)
-                                        .consumerValue(one::tryEmitValue)
-                        )
-                        .start();
-            } else {
-                dirtyDriver.dirtyUpdate(dirtyHelper.build())
-                        .consumerValue(res -> {
-                            one.tryEmitValue(true);
-                        }).start();
-            }
-        }, one::tryEmitError);
-        return homo;
+        Homo<Boolean> warp = Homo.warp(homoSink -> {
+            resultFlux.subscribe(ret -> {
+                TraceLogUtil.setTraceIdBySpan(span, "storage asyncRemoveKeys");
+                log.trace("asyncRemoveKeys subscribe appId {} regionId {} logicType {} ownerId {} keys {}", appId, regionId, logicType, ownerId, remKeys);
+                ArrayList list = (ArrayList) ret;
+                if (list.size() == 1 && list.get(0).equals("unCachedAllKey")) {
+                    DBDataHolder
+                            .hotAllField(appId, regionId, logicType, ownerId, redisKey)
+                            .nextDo(res ->
+                                    asyncRemoveKeys(appId, regionId, logicType, ownerId, remKeys)
+                                            .consumerValue(v -> {
+                                                span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
+                                                homoSink.success(v);
+                                            })
+                            )
+                            .start();
+                } else {
+                    dirtyDriver.dirtyUpdate(dirtyHelper.build())
+                            .consumerValue(res -> {
+                                span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
+                                homoSink.success(true);
+                            }).start();
+                }
+            }, homoSink::error);
+        });
+        return warp.switchThread(callQueue,span);
     }
 }

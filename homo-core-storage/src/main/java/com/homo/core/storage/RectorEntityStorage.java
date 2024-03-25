@@ -1,10 +1,11 @@
 package com.homo.core.storage;
 
-import com.homo.core.common.exception.LockException;
+import com.homo.core.utils.exception.LockException;
 import com.homo.core.facade.cache.CacheDriver;
 import com.homo.core.facade.lock.LockDriver;
-import com.homo.core.facade.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.utils.callback.CallBack;
+import com.homo.core.utils.module.RootModule;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,8 @@ import java.util.Map;
  */
 @Slf4j
 public class RectorEntityStorage<F, S, U, P> implements Module {
+    @Autowired
+    private RootModule rootModule;
     private boolean useCache;   //todo 增加缓存支持
     @Autowired(required = false)
     EntityStorage<F, S, U, P> storage;
@@ -113,7 +116,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
 
 
     public <T> Homo<Pair<Boolean, Map<String, T>>> update(String logicType, String ownerId, Class<T> clazz, Map<String, T> keyList) {
-        return Homo.warp(monoSink -> storage.updateWithCallBack(getServerInfo().appId,getServerInfo().regionId,logicType, ownerId, keyList, clazz, new CallBack<Pair<Boolean, Map<String, T>>>() {
+        return Homo.warp(monoSink -> storage.updateWithCallBack(rootModule.getServerInfo().appId,rootModule.getServerInfo().regionId,logicType, ownerId, keyList, clazz, new CallBack<Pair<Boolean, Map<String, T>>>() {
             @Override
             public void onBack(Pair<Boolean, Map<String, T>> booleanMapMap) {
                 monoSink.success(booleanMapMap);
@@ -141,7 +144,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
     public <T> Homo<Boolean> updatePartial(String logicType, String ownerId, String key, Class<T> clazz, Map<String, ?> keyList) {
-        return Homo.warp(monoSink -> storage.updatePartialWithCallBack(getServerInfo().appId,getServerInfo().regionId,logicType, ownerId, key, keyList, clazz, new CallBack<Boolean>() {
+        return Homo.warp(monoSink -> storage.updatePartialWithCallBack(rootModule.getServerInfo().appId,rootModule.getServerInfo().regionId,logicType, ownerId, key, keyList, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean booleanMapMap) {
                 monoSink.success(booleanMapMap);
@@ -169,7 +172,7 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
     public <T> Homo<T> save(String logicType, String ownerId, String key, T data, Class<T> clazz) {
-        return Homo.warp(monoSink -> storage.save(getServerInfo().appId,getServerInfo().regionId,logicType, ownerId, key, data, clazz, new CallBack<Boolean>() {
+        return Homo.warp(monoSink -> storage.save(rootModule.getServerInfo().appId,rootModule.getServerInfo().regionId,logicType, ownerId, key, data, clazz, new CallBack<Boolean>() {
             @Override
             public void onBack(Boolean aBoolean) {
                 if (aBoolean) {
@@ -343,37 +346,37 @@ public class RectorEntityStorage<F, S, U, P> implements Module {
     }
 
     public <T> Homo<Long> incr(String logicType, String ownerId, String incrKey, Class<T> clazz) {
-        return Homo.warp(monoSink -> storage.incr(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, incrKey, clazz, new CallBack<Pair<Boolean, Long>>() {
+        return Homo.warp(monoSink -> storage.incr(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, logicType, ownerId, incrKey, clazz, new CallBack<Pair<Boolean, Long>>() {
             @Override
             public void onBack(Pair<Boolean, Long> booleanLongPair) {
                 if (booleanLongPair.getLeft()) {
                     monoSink.success(booleanLongPair.getRight());
                 } else {
-                    monoSink.error(new Exception(String.format("incr failed, appId_%s regionId_%s logicType_%d, ownerId_%s, incrKey_%s", getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, incrKey)));
+                    monoSink.error(new Exception(String.format("incr failed, appId_%s regionId_%s logicType_%d, ownerId_%s, incrKey_%s", rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, logicType, ownerId, incrKey)));
                 }
             }
 
 
             @Override
             public void onError(Throwable throwable) {
-                monoSink.error(new Exception(String.format("incr error, appId_%s regionId_%s logicType_%d, ownerId_%s, incrKey_%s", getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, incrKey)));
+                monoSink.error(new Exception(String.format("incr error, appId_%s regionId_%s logicType_%d, ownerId_%s, incrKey_%s", rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, logicType, ownerId, incrKey)));
             }
         }));
     }
 
     public Homo<Boolean> asyncLock(String logicType, String ownerId,
                                          String lockField,Integer expireTime) {
-        return storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, expireTime);
+        return storage.asyncLock(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, logicType, ownerId, lockField, expireTime);
     }
 
     public Homo<Boolean> asyncLock(String logicType, String ownerId,
                                          String lockField,Integer expireTime, Integer retryCount, Integer retryDelaySecond) {
-        return storage.asyncLock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField, expireTime)
+        return storage.asyncLock(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, logicType, ownerId, lockField, expireTime)
                 .retry(retryCount, retryDelaySecond, LockException.class);
     }
 
     public Homo<Boolean> asyncUnlock(String logicType, String ownerId,
                                            String lockField) {
-        return storage.asyncUnlock(getServerInfo().appId, getServerInfo().regionId, logicType, ownerId, lockField);
+        return storage.asyncUnlock(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, logicType, ownerId, lockField);
     }
 }

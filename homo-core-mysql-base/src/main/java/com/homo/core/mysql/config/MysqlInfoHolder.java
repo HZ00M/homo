@@ -2,7 +2,7 @@ package com.homo.core.mysql.config;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
-import com.homo.core.common.apollo.ConfigDriver;
+import com.homo.core.utils.apollo.ConfigDriver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

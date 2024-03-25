@@ -1,7 +1,7 @@
 package com.homo.core.utils.rector;
 
 import brave.Span;
-import com.homo.core.utils.concurrent.event.AbstractBaseEvent;
+import com.homo.core.utils.concurrent.event.SwitchThreadEvent;
 import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.queue.CallQueueProducer;
@@ -12,7 +12,6 @@ import com.homo.core.utils.trace.TraceLogUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
-import org.slf4j.MDC;
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
@@ -51,10 +50,12 @@ public class Homo<T> extends Mono<T> {
     public static Homo<Void> resultVoid() {
         return Homo.warp(Mono.empty());
     }
+
     public final Homo<T> switchToCurrentThread() {
         Span span = ZipkinUtil.currentSpan();
         return switchToCurrentThread(span);
     }
+
     public final Homo<T> switchToCurrentThread(Span span) {
         CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
         return switchThread(callQueue, span);
@@ -78,16 +79,16 @@ public class Homo<T> extends Mono<T> {
         return this.nextDo(ret -> {
             return CallQueueMgr.getInstance().isThreadChanged(callQueue) ?
                     warp(sink -> {
-                        AbstractBaseEvent abstractBaseEvent = new AbstractBaseEvent() {
-                            @Override
-                            public void process() {
-                                TraceLogUtil.setTraceIdBySpan(span,"process");
-                                log.info("switchThread process queueId {}", callQueue.getId());
-                                sink.success(ret);
-                            }
-                        };
-                        abstractBaseEvent.setSpan(span);
-                        callQueue.addEvent(abstractBaseEvent);
+                        SwitchThreadEvent event;
+                        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+                        String fromInfo = localQueue == null ? Thread.currentThread().getName() : localQueue.name();
+                        String targetInfo = callQueue.name();
+                        if (span == null) {
+                            event = new SwitchThreadEvent(fromInfo, targetInfo, sink, ret, ZipkinUtil.getTracing().tracer().currentSpan());
+                        } else {
+                            event = new SwitchThreadEvent(fromInfo, targetInfo, sink, ret, span);
+                        }
+                        callQueue.addEvent(event);
                     }) :
                     result(ret);
         });

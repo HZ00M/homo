@@ -1,0 +1,49 @@
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: zipkin-server
+  namespace: homo-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zipkin-server
+  template:
+    metadata:
+      labels:
+        app: zipkin-server
+    spec:
+      containers:
+        - name: zipkin-server
+          image: openzipkin/zipkin
+          imagePullPolicy: IfNotPresent
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin-server
+  namespace: homo-test
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 9411
+      targetPort: 9411
+  selector:
+    app: zipkin-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homo-zipkin
+  namespace: homo-test
+spec:
+  type: ClusterIP
+  selector:
+    app: zipkin-server
+  ports:
+    - protocol: TCP
+      port: 9411
+      targetPort: 9411

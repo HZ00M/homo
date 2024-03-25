@@ -38,7 +38,7 @@ public class RpcServerFactoryGrpcImpl implements RpcServerFactory {
     private EventLoopGroup workerGroup ;
 
     @Override
-    public void init(){
+    public void moduleInit(){
         executor =  ThreadPoolFactory.newThreadPool("RpcServer", rpcGrpcServerProperties.getCorePoolSize(), rpcGrpcServerProperties.getKeepLive());
         bossGroup = new NioEventLoopGroup(rpcGrpcServerProperties.getBoosThreadSize(), executor);
         workerGroup = new NioEventLoopGroup(rpcGrpcServerProperties.getWorkerThreadSize(), executor);

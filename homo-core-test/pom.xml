@@ -90,6 +90,16 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
+                <artifactId>homo-core-gate</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-tcp</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
                 <artifactId>homo-core</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>

@@ -16,9 +16,7 @@
         <module>homo-core-proto</module>
         <module>homo-core-test</module>
         <module>homo-core-facade</module>
-        <module>homo-core-module</module>
         <module>homo-core-properties</module>
-        <module>homo-core-common</module>
         <module>homo-service-entity-storage-mongo</module>
         <module>homo-service-lock-redis</module>
         <module>homo-core-redis-base</module>
@@ -48,7 +46,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>1.0.0.18-SNAPSHOT</revision>
+        <revision>1.0.0.34-SNAPSHOT</revision>
         <spring.boot.version>2.3.12.RELEASE</spring.boot.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -187,11 +185,6 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-module</artifactId>
-                <groupId>com.homo</groupId>
-                <version>${revision}</version>
-            </dependency>
-            <dependency>
                 <artifactId>homo-core-gate-tcp</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
@@ -217,7 +210,7 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-common</artifactId>
+                <artifactId>homo-core-utils</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

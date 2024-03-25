@@ -48,14 +48,9 @@ public class RpcServerImpl implements RpcServer {
 
     @Override
     public Homo onCall(String srcService, String funName, RpcContent param)  {
-        Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.SERVER_RECEIVE_TAG);
-        if (span != null) {
-            span.name(funName);
-        }
         if (actualService == null) {
             log.warn("RpcServerImpl onCall service is null, funName {}", funName);
             return Homo.result(null);
-
         }
         return actualService.callFun(srcService, funName, param);
     }

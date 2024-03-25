@@ -22,6 +22,7 @@ import org.apache.maven.project.MavenProject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.util.*;
 
 @Slf4j
@@ -106,8 +107,9 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
             List<KubernetesType> kubeObjs = new ArrayList<>();
             try {
                 kubeObjs = FileExtendUtils.readFileToK8sObjs(serviceDeployFile, false);
-            } catch (FileNotFoundException e) {
-                log.warn("updateService serviceDeployFile serviceDeployFile {} not found ,skip updateService", serviceDeployFile, e);
+            } catch (NoSuchFileException e) {
+                log.warn("updateService serviceDeployFile serviceDeployFile {} not found ,skip updateService", serviceDeployFile);
+                return;
             } catch (IOException e) {
                 log.warn("updateService serviceDeployFile serviceDeployFile {} fail", serviceDeployFile, e);
             }
@@ -123,9 +125,7 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
                     log.info("updateService updateEndpoints {}", endpoints.getSubsets().get(0).getAddresses().get(0).getIp());
                 }
             }
-
         }
-
     }
 
     private void updateDiscoveryFile() throws IOException {
@@ -141,7 +141,10 @@ public class DeployMojo extends AbsHomoMojo<DeployMojo> {
         List<KubernetesType> kubeObjs = new ArrayList<>();
         try {
             kubeObjs = FileExtendUtils.readFileToK8sObjs(serviceBuildFile, false);
-        } catch (IOException e) {
+        }catch (NoSuchFileException e){
+            log.info("updateDiscoveryFile file {} not found,skip !", serviceBuildFile);
+            return;
+        }catch (IOException e) {
             log.error("discoveryService error", e);
         }
         if (kubeObjs.size() > 0) {

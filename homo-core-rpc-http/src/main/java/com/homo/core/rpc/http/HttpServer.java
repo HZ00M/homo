@@ -29,12 +29,12 @@ import java.nio.charset.StandardCharsets;
  * 支持json,pb
  * json对象需要再消息头选择数据类型为application/json。RPC接受方会将消息作为一个jsonObj
  * 否则默认作为pb来处理
- *
  */
 @Slf4j
 public class HttpServer {
     private RpcServer rpcServer;
     private DisposableServer nettyHttpServer;
+
     public HttpServer(RpcServer rpcServer) {
         this.rpcServer = rpcServer;
     }
@@ -46,7 +46,7 @@ public class HttpServer {
         HttpHandler httpHandler = WebHttpHandlerBuilder.applicationContext(applicationContext).build();
         ReactorHttpHandlerAdapter handlerAdapter = new ReactorHttpHandlerAdapter(httpHandler);
         nettyHttpServer = reactor.netty.http.server.HttpServer.create().port(getPort())
-                .protocol(HttpProtocol.HTTP11,HttpProtocol.H2C)//设置服务器支持的协议，默认的http1.1以及Http2 clear-text
+                .protocol(HttpProtocol.HTTP11, HttpProtocol.H2C)//设置服务器支持的协议，默认的http1.1以及Http2 clear-text
                 .wiretap(true)
                 .handle(handlerAdapter).bind().block();
         log.info("HttpServer start at {}", rpcServer.getPort());
@@ -62,17 +62,18 @@ public class HttpServer {
 
     /**
      * for proto
+     *
      * @param msgId
      * @param data
      * @param response
-     * @return
      * @param <T>
+     * @return
      */
-    public <T> Mono<DataBuffer> onCall(String msgId, byte[][] data,ServerHttpResponse response) {
-        Span span = ZipkinUtil.currentSpan();
+    public <T> Mono<DataBuffer> onCall(String msgId, byte[][] data, ServerHttpResponse response) {
+        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
         ByteRpcContent rpcContent = new ByteRpcContent(data, span);
-        return rpcServer.onCall("HttpServer",msgId,rpcContent)
-                .nextDo(ret->{
+        return rpcServer.onCall("HttpServer", msgId, rpcContent)
+                .nextDo(ret -> {
                     byte[][] res = ret;
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
                     DataBuffer buffer = dataBufferFactory.wrap(res[0]);
@@ -82,17 +83,18 @@ public class HttpServer {
 
     /**
      * for jsonData
+     *
      * @param msgId
      * @param data
      * @param response
-     * @return
      * @param <T>
+     * @return
      */
-    public <T> Mono<DataBuffer> onCall(String msgId, String data,ServerHttpResponse response) {
-        Span span = ZipkinUtil.currentSpan();
-        JsonRpcContent rpcContent = new JsonRpcContent(data);
-        return rpcServer.onCall("HttpServer",msgId,rpcContent)
-                .nextDo(ret->{
+    public <T> Mono<DataBuffer> onCall(String msgId, String data, ServerHttpResponse response) {
+        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
+        JsonRpcContent rpcContent = new JsonRpcContent(data,span);
+        return rpcServer.onCall("HttpServer", msgId, rpcContent)
+                .nextDo(ret -> {
                     ResponseMsg msg = ResponseMsg.builder().msgId(msgId).codeDesc("ok").msgContent(ret).code(HttpStatus.OK.value()).build();
                     String resStr = JSON.toJSONString(msg);
                     log.info("onCall success msgId {} responseMsg {}", msgId, resStr);
@@ -110,14 +112,15 @@ public class HttpServer {
 
     /**
      * for upload file
+     *
      * @param msgId
      * @param rpcContent
      * @param response
      * @return
      */
-    public Mono<DataBuffer> onFileUpload(String msgId, FileRpcContent rpcContent,ServerHttpResponse response )  {
-        return rpcServer.onCall("HttpServer",msgId,rpcContent)
-                .nextDo(ret->{
+    public Mono<DataBuffer> onFileUpload(String msgId, FileRpcContent rpcContent, ServerHttpResponse response) {
+        return rpcServer.onCall("HttpServer", msgId, rpcContent)
+                .nextDo(ret -> {
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
                     DataBuffer buffer = dataBufferFactory.wrap("success".getBytes(StandardCharsets.UTF_8));
                     return Mono.just(buffer);

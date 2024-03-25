@@ -21,5 +21,5 @@ public interface ServiceStateHandler {
 
     Homo<Integer> choiceBestPod(String serviceName);
 
-    Homo<Map<Integer, Integer>> getServiceAllStateInfo(String serviceName);
+    Homo<Map<Integer, LoadInfo>> getServiceAllStateInfo(String serviceName);
 }

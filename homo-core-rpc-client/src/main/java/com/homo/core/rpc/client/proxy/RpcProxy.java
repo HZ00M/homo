@@ -79,9 +79,9 @@ public class RpcProxy implements MethodInterceptor {
                 tagName,
                 methodName,
                 declaringClass.getSimpleName());
-//        CallQueue currentCallQueue = CallQueueMgr.getInstance().getLocalQueue();
-//        Assert.notNull(currentCallQueue,"rpc callQueue is null methodName " + methodName);
-//        Span currentSpan = ZipkinUtil.currentSpan();
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
+//        Span span = ZipkinUtil.getTracing().tracer().nextSpan().annotate(ZipkinUtil.CLIENT_SEND_TAG).tag("type","rpcProxy:intercept");
         return GetBeanUtil.getBean(ServiceStateMgr.class).getServiceInfo(tagName)
                 .nextDo(serviceInfo -> {
                     return ExchangeHostName.exchange(serviceInfo, objects)
@@ -89,19 +89,23 @@ public class RpcProxy implements MethodInterceptor {
                                 if (!StringUtils.isEmpty(realHostName)) {
                                     boolean isStateful = ServiceUtil.isStatefulService(realHostName);
                                     RpcContent callContent = rpcHandlerInfoForClient.serializeParamForInvoke(methodName, objects);
+                                    callContent.setSpan(span);
                                     return rpcClientMgr
                                             .getGrpcAgentClient(realHostName, isStateful)
                                             .rpcCall(methodName, callContent)
-//                                            .switchThread(currentCallQueue,currentSpan)
+                                            .switchThread(callQueue,span)
                                             .nextDo(ret -> {
+                                                span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
                                                 return processReturn(methodName, (Tuple2<String, ByteRpcContent>) ret);
                                             })
                                             .catchError(throwable -> {
+                                                span.error((Throwable) throwable);
                                                 log.error("rpc client call throwable {}", throwable);
                                                 HomoError.throwError(HomoError.rpcAgentTypeNotSupport);
                                             })
                                             ;
                                 } else {
+                                    span.error(new RuntimeException("realHostName empty"));
                                     return Homo.result(HomoError.throwError(HomoError.hostNotFound, tagName));
                                 }
                             });

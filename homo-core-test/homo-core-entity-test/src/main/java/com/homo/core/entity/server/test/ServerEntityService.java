@@ -13,7 +13,7 @@ public class ServerEntityService extends BaseService implements IServerEntitySer
     @Autowired
     AbilityEntityMgr abilityEntityMgr;
     @Override
-    public void postInit() {
+    public void afterServerInit() {
         abilityEntityMgr.registerEntityNotFoundProcess(ServerEntity.class,((aClass, id) -> abilityEntityMgr.createEntityPromise(aClass,id)));
     }
 }

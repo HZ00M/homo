@@ -16,6 +16,8 @@ message Req{
   string srcService = 1;
   string msgId = 2;
   repeated bytes msgContent = 3;
+  string reqId = 4;
+  TraceInfo traceInfo = 5;
 }
 
 message Res{
@@ -27,6 +29,8 @@ message JsonReq{
   string srcService = 1;
   string msgId = 2;
   string msgContent = 3;
+  string reqId = 4;
+  TraceInfo traceInfo = 5;
 }
 
 message JsonRes{
@@ -46,7 +50,8 @@ message StreamRes{
   string msgId = 1;
   repeated bytes msgContent = 2;
   string reqId = 3;
-  int64 spanId = 4;
+  int64 traceId = 4;
+  int64 spanId = 5;
 }
 
 message TraceInfo{

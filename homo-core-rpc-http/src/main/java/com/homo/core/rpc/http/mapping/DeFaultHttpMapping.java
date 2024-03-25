@@ -1,17 +1,19 @@
 package com.homo.core.rpc.http.mapping;
 
 import brave.Span;
+import brave.propagation.TraceContext;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
-import com.homo.core.facade.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.http.FileRpcContent;
 import com.homo.core.rpc.http.HttpServer;
 import com.homo.core.rpc.http.upload.DefaultUploadFile;
 import com.homo.core.rpc.http.upload.UploadFile;
 import com.homo.core.utils.serial.FSTSerializationProcessor;
+import com.homo.core.utils.trace.TraceLogUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.client.ClientRouterHeader;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
@@ -48,9 +51,9 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
     private ApplicationContext applicationContext;
 
     @Override
-    public void init() {
+    public void moduleInit() {
         log.info("DeFaultHttpMapping init start");
-        super.init();
+        super.moduleInit();
         AbstractHandlerMethodMapping<RequestMappingInfo> objHandlerMethodMapping = (AbstractHandlerMethodMapping<RequestMappingInfo>) applicationContext.getBean("requestMappingHandlerMapping");
         Map<RequestMappingInfo, HandlerMethod> mapRet = objHandlerMethodMapping.getHandlerMethods();
         for (RequestMappingInfo requestMappingInfo : mapRet.keySet()) {
@@ -82,8 +85,8 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         int port = exportPort(request);
         String msgId = exportMsgId(request);
         //参数格式(formDataParams,headerInfo)
-        MultiValueMap<String, String> queryParams = request.getQueryParams();
-        Map<String, String> formDataParams = queryParams.toSingleValueMap();
+        Map<String, String> formDataParams = request.getHeaders().toSingleValueMap();
+        Span span = setSpanIfNeed(msgId, formDataParams);
         JSONObject headerInfo = exportHeaderInfo(request);
         List<Object> list = new ArrayList<>();
         list.add(formDataParams);
@@ -92,7 +95,13 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         log.info("httpGet begin port {} msgId {} msg {}", port, msgId, msg);
         HttpServer httpServer = routerHttpServerMap.get(port);
         Mono<DataBuffer> respBuffer = httpServer.onCall(msgId, msg, response);
-        return response.writeAndFlushWith(Mono.just(respBuffer));
+        return response.writeAndFlushWith(Mono.just(respBuffer))
+                .doFinally(ret -> {
+                    if (span != null) {
+                        span.annotate(ZipkinUtil.SERVER_SEND_TAG);
+                        span.finish();
+                    }
+                });
     }
 
 
@@ -108,6 +117,8 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         ServerHttpResponse response = exchange.getResponse();
         int port = exportPort(request);
         String msgId = exportMsgId(request);
+        JSONObject headerInfo = exportHeaderInfo(request);
+        Span span = setSpanIfNeed(msgId, headerInfo.getInnerMap());
         Mono<Mono<DataBuffer>> resp = DataBufferUtils.join(request.getBody())
                 .flatMap(dataBuffer ->
                         Mono.create(monoSink -> {
@@ -135,7 +146,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                                             //参数是字符串(reqStr,headerInfo)
                                             list.add(reqStr);
                                         }
-                                        JSONObject headerInfo = exportHeaderInfo(request);
+
                                         list.add(headerInfo);
                                         msg = JSON.toJSONString(list);
                                         log.info("httpJsonPost begin port {} msgId {} msg {}", port, msgId, msg);
@@ -147,7 +158,13 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                                     }
                                 }
                         ));
-        return response.writeAndFlushWith(resp);
+        return response.writeAndFlushWith(resp)
+                .doFinally(ret -> {
+                    if (span != null) {
+                        span.annotate(ZipkinUtil.SERVER_SEND_TAG);
+                        span.finish();
+                    }
+                });
     }
 
     /**
@@ -162,6 +179,8 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         ServerHttpResponse response = exchange.getResponse();
         int port = exportPort(request);
         String msgId = exportMsgId(request);
+        Map<String, String> headerInfo = request.getHeaders().toSingleValueMap();
+        Span span = setSpanIfNeed(msgId, headerInfo);
         Mono<Mono<DataBuffer>> resp = DataBufferUtils.join(request.getBody())
                 .flatMap(dataBuffer ->
                         Mono.create(monoSink -> {
@@ -170,7 +189,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                                 byte[] msgContent = new byte[dataBuffer.readableByteCount()];
                                 //参数格式 (pb协议,http头信息)
                                 ClientRouterHeader routerHeader = ClientRouterHeader.newBuilder()
-                                        .putAllHeaders(request.getHeaders().toSingleValueMap()).build();
+                                        .putAllHeaders(headerInfo).build();
                                 byte[][] msg = {msgContent, routerHeader.toByteArray()};
                                 log.info("httpProtoPost begin port {} msgId {} ", port, msgId);
                                 dataBuffer.read(msgContent);
@@ -183,14 +202,20 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                         })
                 );
 
-        return response.writeAndFlushWith(resp);
+        return response.writeAndFlushWith(resp)
+                .doFinally(ret -> {
+                    if (span != null) {
+                        span.annotate(ZipkinUtil.SERVER_SEND_TAG);
+                        span.finish();
+                    }
+                });
     }
 
     /**
      * 上传文件
      *
      * @param exchange
-     * @param filePart 上传的文件内容
+     * @param filePart 上传的文件内容 //todo 验证文件上传
      * @return
      */
     @PostMapping(value = "/upload/*", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -248,5 +273,40 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public static Span setSpanIfNeed(String msgId, Map<String, ?> headerInfo) {
+        Span span = null;
+        try {
+            if (headerInfo.containsKey("traceId") && headerInfo.containsKey("spanId") && headerInfo.containsKey("sampled")) {
+                long traceId = Long.parseLong(headerInfo.get("traceId").toString());
+                long spanId = Long.parseLong(headerInfo.get("spanId").toString());
+                Boolean sampled = Boolean.parseBoolean(headerInfo.get("sampled").toString());
+                TraceContext traceContext =
+                        TraceContext.newBuilder()
+                                .spanId(spanId)
+                                .traceId(traceId)
+                                .sampled(sampled)
+                                .build();
+                ZipkinUtil.getTracing()
+                        .tracer()
+                        .startScopedSpanWithParent(msgId, traceContext);
+                span = ZipkinUtil.currentSpan()
+                        .annotate(ZipkinUtil.SERVER_RECEIVE_TAG)
+                        .name(msgId);
+                log.info(
+                        "DefaultMapping getSpan traceId {}, sampled {} parent_spanId {} spanId {} msgId {}",
+                        traceContext.traceId(),
+                        traceContext.sampled(),
+                        traceContext.spanId(),
+                        span.context().spanId(),
+                        msgId);
+                TraceLogUtil.setTraceIdBySpan(span,msgId);
+            }
+        } catch (Exception e) {
+            log.error("DefaultMapping setSpanIfNeed msgId {} error", msgId, e);
+        }
+
+        return span;
     }
 }

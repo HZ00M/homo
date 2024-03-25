@@ -13,16 +13,20 @@ import reactor.core.publisher.Mono;
 public class TraceFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        Span span = ZipkinUtil.newSRSpan()
-                .tag(ZipkinUtil.SERVER_RECEIVE_TAG, "filter")
-                .tag("url", exchange.getRequest().getURI().toASCIIString());
-        Tracer.SpanInScope spanInScope = ZipkinUtil.startScope(span);
+        String url = exchange.getRequest().getURI().toASCIIString();
+        Span rootSpan = ZipkinUtil.newSRSpan()
+                .name("proxyTrace")
+                .annotate(ZipkinUtil.SERVER_RECEIVE_TAG)
+                .tag("type", "router")
+                .tag("url", url);
+        long traceId = rootSpan.context().traceId();
+        log.trace("TraceFilter process start url {} traceId {}", url, traceId);
+        Tracer.SpanInScope spanInScope = ZipkinUtil.startScope(rootSpan);
         return chain.filter(exchange)
                 .doFinally(sing -> {
-                    span
-                            .tag(ZipkinUtil.FINISH_TAG, "TraceWebFilter.filter")
-                            .annotate(ZipkinUtil.SERVER_SEND_TAG)
-                            .finish();
+                    rootSpan
+                            .annotate(ZipkinUtil.SERVER_SEND_TAG);
+                    log.trace("TraceFilter process end url {} traceId {}", url, traceId);
                     spanInScope.close();
                 });
     }

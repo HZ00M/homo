@@ -1,5 +1,6 @@
 package com.core.ability.base;
 
+import brave.Span;
 import brave.Tracer;
 import com.core.ability.base.call.CallSystem;
 import com.google.protobuf.ByteString;
@@ -108,12 +109,6 @@ public class EntityRpcProxy implements MethodInterceptor {
     }
 
     private Homo rpcCall(String type, String id, String methodName, EntityRequest entityRequest) throws Exception {
-        Tracer tracer = ZipkinUtil.getTracing().tracer();
-        tracer.newTrace()
-                .tag("entityType", type)
-                .tag("entityId", id)
-                .tag("methodName", methodName)
-                .annotate(ZipkinUtil.CLIENT_SEND_TAG);
         return GetBeanUtil.getBean(ServiceStateMgr.class).getServiceInfo(serviceName)
                 .nextDo(serviceInfo -> {
                     if (serviceInfo == null) {
@@ -122,11 +117,8 @@ public class EntityRpcProxy implements MethodInterceptor {
                     } else {
                         serviceName = serviceInfo.getServiceTag();
                     }
-//                    CallQueue currentCallQueue = CallQueueMgr.getInstance().getLocalQueue();
-//                    Assert.notNull(currentCallQueue,"rpc callQueue is null methodName " + methodName);
-//                    Span currentSpan = ZipkinUtil.currentSpan();
                     return ExchangeHostName.exchange(serviceInfo, entityRequest)
-                           .nextDo(realName -> {
+                            .nextDo(realName -> {
                                 RpcContent rpcContent = serviceEntityRpcInfo.serializeParamForInvoke(IEntityService.default_entity_call_method, new Object[]{-1, entityRequest});
                                 return rpcClientMgr.getGrpcAgentClient(realName, true)
                                         .rpcCall(IEntityService.default_entity_call_method, rpcContent)
@@ -143,9 +135,6 @@ public class EntityRpcProxy implements MethodInterceptor {
                                             }
                                             logicContent.setData(data);
                                             Object[] dataObjs = rpcHandlerInfoForClientMap.get(interfaceType).unSerializeParamForCallback(methodName, logicContent);
-                                            tracer.nextSpan().tag("entityType", type)
-                                                    .tag("entityId", id)
-                                                    .tag("methodName", methodName);
                                             if (dataObjs == null || dataObjs.length == 0) {
                                                 Homo.result(null);
                                             } else if (dataObjs.length <= 1) {
@@ -156,51 +145,5 @@ public class EntityRpcProxy implements MethodInterceptor {
                                         });
                             });
                 });
-//        return Homo.warp(homoSink -> {
-//            ExchangeHostName.exchange(serviceName, entityRequest)
-//                    .nextDo(name -> {
-//                        if (name == null) {
-//                            return serviceStateMgr.getServiceInfo(type)
-//                                    .nextValue(serviceInfo -> {
-//                                        if (serviceInfo ==  null) {
-//                                            log.error("entity proxy rpcClientCall getServiceNameByTag is null. type {} id {} funName {}", type, id, methodName);
-//                                            homoSink.error(new Throwable("entity proxy rpcClientCall getServiceNameByTag is null"));
-//                                        } else {
-//                                            serviceName = serviceInfo.getServiceTag();
-//                                        }
-//                                        return serviceName;
-//                                    });
-//                        } else {
-//                            return Homo.result(name);
-//                        }
-//                    }).nextDo(realName -> {
-//                        RpcContent rpcContent = serviceEntityRpcInfo.serializeParamForInvoke(IEntityService.default_entity_call_method, new Object[]{-1,entityRequest});
-//                        return rpcClientMgr.getGrpcAgentClient(realName,true)
-//                                .rpcCall(IEntityService.default_entity_call_method, rpcContent)
-//                                .consumerValue(ret -> {
-//                                    Tuple2<String,RpcContent> msgIdAndContent = (Tuple2<String, RpcContent>) ret;
-//                                    Object[] entityData = serviceEntityRpcInfo.unSerializeParamForCallback(IEntityService.default_entity_call_method,  msgIdAndContent.getT2());
-//                                    EntityResponse entityResponse = (EntityResponse) entityData[0];
-//                                    ByteRpcContent logicContent = new ByteRpcContent();
-//                                    List<ByteString> contentList = entityResponse.getContentList();
-//                                    byte[][] data = new byte[contentList.size()][];
-//                                    for (int i = 0;i <contentList.size() ; i++) {
-//                                        data[i] = contentList.get(i).toByteArray();
-//                                    }
-//                                    logicContent.setData(data);
-//                                    Object[] dataObjs = rpcHandlerInfoForClientMap.get(interfaceType).unSerializeParamForCallback(methodName, logicContent);
-//                                    tracer.nextSpan().tag("entityType", type)
-//                                            .tag("entityId", id)
-//                                            .tag("methodName", methodName);
-//                                    if (dataObjs == null || dataObjs.length == 0){
-//                                        homoSink.success(null);
-//                                    }else if (dataObjs.length <=1){
-//                                        homoSink.success(dataObjs[0]);
-//                                    }else {
-//                                        homoSink.success(Tuples.fromArray(dataObjs));
-//                                    }
-//                                });
-//                    }).start();
-//        });
     }
 }

@@ -1,7 +1,7 @@
 package com.homo.core.mysql.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.homo.core.common.apollo.ConfigDriver;
+import com.homo.core.utils.apollo.ConfigDriver;
 import com.homo.core.mysql.datasource.DynamicDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

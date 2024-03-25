@@ -43,14 +43,13 @@ public class CallDispatcher {
             log.error("callFun srcService {} funName {} not allow", srcService, funName);
             return Homo.error(HomoError.throwError(HomoError.callAllow));
         }
-        Span span = ZipkinUtil.currentSpan();
         Object[] unSerializeParam;
         if (podId == null && parameterMsg == null){//如果填充参数是空，则不填充
             unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName, rpcContent);
         }else {
             unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName, rpcContent, podId, parameterMsg);
         }
-        Homo<CallData> callTask = Homo.result(new CallData(handler, methodDispatchInfo, unSerializeParam, queueId, srcService, locKQueue, span,true, CallQueueMgr.DEFAULT_CHOICE_THREAD_STRATEGY));
+        Homo<CallData> callTask = Homo.result(new CallData(handler, methodDispatchInfo, unSerializeParam, queueId, srcService, locKQueue, rpcContent.getSpan(),true, CallQueueMgr.DEFAULT_CHOICE_THREAD_STRATEGY));
         Homo retPromise;
         if (interceptor != null) {
             retPromise = callTask.nextDo(call -> interceptor.onCall(handler, funName, unSerializeParam, call));

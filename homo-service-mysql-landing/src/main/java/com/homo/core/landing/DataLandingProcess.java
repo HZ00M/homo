@@ -1,6 +1,6 @@
 package com.homo.core.landing;
 
-import com.homo.core.facade.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.storege.DataOpType;
 import com.homo.core.facade.storege.dirty.DirtyHelper;
 import com.homo.core.facade.storege.landing.DataObjHelper;
@@ -24,7 +24,7 @@ public class DataLandingProcess implements  Module {
     private static HomoAsyncRedisPool redisPool;
 
     @Override
-    public void init(){
+    public void moduleInit(){
         redisPool = GetBeanUtil.getBean(HomoAsyncRedisPool.class);
     }
 

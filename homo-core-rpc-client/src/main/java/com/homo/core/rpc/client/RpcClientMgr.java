@@ -1,6 +1,6 @@
 package com.homo.core.rpc.client;
 
-import com.homo.core.facade.module.ServiceModule;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcType;
@@ -25,7 +25,7 @@ public class RpcClientMgr implements ServiceModule, ApplicationContextAware {
     private ApplicationContext applicationContext;
 
     @Override
-    public void init() {
+    public void moduleInit() {
         Map<String, RpcClientFactory> rpcClientImplMap = applicationContext.getBeansOfType(RpcClientFactory.class);
         for (RpcClientFactory clientFactory : rpcClientImplMap.values()) {
             rpcClientFactoryMap.put(clientFactory.getType(), clientFactory);

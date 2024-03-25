@@ -1,5 +1,6 @@
 package com.homo.core.rpc.base.service;
 
+import brave.Span;
 import com.homo.core.facade.ability.ICallSystem;
 import com.homo.core.facade.ability.IEntityService;
 import com.homo.core.facade.rpc.RpcContent;
@@ -11,6 +12,7 @@ import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.RpcInterceptor;
 import com.homo.core.rpc.base.serial.RpcHandlerInfoForServer;
 import com.homo.core.rpc.base.utils.ServiceUtil;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
@@ -28,7 +30,7 @@ import org.springframework.core.annotation.AnnotationUtils;
  * 提供获取服务器信息及服务调用的基本能力
  */
 @Slf4j
-public class BaseService implements Service, IEntityService {
+public class BaseService implements Service, IEntityService, ServiceModule {
     @Autowired(required = false)
     @Lazy
     ICallSystem callSystem;
@@ -41,23 +43,22 @@ public class BaseService implements Service, IEntityService {
     private boolean stateful;
     private CallDispatcher callDispatcher;
     private RpcHandlerInfoForServer rpcHandleInfo;
-
-    public void init(ServiceMgr serviceMgr) {
-        preInit();
-        this.serviceMgr = serviceMgr;
+    public void init() {
         ServiceExport serviceExport = getServiceExport();
         tagName = serviceExport.tagName();
         hostName = ServiceUtil.getServiceHostNameByTag(tagName);
         port = ServiceUtil.getServicePortByTag(tagName);
         driverType = serviceExport.driverType();
         stateful = serviceExport.isStateful();
-        GetBeanUtil.getBean(ServiceStateMgr.class).setServiceInfo(hostName, new ServiceInfo(tagName, hostName, port, stateful ? 1 : 0)).start();
         rpcHandleInfo = new RpcHandlerInfoForServer(this.getClass());
         callDispatcher = new CallDispatcher(rpcHandleInfo);
-        postInit();
     }
-
-
+    @Override
+    public void afterAllModuleInit() {
+        preServerInit();
+        GetBeanUtil.getBean(ServiceStateMgr.class).setServiceInfo(hostName, new ServiceInfo(tagName, hostName, port, stateful ? 1 : 0)).start();
+        afterServerInit();
+    }
     @Override
     public String getTagName() {
         return tagName;
@@ -133,8 +134,13 @@ public class BaseService implements Service, IEntityService {
         if (log.isDebugEnabled()) {
             log.debug("entityCall podIndex {} type {} id {} request {}", podIndex, request.getType(), request.getId(), request);
         }
-        ZipkinUtil.getTracing().tracer().currentSpan().tag("entityCall", request.getFunName());
-        return callSystem.call(request.getSrcName(), request, podIndex, parameterMsg);
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan()
+                .name("BaseService:entityCall")
+                .tag("type", "entityCall")
+                .tag("funName", request.getFunName())
+                .tag("pod", podIndex.toString())
+                .annotate(ZipkinUtil.CLIENT_SEND_TAG);
+        return callSystem.call(request.getSrcName(), request, podIndex, parameterMsg).consumerValue(ret->span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish());
     }
 
     @Override

@@ -2,7 +2,7 @@ package com.homo.core.utils.concurrent.schedule;
 
 import brave.Span;
 import brave.Tracer;
-import com.homo.core.utils.concurrent.event.BaseEvent;
+import com.homo.core.utils.concurrent.event.TraceEvent;
 import com.homo.core.utils.concurrent.event.Event;
 import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
@@ -70,7 +70,7 @@ public abstract class AbstractHomoTimerTask<T extends AbstractHomoTimerTask> ext
         try {
             doRun();
         } catch (Exception e) {
-            log.error("HomoTimerTask error", e);
+            log.error("HomoTimerTask id {} error", id,e);
             if (onErrorConsumer != null) {
                 onErrorConsumer.accept(this);
             }
@@ -99,16 +99,16 @@ public abstract class AbstractHomoTimerTask<T extends AbstractHomoTimerTask> ext
     public abstract void doRun();
 
     protected void addEvent(Event event) {
-        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("timer");
-        if (callQueue != null) {
-            span.tag("CallQueue", String.valueOf(callQueue.getId()));
-        } else {
-            span.tag("CallQueue", Thread.currentThread().getName());
-        }
+        Span span = ZipkinUtil.getTracing().tracer()
+                .nextSpanWithParent(arg -> false, "timer", null)
+                .name("timer")
+                .annotate("add-event")
+                .tag("timer", this.toString())
+                .tag("event", event.id());
         try (Tracer.SpanInScope scope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)) {
-            if (event instanceof BaseEvent) {
-                BaseEvent baseEvent = (BaseEvent) event;
-                baseEvent.setSpan(span);
+            if (event instanceof TraceEvent) {
+                TraceEvent traceEvent = (TraceEvent) event;
+                traceEvent.setSpan(span);
             }
             callQueue.addEvent(event);
         } catch (Exception e) {

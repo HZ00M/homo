@@ -166,7 +166,7 @@ public class CallQueueMgr {
     }
 
     public boolean isThreadChanged(CallQueue callQueue) {
-        return !callQueue.equals(this.localQueue.get()) ;
+        return this.localQueue.get() == null || !callQueue.equals(this.localQueue.get());
     }
 
     //将hashCode作为选择CallQueue的种子

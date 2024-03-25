@@ -90,7 +90,7 @@ public class LongTreadMgr extends AbstractTreadMgr<Long> {
     }
 
     @Override
-    public void init() {
+    public void moduleInit() {
         baseTypeMap.put(Long.class, Long.class);
         baseTypeMap.put(long.class, Long.class);
         init(Long.class, treadProperties.scanPath);

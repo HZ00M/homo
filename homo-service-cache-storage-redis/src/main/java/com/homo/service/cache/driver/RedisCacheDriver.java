@@ -5,6 +5,7 @@ import com.google.common.base.Charsets;
 import com.homo.core.facade.cache.CacheDriver;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
+import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.lang.Pair;
 import com.homo.core.utils.rector.Homo;
@@ -38,7 +39,8 @@ public class RedisCacheDriver implements CacheDriver {
         for (String key : fieldList) {
             fields[index++] = key.getBytes(StandardCharsets.UTF_8);
         }
-        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncGetByFields").tag("type","cache").annotate(ZipkinUtil.CLIENT_SEND_TAG);
         RedisFuture<List<KeyValue<byte[], byte[]>>> listRedisFuture = asyncRedisPool.hmgetAsync(redisKey.getBytes(StandardCharsets.UTF_8), fields);
         Homo<Map<String, byte[]>> warp = Homo.warp(homoSink -> {
             listRedisFuture.whenCompleteAsync((result, throwable) -> {
@@ -54,14 +56,16 @@ public class RedisCacheDriver implements CacheDriver {
                         }
                         resultMap.put(new String(keyValue.getKey(), StandardCharsets.UTF_8), keyValue.getValue());
                     }
+                    span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG);
                     homoSink.success(resultMap);
                     log.info("asyncGet end, appId {} regionId {} logicType {} ownerId {}, keyList {}", appId, regionId, logicType, ownerId, fieldList);
                 } catch (Exception e) {
+                    span.error(e);
                     homoSink.error(e);
                 }
             });
         });
-        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId),storageSpan).consumerValue(ret->storageSpan.finish());
+        return warp.switchThread(callQueue,span).consumerValue(ret->span.finish());
     }
 
     @Override
@@ -69,7 +73,8 @@ public class RedisCacheDriver implements CacheDriver {
         log.trace("asyncGet start,appId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
         String redisKey = String.format(REDIS_KEY_TMPL, appId, regionId, logicType, ownerId);
         RedisFuture<Map<byte[], byte[]>> mapRedisFuture = asyncRedisPool.hgetallAsync(redisKey.getBytes(StandardCharsets.UTF_8));
-        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncGetAll").tag("type","cache").annotate(ZipkinUtil.CLIENT_SEND_TAG);
         Homo<Map<String, byte[]>> warp = Homo.warp(mapHomoSink -> {
             mapRedisFuture.whenCompleteAsync((result, throwable) -> {
                         try {
@@ -82,15 +87,17 @@ public class RedisCacheDriver implements CacheDriver {
                                 String key = new String(keyBytes, StandardCharsets.UTF_8);
                                 resultMap.put(key, result.get(keyBytes));
                             }
+                            span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG);
                             mapHomoSink.success(resultMap);
                             log.trace("asyncGet end,appId {} regionId {} logicType {} ownerId {}", appId, regionId, logicType, ownerId);
                         } catch (Exception e) {
+                            span.error(e);
                             mapHomoSink.error(e);
                         }
                     }
             );
         });
-        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId),storageSpan).consumerValue(ret->storageSpan.finish());
+        return warp.switchThread(callQueue,span).consumerValue(ret->span.finish());
     }
 
     @Override
@@ -102,7 +109,8 @@ public class RedisCacheDriver implements CacheDriver {
             byte[] keyBytes = key.getBytes(Charsets.UTF_8);
             dataMap.put(keyBytes, data.get(key));
         }
-        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncUpdate").tag("type","cache").annotate(ZipkinUtil.CLIENT_SEND_TAG);
         RedisFuture<Long> longRedisFuture = asyncRedisPool.hsetAsync(redisKey.getBytes(StandardCharsets.UTF_8), dataMap);
         Homo<Boolean> warp = Homo.warp(homoSink -> {
             longRedisFuture.whenCompleteAsync((result, throwable) -> {
@@ -112,14 +120,16 @@ public class RedisCacheDriver implements CacheDriver {
                         return;
                     }
                     //hset方法如果原来没这个field返回 1，如果存在，则是覆盖旧值，返回 0
+                    span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG);
                     homoSink.success(Boolean.TRUE);
                     log.trace("asyncUpdate end, appId {} regionId {} logicType {} ownerId {}, keys {}", appId, regionId, logicType, ownerId, data.keySet());
                 } catch (Exception e) {
+                    span.error(e);
                     homoSink.error(e);
                 }
             });
         });
-        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId),storageSpan).consumerValue(ret->storageSpan.finish());
+        return warp.switchThread(callQueue,span).consumerValue(ret->span.finish());
     }
 
     @Override
@@ -140,22 +150,25 @@ public class RedisCacheDriver implements CacheDriver {
                 index += 2;
             }
             String updateKeysExpireScript = LuaScriptHelper.updateKeysExpireScript;
-            Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+            CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+            Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncUpdate").tag("type","cache").annotate(ZipkinUtil.CLIENT_SEND_TAG);
             Flux<Object> resultFlux = asyncRedisPool.evalAsyncReactive(updateKeysExpireScript, keys, args);
             Homo<Boolean> warp = Homo.warp(homoSink -> {
                 resultFlux.subscribe(
                         result -> {
                             try {
+                                span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG);
                                 homoSink.success(Boolean.TRUE);
                                 log.trace("asyncUpdate end, appId {} regionId {} logicType {} ownerId {} expireSeconds {}", appId, regionId, logicType, ownerId, expireSeconds);
                             } catch (Exception e) {
+                                span.error(e);
                                 homoSink.error(e);
                             }
                         },
                         homoSink::error
                 );
             });
-            return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId),storageSpan).consumerValue(ret->storageSpan.finish());
+            return warp.switchThread(callQueue,span).consumerValue(ret->span.finish());
         }
     }
 
@@ -173,7 +186,8 @@ public class RedisCacheDriver implements CacheDriver {
             args[index + 1] = String.valueOf(incrData.get(key));
             index += 2;
         }
-        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncIncr").tag("type","cache").annotate(ZipkinUtil.CLIENT_SEND_TAG);
         RedisFuture<Object> objectRedisFuture = asyncRedisPool.evalAsync(incrScript, keys, args);
         Homo<Pair<Boolean, Map<String, Long>>> warp = Homo.warp(homoSink -> {
             objectRedisFuture.whenCompleteAsync((result, throwable) -> {
@@ -188,14 +202,16 @@ public class RedisCacheDriver implements CacheDriver {
                         resultMap.put((String) resultList.get(i), (Long) resultList.get(i + 1));
                     }
                     Pair<Boolean, Map<String, Long>> pair = new Pair<>(true, resultMap);
+                    span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG);
                     homoSink.success(pair);
                     log.info("asyncIncr end, appId {} regionId {} logicType {} ownerId {} incrKeys {}", appId, regionId, logicType, ownerId, incrData.keySet());
                 } catch (Exception e) {
+                    span.error(e);
                     homoSink.error(e);
                 }
             });
         });
-        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId),storageSpan).consumerValue(ret->storageSpan.finish());
+        return warp.switchThread(callQueue,span).consumerValue(ret->span.finish());
     }
 
     @Override
@@ -208,22 +224,26 @@ public class RedisCacheDriver implements CacheDriver {
             keys[index++] = key.getBytes(StandardCharsets.UTF_8);
         }
         RedisFuture<Long> longRedisFuture = asyncRedisPool.hdelAsync(redisKey.getBytes(StandardCharsets.UTF_8), keys);
-        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("asyncRemoveKeys").tag("type","cache").annotate(ZipkinUtil.CLIENT_SEND_TAG);
         Homo<Boolean> warp = Homo.warp(homoSink -> {
             longRedisFuture.whenCompleteAsync((result, throwable) -> {
                 try {
                     if (throwable != null) {
+                        span.error(throwable);
                         homoSink.error(throwable);
                         return;
                     }
                     //返回值:被成功移除的域的数量，不包括被忽略的域。
+                    span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG);
                     homoSink.success(true);
                     log.trace("asyncRemoveKeys end, appId {} regionId {} logicType {} ownerId {} keys {}", appId, regionId, logicType, ownerId, remKeys);
                 } catch (Exception e) {
+                    span.error(e);
                     homoSink.error(e);
                 }
             });
         });
-        return warp.switchThread(CallQueueMgr.getInstance().getQueueByUid(ownerId),storageSpan).consumerValue(ret->storageSpan.finish());
+        return warp.switchThread(callQueue,span).consumerValue(ret->span.finish());
     }
 }

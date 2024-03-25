@@ -10,7 +10,7 @@ import com.homo.core.tread.tread.config.TreadProperties;
 import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.fun.Func3Ex;
 import com.homo.core.utils.fun.FuncEx;
-import com.homo.core.facade.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,7 +138,7 @@ public class ObjTreadMgr  implements TreadMgr<Object>, Module {
     }
 
     @Override
-    public void init() {
+    public void moduleInit() {
         registerMgr(Object.class, this);
     }
 }

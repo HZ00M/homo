@@ -1,6 +1,6 @@
 package com.homo.core.rpc.server;
 
-import com.homo.core.facade.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.facade.rpc.RpcServerFactory;
 import com.homo.core.facade.rpc.RpcType;
@@ -22,7 +22,7 @@ public class RpcServerMgr implements Module {
     private Set<RpcServerFactory> rpcServerFactories;
 
     @Override
-    public void init() {
+    public void afterAllModuleInit() {
         for (RpcServerFactory rpcServerFactory : rpcServerFactories) {
             log.info("RpcServer support rpcServerFactory type {} ",rpcServerFactory.getType());
             this.rpcServerFactoryMap.put(rpcServerFactory.getType(), rpcServerFactory);

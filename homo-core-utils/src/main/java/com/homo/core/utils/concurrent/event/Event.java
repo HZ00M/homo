@@ -16,6 +16,10 @@ public interface Event {
 
     void process();
 
+    default boolean traceEnable(){
+        return true;
+    }
+
     default void afterProcess(){}
 
     default void doProcess(){

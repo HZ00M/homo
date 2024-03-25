@@ -89,7 +89,7 @@ public class BoolTreadMgr extends AbstractTreadMgr<Boolean> {
     }
 
     @Override
-    public void init() {
+    public void moduleInit() {
         baseTypeMap.put(Boolean.class, Boolean.class);
         baseTypeMap.put(boolean.class, Boolean.class);
         init(Boolean.class, treadProperties.scanPath);

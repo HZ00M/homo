@@ -5,7 +5,9 @@ import brave.Tracer;
 import com.google.protobuf.ByteString;
 import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.*;
-import com.homo.core.facade.module.ServiceModule;
+import com.homo.core.utils.concurrent.queue.CallQueue;
+import com.homo.core.utils.module.RootModule;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.facade.service.Service;
 import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
@@ -44,12 +46,14 @@ public class CallSystem implements ICallSystem, ServiceModule {
     ServiceStateMgr serviceStateMgr;
     @Autowired
     AbilityProperties abilityProperties;
+    @Autowired
+    private RootModule rootModule;
     Map<String, Boolean> methodInvokeByQueueMap = new ConcurrentHashMap<>();
     KKMap<String, String, ICallAbility> type2id2callAbilityMap = new KKMap<>();
     KKMap<String, String, Boolean> id2type2callLinkMap = new KKMap<>();
 
     @Override
-    public void init() {
+    public void afterAllModuleInit() {
         //将本服务的entity type 映射到主服务上，为其他服进行远程调用提供支持
         Reflections reflections = new Reflections(abilityProperties.getEntityScanPath());
         Set<Class<?>> entitySet = reflections.getTypesAnnotatedWith(EntityType.class);
@@ -116,8 +120,11 @@ public class CallSystem implements ICallSystem, ServiceModule {
         String type = entityRequest.getType();
         String id = entityRequest.getId();
         String funName = entityRequest.getFunName();
+        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
         return GetBeanUtil.getBean(AbilityEntityMgr.class)
                 .getEntityPromise(type, id)
+                .switchThread(callQueue,span)
                 .nextDo(abilityEntity -> {
                     CallAbility callAbility = abilityEntity.getAbility(CallAbility.class);
                     return callAbility.callEntity(srcName, funName, paramArr, podId, parameterMsg, idCallQueue, abilityEntity.getQueueId())
@@ -208,7 +215,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
             log.info("CallSystem no need to link when add entity type {} id {}", type, id);
             return Homo.result(true);
         } else {
-            return serviceStateMgr.setUserLinkedPod(id, getServerInfo().serverName, serviceStateMgr.getPodIndex(), false)
+            return serviceStateMgr.setUserLinkedPod(id, rootModule.getServerInfo().serverName, serviceStateMgr.getPodIndex(), false)
                     .nextValue(prePodIndex -> {
                         log.info("CallSystem setUserLinkedPod type {} id {} prePodIndex {} podIndex {} ", type, id, prePodIndex, serviceStateMgr.getPodIndex());
                         //如果之前的podIndex不为空，且不等于当前podIndex，则添加失败
@@ -230,7 +237,7 @@ public class CallSystem implements ICallSystem, ServiceModule {
         //去除连接信息
         id2type2callLinkMap.remove(id, type);
         if (!id2type2callLinkMap.containsFirstKey(id)) {
-            return serviceStateMgr.removeUserLinkedPod(id, getServerInfo().serverName, false).nextValue(ret -> callAbility);
+            return serviceStateMgr.removeUserLinkedPod(id, rootModule.getServerInfo().serverName, false).nextValue(ret -> callAbility);
         } else {
             return Homo.result(callAbility);
         }

@@ -4,7 +4,7 @@ import com.homo.core.configurable.gate.GateCommonProperties;
 import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.facade.gate.GateServer;
 import com.homo.core.utils.exception.HomoError;
-import com.homo.core.facade.module.ServiceModule;
+import com.homo.core.utils.module.ServiceModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -20,7 +20,7 @@ public class GateServerMgr implements ServiceModule {
     public static Map<String,GateServer> gateServerMap = new HashMap<>();
 
     @Override
-    public void init(){
+    public void moduleInit(){
     }
 
     public GateServer getServer(String serverName){

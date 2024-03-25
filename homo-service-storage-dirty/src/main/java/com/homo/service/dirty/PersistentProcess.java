@@ -1,7 +1,7 @@
 package com.homo.service.dirty;
 
 import com.homo.core.configurable.dirty.DirtyProperties;
-import com.homo.core.facade.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.storege.dirty.DirtyDriver;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ public class PersistentProcess implements Module {
     HomoTimerMgr homoTimerMgr = HomoTimerMgr.getInstance();
 
     @Override
-    public void init() {
+    public void moduleInit() {
         log.info("landingTask start dirtyProperties {} ",dirtyProperties);
             homoTimerMgr.once("dirtyLanding",() -> {
                 String dirtyName = dirtyDriver.chooseDirtyMap();
@@ -36,7 +36,7 @@ public class PersistentProcess implements Module {
                     log.info("landingTask unlock dirtyName start{} ",dirtyName);
                     dirtyDriver.unlockDirtyMap(dirtyName);
                     log.info("landingTask unlock dirtyName end{} ",dirtyName);
-                    init();
+                    moduleInit();
                 }
             }, dirtyProperties.getDelayTimeMillSecond());
     }

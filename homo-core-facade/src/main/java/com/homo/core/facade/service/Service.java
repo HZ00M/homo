@@ -1,11 +1,22 @@
 package com.homo.core.facade.service;
 
-import com.homo.core.facade.module.Module;
+import com.homo.core.utils.module.Module;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.utils.rector.Homo;
 
 public interface Service extends Module {
+    /**
+     * 初始化时给子类的回调
+     */
+    default void preServerInit() {
+
+    }
+    /**
+     * 初始化时给子类的回调
+     */
+    default void afterServerInit() {
+    }
     /**
      * 获取服务标识符  带端口号
      *

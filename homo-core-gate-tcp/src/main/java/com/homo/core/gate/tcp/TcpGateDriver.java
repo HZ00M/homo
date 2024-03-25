@@ -5,7 +5,7 @@ import com.homo.core.configurable.gate.GateTcpProperties;
 import com.homo.core.facade.gate.GateClient;
 import com.homo.core.facade.gate.GateDriver;
 import com.homo.core.facade.gate.GateServer;
-import com.homo.core.facade.module.DriverModule;
+import com.homo.core.utils.module.DriverModule;
 import com.homo.core.gate.tcp.handler.AbstractGateLogicHandler;
 import com.homo.core.utils.concurrent.thread.ThreadPoolFactory;
 import com.homo.core.utils.exception.HomoError;
@@ -74,7 +74,7 @@ public class TcpGateDriver implements GateDriver, DriverModule {
     private Tuple3<List<ChannelHandler>, List<AbstractGateLogicHandler>, List<ChannelHandler>> customHandlers = Tuples.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
 
-    public void init() {
+    public void moduleInit() {
         if (Epoll.isAvailable()) {
             bossGroup = new EpollEventLoopGroup(gateTcpProperties.bossNum, bossFactory);
             workGroup = new EpollEventLoopGroup(gateTcpProperties.workNum,workFactory);

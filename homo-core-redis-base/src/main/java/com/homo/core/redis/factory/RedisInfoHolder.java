@@ -1,6 +1,6 @@
 package com.homo.core.redis.factory;
 
-import com.homo.core.common.apollo.ConfigDriver;
+import com.homo.core.utils.apollo.ConfigDriver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

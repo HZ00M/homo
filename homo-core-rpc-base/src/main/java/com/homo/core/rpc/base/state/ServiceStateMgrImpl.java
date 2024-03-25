@@ -1,31 +1,30 @@
 package com.homo.core.rpc.base.state;
 
-import brave.Span;
 import com.alibaba.fastjson.JSON;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.homo.core.configurable.rpc.ServerStateProperties;
 import com.homo.core.facade.cache.CacheDriver;
-import com.homo.core.facade.module.RootModule;
-import com.homo.core.facade.module.SupportModule;
+import com.homo.core.facade.service.LoadInfo;
 import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.facade.service.StatefulDriver;
 import com.homo.core.rpc.base.service.ServiceMgr;
-import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.schedule.HomoTimerMgr;
 import com.homo.core.utils.exception.HomoError;
+import com.homo.core.utils.module.RootModule;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
-import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
@@ -55,7 +54,8 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     boolean isStateful = false;
     //有状态服务当前状态（值越高代表压力越大）
     private int load;
-    public static int UNAVAILABLE = -1;
+    public static int AVAILABLE = 1;
+    public static int UNAVAILABLE = 0;
     private String podName;
     private Integer podIndex;
     private long lastUpdateStateTime;
@@ -75,8 +75,8 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     };
 
     @Override
-    public void init() {
-        isStateful = getServerInfo().isStateful;
+    public void afterAllModuleInit() {
+        isStateful = rootModule.getServerInfo().isStateful;
         load = 0;
         localUserServicePodCache = Caffeine.newBuilder()
                 .expireAfterWrite(serverStateProperties.getLocalUserServicePodCacheSecond(), TimeUnit.SECONDS)
@@ -112,7 +112,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                         int weightLoad = loadFun.get();
                         String appId = rootModule.getServerInfo().appId;
                         String regionId = rootModule.getServerInfo().namespace;
-                        statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, weightLoad)
+                        statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, weightLoad, AVAILABLE)
                                 .consumerValue(ret -> {
                                     if (ret) {
                                         log.info("set service state success, service {}, load {} weightLoad {}", serviceName, load, weightLoad);
@@ -134,12 +134,13 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     @Override
     public void beforeClose() {
         String serviceName = serviceMgr.getMainService().getHostName();
-        String appId = getServerInfo().appId;
-        String regionId = getServerInfo().namespace;
+        String appId = rootModule.getServerInfo().appId;
+        String regionId = rootModule.getServerInfo().namespace;
         if (isStateful){
             log.info("beforeClose set service state, appId {} regionId {} service {} podIndex {} load {}  ",
                     appId, regionId, serviceName, load, UNAVAILABLE);
-            statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, UNAVAILABLE)
+            int weightLoad = loadFun.get();
+            statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, weightLoad,UNAVAILABLE)
                     .consumerValue(ret -> {
                         if (ret) {
                             log.info("beforeClose set service state success, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
@@ -338,7 +339,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
 
 
     @Override
-    public Homo<Map<Integer, Integer>> geAllStateInfo(String serviceName) {
+    public Homo<Map<Integer, LoadInfo>> geAllStateInfo(String serviceName) {
         String appId = rootModule.getServerInfo().appId;
         String regionId = rootModule.getServerInfo().namespace;
         String logicType = stateLogicType;
@@ -387,7 +388,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                                     return;
                                 }
                                 for (String serviceName : goodServiceMap.keySet()) {
-                                    updateSGoodServiceCache(serviceName).start();
+                                    updateGoodServiceCache(serviceName).start();
                                 }
                             }
                         }, 0,
@@ -398,7 +399,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     }
 
 
-    private Homo<Boolean> updateSGoodServiceCache(String serviceName) {
+    private Homo<Boolean> updateGoodServiceCache(String serviceName) {
         return stateMgr.geAllStateInfo(serviceName)
                 .nextDo(map -> {
                     if (map == null || map.size() == 0) {
@@ -407,24 +408,23 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                         //缓存符合条件的service
                         int range = serverStateProperties.getGoodStateRange().getOrDefault(serviceName,
                                 serverStateProperties.getDefaultRange());
-                        ArrayList<Map.Entry<Integer, Integer>> stateList = new ArrayList<>(map.entrySet());
-                        List<Map.Entry<Integer, Integer>> filterStateList = stateList.stream()
-                                .filter(i -> !i.getKey().equals(UNAVAILABLE))
-                                .sorted(Comparator.comparingInt(Map.Entry::getValue))
+                        List<LoadInfo> stateList = new ArrayList<>(map.values());
+                        List<LoadInfo> filterStateList = stateList.stream()
+                                .filter(i -> !i.state.equals(UNAVAILABLE))
                                 .collect(Collectors.toList());
 
                         //寻找goodServices，取负载最优的服务加上基数作为比较值，小于这个值表示服务状态良好
                         List<Integer> goodServices = new ArrayList<>();
-                        int limit = filterStateList.get(0).getValue() + range;
-                        for (Map.Entry<Integer, Integer> entry : filterStateList) {
-                            if (entry.getValue() <= limit) {
-                                goodServices.add(entry.getKey());
+                        int limit = filterStateList.get(0).load + range;
+                        for (LoadInfo loadInfo : filterStateList) {
+                            if (loadInfo.load <= limit) {
+                                goodServices.add(loadInfo.id);
                             } else {
                                 break;
                             }
                         }
                         goodServiceMap.put(serviceName, goodServices);
-                        List<Integer> aliveServices = filterStateList.stream().map(Map.Entry::getKey).collect(Collectors.toList());
+                        List<Integer> aliveServices = filterStateList.stream().map(item->item.id).collect(Collectors.toList());
                         availableServiceMap.put(serviceName, aliveServices);
                     }
                     return Homo.result(true);
@@ -442,9 +442,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
         if (inMen != null) {
             return Homo.result(inMen);
         }
-        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
-        Span span = ZipkinUtil.getTracing().tracer().nextSpan();
-        Homo<ServiceInfo> warp = cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, SERVICE_INFO_KEY)
+        Homo<ServiceInfo> warp = cacheDriver.asyncGetAll(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, SERVICE_INFO_KEY)
                 .nextDo(ret -> {
                     Map<String, byte[]> stringMap = ret;
 
@@ -461,25 +459,22 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                 .catchError(throwable -> {
                     log.error("get tag {} error!", tag, throwable);
                 });
-        return warp.switchThread(localQueue, span).consumerValue(ret -> span.finish());
+        return warp;
     }
 
     @Override
     public Homo<Boolean> setServiceInfo(String tag, ServiceInfo serviceInfo) {
         log.info("setServiceNameTag start tag {} serviceInfo {} ", tag, serviceInfo);
         setLocalServiceInfo(tag, serviceInfo);
-        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
-        Span storageSpan = ZipkinUtil.getTracing().tracer().nextSpan();
-        return cacheDriver.asyncGetAll(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, SERVICE_INFO_KEY)
+        return cacheDriver.asyncGetAll(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, SERVICE_INFO_KEY)
                 .nextDo(map -> {
                     byte[] serverInfoBytes = homoSerializationProcessor.writeByte(serviceInfo);
                     map.put(tag, serverInfoBytes);
-                    return cacheDriver.asyncUpdate(getServerInfo().appId, getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, SERVICE_INFO_KEY, map)
+                    return cacheDriver.asyncUpdate(rootModule.getServerInfo().appId, rootModule.getServerInfo().regionId, SERVICE_INFO_LOGIC_TYPE, SERVICE_INFO_KEY, map)
                             .consumerValue(ret -> {
                                 log.info("setServiceNameTag ret serviceInfo {} serviceName {} tag {} ret {}", SERVICE_INFO_KEY, serviceInfo, tag, ret);
                             });
-                })
-                .switchThread(localQueue, storageSpan);
+                });
     }
 
     @Override
@@ -501,7 +496,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     public Homo<Integer> choiceBestPod(String serviceName) {
         if (goodServiceMap.get(serviceName) == null) {
             //从来没有获取过,去storage获取
-            return updateSGoodServiceCache(serviceName)
+            return updateGoodServiceCache(serviceName)
                     .nextDo(ret -> {
                         if (ret) {
                             return Homo.result(choiceFun.apply(serviceName, goodServiceMap.get(serviceName)));
@@ -516,7 +511,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
     }
 
     @Override
-    public Homo<Map<Integer, Integer>> getServiceAllStateInfo(String serviceName) {
+    public Homo<Map<Integer, LoadInfo>> getServiceAllStateInfo(String serviceName) {
         return stateMgr.geAllStateInfo(serviceName);
     }
 

@@ -25,7 +25,7 @@ public interface StatefulDriver {
      * @param state 状态 越大状态越差
      * @return true成功,false 失败
      */
-    Homo<Boolean> setServiceState(String appId, String regionId, String logicType, String serviceName, int podId, int state);
+    Homo<Boolean> setServiceState(String appId, String regionId, String logicType, String serviceName, int podId, int load,int state);
 
     /**
      * 设置连接信息
@@ -85,7 +85,7 @@ public interface StatefulDriver {
      * @param beginTimeMillis 有效起始时间
      * @return rel Map<podId,state>
      */
-    Homo<Map<Integer, Integer>> getServiceState(String appId,String regionId, String logicType,String serviceName,long beginTimeMillis);
+    Homo<Map<Integer, LoadInfo>> getServiceState(String appId,String regionId, String logicType,String serviceName,long beginTimeMillis);
 
     /**
      * 获取用户连接的所有服务

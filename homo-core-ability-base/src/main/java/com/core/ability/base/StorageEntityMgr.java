@@ -7,7 +7,9 @@ import com.homo.core.configurable.ability.AbilityProperties;
 import com.homo.core.facade.ability.AbilityEntity;
 import com.homo.core.facade.ability.AbilitySystem;
 import com.homo.core.facade.ability.EntityType;
-import com.homo.core.facade.module.ServiceModule;
+import com.homo.core.utils.concurrent.queue.CallQueue;
+import com.homo.core.utils.concurrent.queue.CallQueueMgr;
+import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.utils.concurrent.lock.IdLocker;
 import com.homo.core.utils.fun.Func2Ex;
 import com.homo.core.utils.rector.Homo;
@@ -78,14 +80,15 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
                 log.info("getEntityPromise asyncLoad type {} id {}", type, id);
                 ret = asyncLoad((Class<T>) entityClazz, id);
             }
-            Span span = ZipkinUtil.getTracing().tracer().currentSpan();
-            return ret.nextDo(e -> {
-                if (e != null) {
-                    return Homo.result(e).switchThread(e.getQueueId(),span);
-                } else {
-                    return Homo.result(e);
-                }
-            });
+            return ret;
+//            Span span = ZipkinUtil.getTracing().tracer().currentSpan();
+//            return ret.nextDo(e -> {
+//                if (e != null) {
+//                    return Homo.result(e).switchThread(e.getQueueId(),span);
+//                } else {
+//                    return Homo.result(e);
+//                }
+//            });
         }, () -> log.error("asyncGet error clazz {} id {}", type, id));
     }
 
@@ -98,13 +101,13 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
             //没有存储能力，返回空
             return Homo.result(null);
         } else {
+            CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
             Span span = ZipkinUtil.getTracing()
                     .tracer()
                     .nextSpan()
                     .name("asyncLoad")
                     .tag(ZipkinUtil.BEGIN_TAG, id)
-                    .annotate(ZipkinUtil.CLIENT_SEND_TAG)
-                    .start();
+                    .annotate(ZipkinUtil.CLIENT_SEND_TAG);
             return storageSystem.loadEntity(clazz, id)
                     .nextDo(entity -> {
                         return idLocker.lockCallable(id, () -> {
@@ -136,13 +139,11 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
 
                         });
                     })
-                    .consumerValue(finallyEntity -> {
+                    .switchThread(callQueue,span)
+                    .finallySignal(finallyEntity -> {
                         log.info("asyncLoad finally , clazz {} id {} entity {}", clazz, id, finallyEntity);
                         span.finish();
                     });
-//                    .finallySignal(signalType -> {
-//                        span.finish();
-//                    });
         }
     }
 

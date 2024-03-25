@@ -293,8 +293,8 @@ under the License.
                 </repository>
                 <repository>
                     <id>releases</id>
-                    <name>java</name>
-                    <url>http://10.100.2.94:8081/repository/java/</url>
+                    <name>java-release</name>
+                    <url>http://10.100.2.94:8081/repository/java-release/</url>
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
@@ -304,7 +304,7 @@ under the License.
                 </repository>
                 <repository>
                     <id>snapshots</id>
-                    <name>java-snapshots</name>
+                    <name>java-snapshot</name>
                     <url>http://10.100.2.94:8081/repository/java-snapshot/</url>
                     <snapshots>
                         <enabled>true</enabled>

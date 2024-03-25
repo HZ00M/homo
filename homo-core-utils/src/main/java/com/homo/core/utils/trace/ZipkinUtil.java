@@ -4,14 +4,19 @@ import brave.Span;
 import brave.Tracer;
 import brave.Tracing;
 import brave.grpc.GrpcTracing;
+import brave.http.HttpTracing;
 import brave.internal.Nullable;
 import brave.propagation.TraceContext;
 import brave.rpc.RpcTracing;
 import brave.sampler.RateLimitingSampler;
 import brave.sampler.Sampler;
 import brave.sampler.SamplerFunction;
+import com.ctrip.framework.apollo.model.ConfigChangeEvent;
+import com.homo.core.utils.apollo.ConfigDriver;
 import com.homo.core.utils.config.ZipKinProperties;
 import com.homo.core.utils.fun.ConsumerEx;
+import com.homo.core.utils.module.RootModule;
+import com.homo.core.utils.module.SupportModule;
 import io.grpc.ClientInterceptor;
 import io.grpc.ServerInterceptor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,30 +28,56 @@ import zipkin2.reporter.okhttp3.OkHttpSender;
 
 import java.util.function.Consumer;
 
-;
-
 /**
  * ZipKin全链路跟踪工具类
  * zipkin追踪流程  clientSend->serverReceiver->serverSend->clientReceive
+ * CS (Client Send)：客户端发送请求开始的时间戳。在分布式系统中，表示客户端发起请求的时刻。
+ *
+ * SR (Server Receive)：服务端接收到请求的时间戳。表示服务端开始处理请求的时刻。
+ *
+ * SS (Server Send)：服务端完成处理并发送响应的时间戳。表示服务端处理完请求并发送响应给客户端的时刻。
+ *
+ * CR (Client Receive)：客户端接收到响应的时间戳。表示客户端收到来自服务端的响应的时刻。
  */
 @Slf4j
-public class ZipkinUtil  {
+public class ZipkinUtil implements SupportModule {
     public static final String CLIENT_SEND_TAG = "cs";
     public static final String SERVER_RECEIVE_TAG = "sr";
     public static final String SERVER_SEND_TAG = "ss";
     public static final String CLIENT_RECEIVE_TAG = "cr";
     public static final String BEGIN_TAG = "begin";
     public static final String FINISH_TAG = "finish";
-    private static Tracing tracing = null;
-    private static RpcTracing rpcTracing;
-
+    public static Tracing tracing = null;
+    public static RpcTracing rpcTracing;
+    public static HttpTracing httpTracing;
+    @Autowired
     private ZipKinProperties zipKinProperties;
+    @Autowired
+    private RootModule rootModule;
+    @Autowired
+    private ConfigDriver configDriver;
 
     //要与brave.Span区别开，Brave是Java版的Zipkin客户端
     private AsyncReporter<zipkin2.Span> asyncReporter;
 
-    public void init(ZipKinProperties zipKinProperties) {
-        this.zipKinProperties = zipKinProperties;
+    @Override
+    public void moduleInit() {
+//        update();
+        configDriver.listenerNamespace(zipKinProperties.getZipkinNamespace(), new Consumer<ConfigChangeEvent>() {
+            @Override
+            public void accept(ConfigChangeEvent configChangeEvent) {
+                log.info("ZipkinUtil configChangeEvent {}" ,configChangeEvent.changedKeys());
+                update();
+            }
+        });
+    }
+
+    @Override
+    public void afterAllModuleInit() {
+        update();
+    }
+
+    private void update() {
         if (tracing != null) {
             log.info("tracing close");
             tracing.close();
@@ -55,12 +86,12 @@ public class ZipkinUtil  {
             log.info("asyncReporter close");
             asyncReporter.close();
         }
-//        String localServiceName = serviceName;
+        String localServiceName = rootModule.getServerInfo().serverName;
         log.info(
-                "zipkin 开关 [{}] 上报地址:[{}] ，本地服务名:{} 每秒采样次数:{}",
+                "zipkin update success,开关 [{}] 上报地址:[{}] ，本地服务名:{} 每秒采样次数:{}",
                 zipKinProperties.isOpen,
                 zipKinProperties.reportAddr,
-//                localServiceName,
+                localServiceName,
                 zipKinProperties.tracesPerSecond);
         Tracing.Builder tracingBuilder = Tracing.newBuilder();
         if (zipKinProperties.isOpen()) {
@@ -69,7 +100,7 @@ public class ZipkinUtil  {
             AsyncReporter<zipkin2.Span> reporter = AsyncReporter.create(sender);
             asyncReporter = reporter;
             tracingBuilder.addSpanHandler(ZipkinSpanHandler.create(reporter))
-//                    .localServiceName(localServiceName)
+                    .localServiceName(localServiceName)
                     .sampler(RateLimitingSampler.create(zipKinProperties.tracesPerSecond))
                     .supportsJoin(zipKinProperties.supportsJoin);
         } else {
@@ -78,6 +109,7 @@ public class ZipkinUtil  {
         }
         tracing = tracingBuilder.build();
         rpcTracing = RpcTracing.create(tracing);
+        httpTracing = HttpTracing.create(tracing);
     }
 
     public static ClientInterceptor clientInterceptor() {
@@ -133,10 +165,9 @@ public class ZipkinUtil  {
      *
      * @return 新创建的span, 如果currentSpan不为空，那么就会创建一个currentSpan的子span
      */
-    public static Span nextCRSpan() {
-        return getTracing().tracer().nextSpan().kind(Span.Kind.CLIENT).annotate(CLIENT_RECEIVE_TAG).start();
+    public static Span newCRSpan() {
+        return getTracing().tracer().newTrace().kind(Span.Kind.CLIENT).annotate(CLIENT_RECEIVE_TAG).start();
     }
-
 
 
     static <T> Span nextSpanWithParent(Span.Kind kind, String startAnnotate, SamplerFunction<T> samplerFunction, T arg, @Nullable TraceContext parent) {
