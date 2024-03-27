@@ -51,24 +51,7 @@ public class AbstractHttpMapping implements DriverModule {
         return port;
     }
 
-    /**
-     * 分割‘/’，‘-’字符，首字符大写，拼接成msgId
-     * @param request
-     * @return
-     */
-    public static String exportMsgId(ServerHttpRequest request){
-        String url = request.getURI().getPath();
-        url = url.substring(1);
-        url = url.replace("-", "/");
-        String[] split = url.split("/");
-        StringBuilder msgIdBuilder = new StringBuilder(split[0]);
-        for(int i = 1; i < split.length; i++){
-//            String tmp = StringUtils.toUpperCase4Index(split[i]);
-//            msgIdBuilder.append(tmp);
-            msgIdBuilder.append(split[i]);
-        }
-        return msgIdBuilder.toString();
-    }
+
 
     protected Map<String, String> exportQueryParams(ServerHttpRequest request) {
         return request.getQueryParams().toSingleValueMap();

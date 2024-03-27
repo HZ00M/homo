@@ -86,7 +86,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         String msgId = exportMsgId(request);
         //参数格式(formDataParams,headerInfo)
         Map<String, String> formDataParams = request.getHeaders().toSingleValueMap();
-        Span span = setSpanIfNeed(msgId, formDataParams);
+        Span span = ZipkinUtil.currentSpan();
         JSONObject headerInfo = exportHeaderInfo(request);
         List<Object> list = new ArrayList<>();
         list.add(formDataParams);
@@ -118,7 +118,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         int port = exportPort(request);
         String msgId = exportMsgId(request);
         JSONObject headerInfo = exportHeaderInfo(request);
-        Span span = setSpanIfNeed(msgId, headerInfo.getInnerMap());
+        Span span = ZipkinUtil.currentSpan();
         Mono<Mono<DataBuffer>> resp = DataBufferUtils.join(request.getBody())
                 .flatMap(dataBuffer ->
                         Mono.create(monoSink -> {
@@ -180,7 +180,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         int port = exportPort(request);
         String msgId = exportMsgId(request);
         Map<String, String> headerInfo = request.getHeaders().toSingleValueMap();
-        Span span = setSpanIfNeed(msgId, headerInfo);
+        Span span = ZipkinUtil.currentSpan();
         Mono<Mono<DataBuffer>> resp = DataBufferUtils.join(request.getBody())
                 .flatMap(dataBuffer ->
                         Mono.create(monoSink -> {
@@ -275,38 +275,22 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         this.applicationContext = applicationContext;
     }
 
-    public static Span setSpanIfNeed(String msgId, Map<String, ?> headerInfo) {
-        Span span = null;
-        try {
-            if (headerInfo.containsKey("traceId") && headerInfo.containsKey("spanId") && headerInfo.containsKey("sampled")) {
-                long traceId = Long.parseLong(headerInfo.get("traceId").toString());
-                long spanId = Long.parseLong(headerInfo.get("spanId").toString());
-                Boolean sampled = Boolean.parseBoolean(headerInfo.get("sampled").toString());
-                TraceContext traceContext =
-                        TraceContext.newBuilder()
-                                .spanId(spanId)
-                                .traceId(traceId)
-                                .sampled(sampled)
-                                .build();
-                ZipkinUtil.getTracing()
-                        .tracer()
-                        .startScopedSpanWithParent(msgId, traceContext);
-                span = ZipkinUtil.currentSpan()
-                        .annotate(ZipkinUtil.SERVER_RECEIVE_TAG)
-                        .name(msgId);
-                log.info(
-                        "DefaultMapping getSpan traceId {}, sampled {} parent_spanId {} spanId {} msgId {}",
-                        traceContext.traceId(),
-                        traceContext.sampled(),
-                        traceContext.spanId(),
-                        span.context().spanId(),
-                        msgId);
-                TraceLogUtil.setTraceIdBySpan(span,msgId);
-            }
-        } catch (Exception e) {
-            log.error("DefaultMapping setSpanIfNeed msgId {} error", msgId, e);
+    /**
+     * 分割‘/’，‘-’字符，首字符大写，拼接成msgId
+     * @param request
+     * @return
+     */
+    public static String exportMsgId(ServerHttpRequest request){
+        String url = request.getURI().getPath();
+        url = url.substring(1);
+        url = url.replace("-", "/");
+        String[] split = url.split("/");
+        StringBuilder msgIdBuilder = new StringBuilder(split[0]);
+        for(int i = 1; i < split.length; i++){
+//            String tmp = StringUtils.toUpperCase4Index(split[i]);
+//            msgIdBuilder.append(tmp);
+            msgIdBuilder.append(split[i]);
         }
-
-        return span;
+        return msgIdBuilder.toString();
     }
 }

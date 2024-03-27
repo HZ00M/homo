@@ -129,5 +129,9 @@ public class HomoServiceSetterFactory {
         }
     }
 
+    public static void clean(){
+        setterMap.clear();
+        mainServiceSetter = null;
+    }
 
 }

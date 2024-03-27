@@ -60,6 +60,8 @@ public class BuildMojo extends AbsHomoMojo<BuildMojo> {
             generateServiceFile();
         } catch (Exception e) {
             throw new MojoFailureException("BuildMojo generate fail!", e.getCause());
+        }finally {
+            HomoServiceSetterFactory.clean();
         }
     }
 

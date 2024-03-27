@@ -324,7 +324,7 @@ public class BuildConfiguration {
             value = defaultValue;
         }
         log.info("properties {} value {} defaultValue {}", key, value, defaultValue);
-        return value;
+        return value.trim();
     } 
 
     public void appendDeployTemplateInfo(V1PodTemplateSpec template) {

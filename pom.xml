@@ -46,7 +46,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>1.0.0.34-SNAPSHOT</revision>
+        <revision>1.0.0.38-SNAPSHOT</revision>
         <spring.boot.version>2.3.12.RELEASE</spring.boot.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
