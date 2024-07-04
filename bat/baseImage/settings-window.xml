@@ -52,7 +52,7 @@ under the License.
      | Default: ${user.home}/.m2/repository
     <localRepository>/path/to/local/repo</localRepository>
     -->
-    <localRepository>D:\HomoRepository</localRepository>
+    <localRepository>E:\HomoRepository</localRepository>
     <!--  <localRepository>E:\work\server\branches\3.0.0.0\repository</localRepository> -->
 
     <!-- interactiveMode
@@ -137,17 +137,13 @@ under the License.
             <username>homo</username>
             <password>admin123</password>
         </server>
-        <server>
-            <id>snapshots</id>
-            <username>homo</username>
-            <password>admin123</password>
-        </server>
-        <server>
-            <id>maven-central</id>
-            <username>homo</username>
-            <password>admin123</password>
-        </server>
 
+<!--        homo是一个自建group仓库-->
+<!--        homo 下有四个子仓库： release(hosted稳定版本仓库) -->
+<!--                            snapshots(hosted 快照仓库 版本加-SNAPSHOT) -->
+<!--                            ali-proxy(阿里仓库代理，用于加速))-->
+<!--                            maven-public(maven公用group)-->
+<!--    阿里镜像仓库地址 配置代理仓库使用    https://maven.aliyun.com/nexus/content/groups/public-->
 
     </servers>
 
@@ -245,7 +241,7 @@ under the License.
             <id>public</id>
             <mirrorOf>*</mirrorOf>
             <name>public Repository Mirror.</name>
-            <url>http://10.100.2.94:8081/repository/maven-public/</url>
+            <url>http://10.100.2.94:8081/repository/homo/</url>
         </mirror>
 
     </mirrors>
@@ -281,9 +277,9 @@ under the License.
             </activation>
             <repositories>
                 <repository>
-                    <id>maven-central</id>
-                    <name>maven-central</name>
-                    <url>http://10.100.2.94:8081/repository/maven-central/</url>
+                    <id>homo</id>
+                    <name>homo</name>
+                    <url>http://10.100.2.94:8081/repository/homo/</url>
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
@@ -291,47 +287,32 @@ under the License.
                         <enabled>false</enabled>
                     </releases>
                 </repository>
-                <repository>
-                    <id>releases</id>
-                    <name>java-release</name>
-                    <url>http://10.100.2.94:8081/repository/java-release/</url>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                </repository>
-                <repository>
-                    <id>snapshots</id>
-                    <name>java-snapshot</name>
-                    <url>http://10.100.2.94:8081/repository/java-snapshot/</url>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                </repository>
+<!--                <repository>-->
+<!--                    <id>releases</id>-->
+<!--                    <name>java-release</name>-->
+<!--                    <url>http://10.100.2.94:8081/repository/release/</url>-->
+<!--                    <snapshots>-->
+<!--                        <enabled>false</enabled>-->
+<!--                    </snapshots>-->
+<!--                    <releases>-->
+<!--                        <enabled>true</enabled>-->
+<!--                    </releases>-->
+<!--                </repository>-->
+<!--                <repository>-->
+<!--                    <id>snapshots</id>-->
+<!--                    <name>java-snapshot</name>-->
+<!--                    <url>http://10.100.2.94:8081/repository/snapshot/</url>-->
+<!--                    <snapshots>-->
+<!--                        <enabled>true</enabled>-->
+<!--                    </snapshots>-->
+<!--                    <releases>-->
+<!--                        <enabled>false</enabled>-->
+<!--                    </releases>-->
+<!--                </repository>-->
             </repositories>
-            <!-- <properties>
-              <snapshots.repo>http://192.168.10.101:8081/repository/java-snapshot/</snapshots.repo>
-              <releases.repo>http://192.168.10.101:8081/repository/java/</releases.repo>
-              <maven-central.repo>http://192.168.10.101:8081/repository/maven-central/</maven-central.repo>
-            </properties> -->
 
         </profile>
 
-        <!--<profile>
-                <id>releases</id>
-                <activation>
-                        <activeByDefault>true</activeByDefault>
-                </activation>
-                <properties>
-                         <releases.repo>http://192.168.10.101:8081/repository/java/</releases.repo>
-                         <snapshots.repo>http://192.168.10.101:8081/repository/java-snapshots/</snapshots.repo>
-                </properties>
-         </profile> -->
         <!-- profile
          | Specifies a set of introductions to the build process, to be activated using one or more of the
          | mechanisms described above. For inheritance purposes, and to activate profiles via <activatedProfiles/>

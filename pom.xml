@@ -38,6 +38,10 @@
         <module>homo-core-storage</module>
         <module>homo-maven-plugin</module>
         <module>homo-core-extend-utils</module>
+        <module>homo-core-mq-consumer</module>
+        <module>homo-core-mq-producer</module>
+        <module>homo-core-mq-base</module>
+        <module>homo-core-mq-driver-kafka</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -46,7 +50,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>1.0.0.38-SNAPSHOT</revision>
+        <revision>1.0.0.39-SNAPSHOT</revision>
         <spring.boot.version>2.3.12.RELEASE</spring.boot.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -101,11 +105,11 @@
         <maven.version>3.3.9</maven.version>
         <maven.plugin.annotations.version>3.8.1</maven.plugin.annotations.version>
         <k8s.version>10.0.0</k8s.version>
+        <apache.kafka.version>3.2.1</apache.kafka.version>
     </properties>
 
 
     <dependencies>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -154,6 +158,27 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <artifactId>homo-core-mq-base</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-mq-consumer</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-mq-producer</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-mq-driver-kafka</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+
             <dependency>
                 <artifactId>homo-core-storage</artifactId>
                 <groupId>com.homo</groupId>
@@ -299,6 +324,17 @@
                 <version>${protobuf-parent.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.protostuff</groupId>
+                <artifactId>protostuff-core</artifactId>
+                <version>${protostuff.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.protostuff</groupId>
+                <artifactId>protostuff-runtime</artifactId>
+                <version>${protostuff.version}</version>
             </dependency>
 
             <dependency>
@@ -495,11 +531,11 @@
                 <artifactId>jackson-datatype-jsr310</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
-            <!--<dependency>-->
-            <!--<groupId>org.apache.kafka</groupId>-->
-            <!--<artifactId>kafka-clients</artifactId>-->
-            <!--<version>${apache.kafka.version}</version>-->
-            <!--</dependency>-->
+            <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${apache.kafka.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -932,13 +968,14 @@
         </pluginManagement>
     </build>
     <distributionManagement>
+        <!--        推送镜像配置   -->
         <repository>
             <id>releases</id>
-            <url>http://10.100.2.94:8081/repository/java/</url>
+            <url>http://10.100.2.94:8081/repository/releases/</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
-            <url>http://10.100.2.94:8081/repository/java-snapshot/</url>
+            <url>http://10.100.2.94:8081/repository/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 </project>

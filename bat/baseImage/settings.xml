@@ -241,13 +241,18 @@ under the License.
                 <url>http://maven.oschina.net/content/groups/public/</url>
             </mirror>
     -->
+<!--        <mirror>-->
+<!--            <id>public</id>-->
+<!--            <mirrorOf>*</mirrorOf>-->
+<!--            <name>public Repository Mirror.</name>-->
+<!--            <url>http://10.100.2.94:8081/repository/maven-public/</url>-->
+<!--        </mirror>-->
         <mirror>
             <id>public</id>
             <mirrorOf>*</mirrorOf>
             <name>public Repository Mirror.</name>
-            <url>http://10.100.2.94:8081/repository/maven-public/</url>
+            <url>http://10.100.2.94:8081/repository/homo/</url>
         </mirror>
-
     </mirrors>
 
     <!-- profiles
@@ -281,9 +286,9 @@ under the License.
             </activation>
             <repositories>
                 <repository>
-                    <id>maven-central</id>
-                    <name>maven-central</name>
-                    <url>http://10.100.2.94:8081/repository/maven-central/</url>
+                    <id>homo</id>
+                    <name>homo</name>
+                    <url>http://10.100.2.94:8081/repository/homo/</url>
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
@@ -291,34 +296,29 @@ under the License.
                         <enabled>false</enabled>
                     </releases>
                 </repository>
-                <repository>
-                    <id>releases</id>
-                    <name>java</name>
-                    <url>http://10.100.2.94:8081/repository/java/</url>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                </repository>
-                <repository>
-                    <id>snapshots</id>
-                    <name>java-snapshot</name>
-                    <url>http://10.100.2.94:8081/repository/java-snapshot/</url>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                </repository>
+                <!--                <repository>-->
+                <!--                    <id>releases</id>-->
+                <!--                    <name>java-release</name>-->
+                <!--                    <url>http://10.100.2.94:8081/repository/release/</url>-->
+                <!--                    <snapshots>-->
+                <!--                        <enabled>false</enabled>-->
+                <!--                    </snapshots>-->
+                <!--                    <releases>-->
+                <!--                        <enabled>true</enabled>-->
+                <!--                    </releases>-->
+                <!--                </repository>-->
+                <!--                <repository>-->
+                <!--                    <id>snapshots</id>-->
+                <!--                    <name>java-snapshot</name>-->
+                <!--                    <url>http://10.100.2.94:8081/repository/snapshot/</url>-->
+                <!--                    <snapshots>-->
+                <!--                        <enabled>true</enabled>-->
+                <!--                    </snapshots>-->
+                <!--                    <releases>-->
+                <!--                        <enabled>false</enabled>-->
+                <!--                    </releases>-->
+                <!--                </repository>-->
             </repositories>
-            <!-- <properties>
-              <snapshots.repo>http://192.168.10.101:8081/repository/java-snapshot/</snapshots.repo>
-              <releases.repo>http://192.168.10.101:8081/repository/java/</releases.repo>
-              <maven-central.repo>http://192.168.10.101:8081/repository/maven-central/</maven-central.repo>
-            </properties> -->
 
         </profile>
 

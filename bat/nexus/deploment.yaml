@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nexus-deployment
-  namespace: EXAMPLE-NAMESPACE
+  namespace: homo-test
 spec:
   replicas: 1 # 根据需要设置副本数量
   selector:
@@ -16,13 +16,15 @@ spec:
       containers:
         - name: nexus-container
           image: sonatype/nexus3 # 使用Nexus官方Docker镜像或自定义镜像
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081 # Nexus默认端口号，根据需要进行更改
           volumeMounts:
-            - name: nexus-volume
-              mountPath: /nexus-data # 将持久化数据挂载到容器内部的路径（可根据实际情况调整）
+            - name: nexus-volume  #这是在 volumes 部分定义的卷名称。
+              mountPath: /opt/sonatype/sonatype-work/nexus3  #这是容器内的路径，你希望把卷挂载到这个路径，注意该目录是绝对路径，否则挂载无效。（建议进去容器pwd看当前路径确认）
+              subPath: nexus-data #这是卷中的子目录，表示你只想把PersistentVolume 中的nexus-data挂载到/opt/sonatype/sonatype-work/nexus3上
       volumes:
         - name: nexus-volume
           persistentVolumeClaim:
-            claimName: EXAMPLE-PVC-NAME # 定义用于存储Nexus数据的PersistentVolumeClaim名称（需提前创建）
+            claimName: homo-test-pvc # 定义用于存储Nexus数据的PersistentVolumeClaim名称（需提前创建）
 
