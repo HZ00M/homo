@@ -2,7 +2,7 @@ package com.homo.core.utils.origin.regex;
 
 
 import com.homo.core.utils.origin.RegexUtil;
-import com.homo.core.utils.origin.cache.SimpleCache;
+import com.homo.core.utils.origin.SimpleCache;
 
 import java.util.regex.Pattern;
 
