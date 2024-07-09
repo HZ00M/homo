@@ -1,7 +1,5 @@
 package com.homo.core.facade.ability;
 
-import com.homo.core.facade.ability.AbilityAble;
-import com.homo.core.facade.ability.Entity;
 import com.homo.core.facade.storege.SaveObject;
 
 /**

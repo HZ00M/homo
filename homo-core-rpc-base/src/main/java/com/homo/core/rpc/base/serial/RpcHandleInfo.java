@@ -1,7 +1,6 @@
 package com.homo.core.rpc.base.serial;
 
 import com.homo.core.facade.ability.EntityType;
-import com.homo.core.facade.ability.IEntityService;
 import com.homo.core.facade.service.InnerService;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;

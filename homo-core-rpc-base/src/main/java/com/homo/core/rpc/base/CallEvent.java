@@ -7,7 +7,6 @@ import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import com.homo.core.utils.trace.TraceLogUtil;
-import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.client.ParameterMsg;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;

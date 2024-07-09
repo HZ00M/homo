@@ -5,9 +5,8 @@ import com.ctrip.framework.apollo.ConfigChangeListener;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.model.ConfigChange;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
-import com.homo.core.utils.apollo.ConfigDriver;
-import com.homo.core.utils.module.SupportModule;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.logging.LogLevel;
@@ -16,8 +15,13 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 
 import java.util.Set;
 
+/**
+ * 日志等级管理器 优先级要比框架更改  以打印框架运行日志
+ */
 @Slf4j
-public class HomoLogHandler implements SupportModule {
+//@Component
+//@Order(1)
+public class HomoLogHandler implements InitializingBean {
     @Value("${logging.config.namespace:application}")
     private String loggingNamespace;
     @Autowired
@@ -29,7 +33,7 @@ public class HomoLogHandler implements SupportModule {
     private static final String LOGGING_LEVEL_PREFIX = "logging.level.";
 
     @Override
-    public void moduleInit() {
+    public void afterPropertiesSet() throws Exception {
         loggingConfig = ConfigService.getConfig(loggingNamespace);
         loggingConfig.addChangeListener(new ConfigChangeListener() {
             @Override
@@ -51,8 +55,8 @@ public class HomoLogHandler implements SupportModule {
                             default:
                         }
                     }
-            }
-        }});
+                }
+            }});
         refreshLoggingLevel();
         log.info("HomoLogHandler init finish");
     }
@@ -88,4 +92,5 @@ public class HomoLogHandler implements SupportModule {
             return "";
         }
     }
+
 }

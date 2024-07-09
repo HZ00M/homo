@@ -2,7 +2,6 @@ package com.homo.core.mq.kafka.producer;
 
 import com.homo.core.configurable.mq.MQKafkaProperties;
 import com.homo.core.facade.mq.MQType;
-import com.homo.core.facade.mq.producer.MQProducerConfig;
 import com.homo.core.facade.mq.producer.MQProducerDriver;
 import com.homo.core.facade.mq.producer.MQProducerDriverFactory;
 import lombok.extern.slf4j.Slf4j;

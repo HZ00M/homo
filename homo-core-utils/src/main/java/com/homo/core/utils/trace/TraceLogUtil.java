@@ -4,9 +4,6 @@ import brave.Span;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 
-import java.util.Map;
-import java.util.UUID;
-
 @Slf4j
 public class TraceLogUtil {
     public static final String TRACE_ID_KEY = "traceId";

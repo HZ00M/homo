@@ -1,12 +1,12 @@
 package com.homo.core.mysql.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.homo.core.utils.apollo.ConfigDriver;
 import com.homo.core.mysql.datasource.DynamicDataSource;
+import com.homo.core.utils.apollo.ConfigDriver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 
@@ -16,7 +16,7 @@ import java.util.Map;
 
 ;
 
-@Configuration
+@AutoConfiguration
 @Slf4j
 public class DataResourceAutoConfiguration {
     @Value("${mysql.public.namespace:homo_mysql_config}")

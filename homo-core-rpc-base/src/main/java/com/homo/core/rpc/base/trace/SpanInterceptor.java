@@ -6,8 +6,6 @@ import brave.propagation.TraceContext;
 import com.homo.core.utils.trace.TraceLogUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import io.grpc.*;
-import io.homo.proto.rpc.JsonReq;
-import io.homo.proto.rpc.Req;
 import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.TraceInfo;
 import lombok.extern.slf4j.Slf4j;

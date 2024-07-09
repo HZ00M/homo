@@ -3,7 +3,6 @@ package com.homo.service.redis.lock.driver;
 import com.homo.core.facade.lock.LockDriver;
 import com.homo.core.redis.facade.HomoAsyncRedisPool;
 import com.homo.core.redis.lua.LuaScriptHelper;
-import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.rector.Homo;
 import io.lettuce.core.RedisFuture;
 import lombok.extern.slf4j.Slf4j;

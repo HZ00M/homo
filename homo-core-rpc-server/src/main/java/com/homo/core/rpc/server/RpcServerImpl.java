@@ -1,12 +1,10 @@
 package com.homo.core.rpc.server;
 
-import brave.Span;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.service.Service;
 import com.homo.core.utils.rector.Homo;
-import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**

@@ -2,8 +2,8 @@ package com.homo.core.utils.concurrent.schedule;
 
 import brave.Span;
 import brave.Tracer;
-import com.homo.core.utils.concurrent.event.TraceEvent;
 import com.homo.core.utils.concurrent.event.Event;
+import com.homo.core.utils.concurrent.event.TraceEvent;
 import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.trace.ZipkinUtil;

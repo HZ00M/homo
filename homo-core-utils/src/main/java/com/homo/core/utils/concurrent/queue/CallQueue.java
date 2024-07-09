@@ -1,8 +1,8 @@
 package com.homo.core.utils.concurrent.queue;
 
 import brave.Span;
-import com.homo.core.utils.concurrent.event.TraceEvent;
 import com.homo.core.utils.concurrent.event.Event;
+import com.homo.core.utils.concurrent.event.TraceEvent;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

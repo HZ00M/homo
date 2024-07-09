@@ -1,7 +1,6 @@
 package com.homo.core.mq.consumer.route;
 
 import com.homo.core.facade.mq.consumer.ConsumerCallback;
-import com.homo.core.facade.mq.consumer.ConsumerRouterException;
 import com.homo.core.facade.mq.consumer.ReceiverSink;
 import com.homo.core.facade.mq.consumer.SinkHandler;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
@@ -36,7 +35,7 @@ public class RouterMgr {
 //     */
 //    final Map<String,Map<Class<?>,List<RouteInfo>>> topicMessageClazzRouter = new ConcurrentHashMap<>();
 
-    public synchronized <T extends Serializable> void register(@NotNull String realTopic, @NotNull ReceiverSink<T> sink) {
+    public synchronized <T extends Serializable> void register(@NotNull String realTopic, @NotNull ReceiverSink<T> sink) throws Exception {
         List<RouteTarget> routeTargets = topicRouter.computeIfAbsent(realTopic, k -> new ArrayList<>());
         routeTargets.add(new RouteTarget(sink));
     }

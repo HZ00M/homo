@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class KafkaConsumerConfirmWorker extends ConsumerWorker {
-    static final Logger log = LoggerFactory.getLogger(KafkaConsumerSyncWorker.class);
+    static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfirmWorker.class);
     static final Marker marker = MarkerFactory.getMarker("ConsumeWorker");
     /**
      * 每10秒上报一次数据。
@@ -63,8 +63,8 @@ public class KafkaConsumerConfirmWorker extends ConsumerWorker {
      */
     private ConsumerRebalanceListener rebalanceListener;
 
-    public KafkaConsumerConfirmWorker(KafkaConsumer<String, Bytes> consumer, String topic, ReceiverSink<byte[]> sink, long pollWaitMs, int maxPollRecords) {
-        super(consumer, topic, sink);
+    public KafkaConsumerConfirmWorker(String name,KafkaConsumer<String, Bytes> consumer, String topic, ReceiverSink<byte[]> sink, long pollWaitMs, int maxPollRecords) {
+        super(name,consumer, topic, sink);
         this.pollWaitMs = pollWaitMs;
         this.pollWaitDuration = Duration.ofMillis(pollWaitMs);
         this.maxPollRecords = maxPollRecords;
@@ -78,12 +78,12 @@ public class KafkaConsumerConfirmWorker extends ConsumerWorker {
             public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
                 partitionRevokedCount.incrementAndGet();
                 if (partitions != null) {
-                    log.warn(marker, "partitions revoked topic {} partitions {} ", topic, partitions);
+                    log.warn(marker, "{} partitions revoked topic {} partitions {} ",name, topic, partitions);
                 }
                 try {
                     //当发生rebalance时，提交全部offset，不管offset是否有确认成功
                 } catch (Exception e) {
-                    log.error(marker, "commitOffsets after partition revoked exception ", e);
+                    log.error(marker, "{} commitOffsets after partition revoked exception ",name, e);
                 }
             }
 
@@ -91,7 +91,7 @@ public class KafkaConsumerConfirmWorker extends ConsumerWorker {
             public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
                 partitionAssignedCount.incrementAndGet();
                 if (partitions != null) {
-                    log.warn(marker, "partitions assigned topic {} partitions {} ", topic, partitions);
+                    log.warn(marker, "{} partitions assigned topic {} partitions {} ",name, topic, partitions);
                 }
             }
         };
@@ -111,20 +111,24 @@ public class KafkaConsumerConfirmWorker extends ConsumerWorker {
                         maybeCommitOffsets();
                         continue;
                     }
+                    log.debug(marker,"{} receive size receive topic {} size {} partitions {}", name,topic, records.count(), records.partitions());
                     consumeCount = consumeCount + records.count();
                     for (TopicPartition partition : records.partitions()) {
                         List<ConsumerRecord<String, Bytes>> partitionRecords = records.records(partition);
                         if (!partitionRecords.isEmpty()) {
                             for (ConsumerRecord<String, Bytes> record : partitionRecords) {
-                                sink.onSink(topic, record.value().get(), new ConsumerCallback() {
+                                Bytes value = record.value();
+                                byte[] bytes = value.get();
+                                sink.onSink(topic,bytes, new ConsumerCallback() {
                                     final AtomicBoolean confirmed = new AtomicBoolean(false);
-
+                                    //这么实现在所有sink中只需确认一次
                                     @Override
                                     public void confirm() {
                                         if (confirmed.get()) {
                                             String msg = String.format("the same record cannot be confirmed more than once, please check the code: topic=%s,partition=%s,offset=%s", record.topic(), record.partition(), record.offset());
-                                            log.error(marker, msg);
-                                            throw new RuntimeException(msg);
+                                            log.warn(marker, msg);
+                                            return;
+//                                            throw new RuntimeException(msg);
                                         }
                                         confirmed.set(true);
                                         confirmCount.incrementAndGet();
@@ -146,8 +150,8 @@ public class KafkaConsumerConfirmWorker extends ConsumerWorker {
                         TimeUnit.MILLISECONDS.sleep(pollWaitMs);
                         retry++;
                         if (retry % 2000 == 0) {
-                            log.error(marker, "total number of currently received records: {}, total number of confirmed messages: {}. More than {} messages have not been confirmed within 2 seconds ",
-                                    consumeCount, confirmCount, remainCount);
+                            log.error(marker, "{} total number of currently received records: {}, total number of confirmed messages: {}. More than {} messages have not been confirmed within 2 seconds ",
+                                    name,consumeCount, confirmCount, remainCount);
                         }
                     }
                     //尝试提交offset。每10秒提交一次offset。不应该放到回调中去确认，因为回调是在业务线程中
@@ -167,23 +171,23 @@ public class KafkaConsumerConfirmWorker extends ConsumerWorker {
                      *                "consumer is undergoing a rebalance for auto partition assignment. You can try completing the rebalance " +
                      *                "by calling poll() and then retry the operation."));
                      */
-                    log.error(marker, "process receive error rebalance in progress topic {} e", topic, e);
+                    log.error(marker, "{} process receive error rebalance in progress topic {} e", name,topic, e);
                     //暂停1秒，等等Kafka重新平衡完成
                     TimeUnit.SECONDS.sleep(1);
                 }
             }
-        } catch (WakeupException e){
-            log.warn(marker,"kafka consumer throw wakeup exception, ready to close topic {}",topic);
-        }catch (Throwable throwable){
-            log.warn(marker,"kafka consumer throw  topic {}",topic,throwable);
-        }finally {
+        } catch (WakeupException e) {
+            log.warn(marker, "kafka consumer {} throw wakeup exception, ready to close topic {}",name, topic);
+        } catch (Throwable throwable) {
+            log.warn(marker, "kafka consumer {} throw  topic {}", name,topic, throwable);
+        } finally {
             try {
                 //提交剩余全部offset，就算没有确认过的消息offset也要提交
                 commitOffsets(false);
                 //关闭消费者以及业务处理
                 consumer.close();
-            }catch (Throwable throwable){
-                log.warn(marker,"kafka consumer close throwable topic {}",topic,throwable);
+            } catch (Throwable throwable) {
+                log.warn(marker, "kafka consumer {} close throwable topic {}", name,topic, throwable);
             }
         }
     }
@@ -202,7 +206,8 @@ public class KafkaConsumerConfirmWorker extends ConsumerWorker {
                         } else {
                             long beginOffset = partitionRecords.get(0).offset();
                             long lastOffset = partitionRecords.get(partitionRecords.size() - 1).offset();
-                            offsets.put(topicPartition, new ConfirmOffsetPair(beginOffset, lastOffset));
+                            int partition = topicPartition.partition();
+                            offsets.put(topicPartition, ConfirmOffsetPair.of(partition,beginOffset, lastOffset));
                         }
                     }
                 }
@@ -236,21 +241,21 @@ public class KafkaConsumerConfirmWorker extends ConsumerWorker {
                 try {
                     Map<String, List<PartitionInfo>> visibleTopics = consumer.listTopics();
                     retainOffsets(visibleTopics);
-                    log.warn(marker, "committing offsets timed out, retainOffsets: ", e);
+                    log.warn(marker, "{} committing offsets timed out, retainOffsets: ",name, e);
                 } catch (Exception ex) {
-                    log.warn(marker, "Failed to list all authorized topics after committing offsets timed out: ", ex);
+                    log.warn(marker, "{} Failed to list all authorized topics after committing offsets timed out: ",name, ex);
                 }
                 retry++;
-                log.warn(marker, "Failed to commit offsets because the offset commit request processing can not be completed in time. " +
+                log.warn(marker, "{} Failed to commit offsets because the offset commit request processing can not be completed in time. " +
                         "If you see this regularly, it could indicate that you need to increase the consumer's ConsumerConfig.DEFAULT_API_TIMEOUT_MS_CONFIG " +
-                        "Last successful offset commit timestamp={}, retry count={}", LocalDateTime.ofInstant(lastOffsetCommitTime, ZoneId.systemDefault()), retry);
+                        "Last successful offset commit timestamp={}, retry count={}",name, LocalDateTime.ofInstant(lastOffsetCommitTime, ZoneId.systemDefault()), retry);
                 TimeUnit.MILLISECONDS.sleep(100);
             } catch (CommitFailedException e) {
                 needRetry = false;
-                log.error(marker, "Failed to commit offsets because the consumer group has rebalanced and assigned partitions to " +
+                log.error(marker, "{} Failed to commit offsets because the consumer group has rebalanced and assigned partitions to " +
                         "another instance. If you see this regularly, it could indicate that you need to either increase " +
                         "the consumer's SESSION_TIMEOUT_MS_CONFIG or reduce the number of records " +
-                        "handled on each iteration with MAX_POLL_RECORDS_CONFIG");
+                        "handled on each iteration with MAX_POLL_RECORDS_CONFIG",name);
             }
         }
     }
@@ -292,7 +297,7 @@ public class KafkaConsumerConfirmWorker extends ConsumerWorker {
             }
             if (Duration.between(lastPrintTime, Instant.now()).getSeconds() >= PRINT_INFO_INTERVAL) {
                 if (log.isInfoEnabled()) {
-                    log.info(marker, "doCommitOffset {} commit onlyConfirm {} offset {} commitMaps {}", topic, onlyConfirm, offsets, commitMaps);
+                    log.info(marker, "{} doCommitOffset {} commit onlyConfirm {} offset {} commitMaps {}",name, topic, onlyConfirm, offsets, commitMaps);
                 }
                 lastPrintTime = Instant.now();
             }

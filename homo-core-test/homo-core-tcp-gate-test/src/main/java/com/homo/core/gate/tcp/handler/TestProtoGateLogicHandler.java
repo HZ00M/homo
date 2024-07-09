@@ -1,7 +1,6 @@
 package com.homo.core.gate.tcp.handler;
 
 import com.homo.core.facade.gate.GateClient;
-import com.homo.core.facade.gate.GateMessage;
 import com.homo.core.facade.gate.GateMessageHeader;
 import io.homo.proto.client.Msg;
 import io.homo.proto.gate.test.TcpMsg;

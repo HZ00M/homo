@@ -7,7 +7,6 @@ import com.homo.core.facade.gate.GateMessageType;
 import com.homo.core.gate.tcp.TcpGateDriver;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelId;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
 

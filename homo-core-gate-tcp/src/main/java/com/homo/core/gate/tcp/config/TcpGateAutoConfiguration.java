@@ -7,11 +7,11 @@ import com.homo.core.gate.tcp.TcpGateDriver;
 import com.homo.core.gate.tcp.handler.TailHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-@Configuration
+@AutoConfiguration
 @Slf4j
 @Import({GateTcpProperties.class, GateCommonProperties.class})
 public class TcpGateAutoConfiguration {

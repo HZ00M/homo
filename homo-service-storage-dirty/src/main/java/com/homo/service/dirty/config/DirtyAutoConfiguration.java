@@ -6,8 +6,8 @@ import com.homo.core.facade.storege.dirty.DirtyHelper;
 import com.homo.service.dirty.RedisDirtyDriver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 
@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
 
 @Slf4j
 @Import({DirtyProperties.class})
-@Configuration
+@AutoConfiguration
 public class DirtyAutoConfiguration {
 
     @Autowired

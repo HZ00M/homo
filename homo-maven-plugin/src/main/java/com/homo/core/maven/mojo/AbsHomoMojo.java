@@ -1,6 +1,5 @@
 package com.homo.core.maven.mojo;
 
-import com.homo.core.maven.BuildConfiguration;
 import com.homo.core.maven.ConfigKey;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +8,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * defaultValue = "${project}"：设置了默认值为${project}，表示该参数默认值为当前项目的MavenProject对象。

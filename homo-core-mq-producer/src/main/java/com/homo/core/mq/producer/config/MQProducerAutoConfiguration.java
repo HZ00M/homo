@@ -1,20 +1,17 @@
 package com.homo.core.mq.producer.config;
 
-import com.homo.core.configurable.mq.MQCoreProperties;
 import com.homo.core.facade.mq.producer.MQProducerFactory;
 import com.homo.core.mq.producer.MQProducerFactoryImpl;
+import com.homo.core.utils.config.UtilsAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-@Configuration
+@AutoConfiguration(after = {UtilsAutoConfiguration.class})
 @Slf4j
-@Import(MQCoreProperties.class)
+//@AutoConfigureOrder(3)
+//@AutoConfigureAfter(value = {UtilsAutoConfiguration.class})
 public class MQProducerAutoConfiguration {
-    @Autowired
-    MQCoreProperties mqCoreProperties;
 
     @Bean("mqProducerFactory")
     public MQProducerFactory mqProducerFactory(){
@@ -22,4 +19,5 @@ public class MQProducerAutoConfiguration {
         MQProducerFactory mqProducerFactory = new MQProducerFactoryImpl();
         return mqProducerFactory;
     }
+
 }

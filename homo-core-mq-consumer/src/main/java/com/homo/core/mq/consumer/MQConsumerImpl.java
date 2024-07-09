@@ -61,11 +61,11 @@ public class MQConsumerImpl implements MQConsumer {
     }
 
     public @NotNull String getRealTopic(@NotNull String originTopic) {
-        return originTorealTopicCacheMap.computeIfAbsent(originTopic,(_topic)-> consumerConfig.getTopicResolveStrategy().getRealTopic(originTopic, consumerConfig.getAppId(), consumerConfig.getRegionId()));
+        return originTorealTopicCacheMap.computeIfAbsent(originTopic, (_topic) -> consumerConfig.getTopicResolveStrategy().getRealTopic(originTopic, consumerConfig.getAppId(), consumerConfig.getRegionId()));
     }
 
     @Override
-    public <T extends Serializable> void addReceiver(@NotNull String originTopic, @NotNull ReceiverSink<T> sink) {
+    public <T extends Serializable> void addReceiver(@NotNull String originTopic, @NotNull ReceiverSink<T> sink) throws Exception {
         if (status != Status.INIT) {
             throw new RuntimeException("必须要在Consumer未start之前调用receive");
         }
@@ -85,10 +85,13 @@ public class MQConsumerImpl implements MQConsumer {
         Method[] declaredMethods = clazz.getDeclaredMethods();
 
         for (Method declaredMethod : declaredMethods) {
-            SinkFunc sinkFunc = declaredMethod.getAnnotation (SinkFunc.class);
-            for (String topic : sinkFunc.topics()) {
-                routerMgr.register(getRealTopic(topic), sinkHandler, declaredMethod);
+            SinkFunc sinkFunc = declaredMethod.getAnnotation(SinkFunc.class);
+            if (sinkFunc != null) {
+                for (String topic : sinkFunc.topics()) {
+                    routerMgr.register(getRealTopic(topic), sinkHandler, declaredMethod);
+                }
             }
+
         }
     }
 
@@ -99,6 +102,7 @@ public class MQConsumerImpl implements MQConsumer {
             try {
                 MQCodeC<Serializable, byte[]> codec = codecRegister.getCodec(topic);
                 message = codec.decode(bytes);
+                log.debug("MQConsumer receiverSink topic {} message {}", topic, message);
                 routerMgr.topicRouter(topic, message, callback);
             } catch (Throwable throwable) {
                 callback.confirm();
@@ -110,6 +114,11 @@ public class MQConsumerImpl implements MQConsumer {
     public <T extends java.io.Serializable> void registerCodec(@NotNull String originTopic, @NotNull MQCodeC<T, byte[]> codec) {
         String realTopic = this.getRealTopic(originTopic);
         codecRegister.setCodec(realTopic, codec);
+    }
+
+    @Override
+    public <T extends Serializable> void registerGlobalCodec(@NotNull MQCodeC<T, byte[]> codec) {
+        codecRegister.setDefaultCodec(codec);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.homo.core.redis.config;
 
-import com.homo.core.utils.apollo.ConfigDriver;
 import com.homo.core.configurable.redis.RedisConnectProperties;
 import com.homo.core.redis.enums.ERedisType;
 import com.homo.core.redis.facade.HomoRedisPool;
@@ -8,14 +7,15 @@ import com.homo.core.redis.factory.HomoJedisPoolCreater;
 import com.homo.core.redis.factory.HomoJodisPoolCreater;
 import com.homo.core.redis.factory.HomoLettucePoolCreater;
 import com.homo.core.redis.factory.RedisInfoHolder;
+import com.homo.core.utils.apollo.ConfigDriver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 
-@Configuration
+@AutoConfiguration
 @Slf4j
 @Import(RedisConnectProperties.class)
 public class RedisPoolAutoConfiguration {

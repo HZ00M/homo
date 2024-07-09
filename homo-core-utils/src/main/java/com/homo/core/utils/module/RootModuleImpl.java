@@ -1,9 +1,7 @@
 package com.homo.core.utils.module;
 
-import com.homo.core.utils.apollo.ConfigDriver;
 import com.homo.core.configurable.module.ModuleProperties;
-import com.homo.core.utils.module.RootModule;
-import com.homo.core.utils.module.ServerInfo;
+import com.homo.core.utils.apollo.ConfigDriver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;

@@ -24,13 +24,15 @@ import java.util.Properties;
  */
 @Slf4j
 public class MQKafkaConsumerDriver implements MQConsumerDriver {
+    private String groupName;
     private Properties properties;
     private MQKafkaProperties mqKafkaProperties;
     public Map<String, ConsumerWorker> consumerWorkers = new HashMap<>();
 
-    public MQKafkaConsumerDriver(MQKafkaProperties mqKafkaProperties,Properties properties) {
+    public MQKafkaConsumerDriver(String group,MQKafkaProperties mqKafkaProperties,Properties properties) {
         this.mqKafkaProperties = mqKafkaProperties;
         this.properties = properties;
+        this.groupName = group;
     }
 
     @Override
@@ -45,10 +47,11 @@ public class MQKafkaConsumerDriver implements MQConsumerDriver {
         }
         KafkaConsumer<String, Bytes> consumer = new KafkaConsumer<>(properties);
         ConsumerWorker worker = null;
-        if (Boolean.parseBoolean(properties.getProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG))){
-            worker = new KafkaConsumerSyncWorker(consumer,topic,sink,mqKafkaProperties.getPollWailMs());
+        String workerName = String.format("worker_%s_%s",topic,groupName);
+        if (mqKafkaProperties.getAutoCommit()){
+            worker = new KafkaConsumerSyncWorker(workerName,consumer,topic,sink,mqKafkaProperties.getPollWailMs());
         }else {
-            worker = new KafkaConsumerConfirmWorker(consumer,topic,sink,mqKafkaProperties.getPollWailMs(),mqKafkaProperties.getMaxPollRecords());
+            worker = new KafkaConsumerConfirmWorker(workerName,consumer,topic,sink,mqKafkaProperties.getPollWailMs(),mqKafkaProperties.getMaxPollRecords());
         }
         consumerWorkers.put(topic, worker);
     }
@@ -62,7 +65,7 @@ public class MQKafkaConsumerDriver implements MQConsumerDriver {
     public void start() {
         for (ConsumerWorker worker : consumerWorkers.values()) {
             if (worker.getStatus() != ConsumerWorker.Status.RUNNING){
-                worker.stop();
+                worker.start();
             }
         }
     }

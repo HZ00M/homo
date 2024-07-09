@@ -6,14 +6,14 @@ import com.homo.core.storage.EntityStorage;
 import com.homo.core.storage.ObjStorage;
 import com.homo.core.storage.RectorEntityStorage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 ;
 
-@Configuration
+@AutoConfiguration
 @Slf4j
 public class StorageAutoConfiguration {
 

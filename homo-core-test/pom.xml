@@ -21,6 +21,9 @@
         <module>homo-core-entity-test</module>
         <module>homo-core-entity-facade-test</module>
         <module>homo-core-entity-client-test</module>
+        <module>homo-core-mq-producer-test</module>
+        <module>homo-core-mq-consumer-test</module>
+        <module>homo-core-mq-base-test</module>
     </modules>
     <artifactId>homo-core-test</artifactId>
 
@@ -107,6 +110,21 @@
             <dependency>
                 <artifactId>homo-serice-tread-test</artifactId>
                 <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homo</groupId>
+                <artifactId>homo-core-mq-consumer-test</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homo</groupId>
+                <artifactId>homo-core-mq-produce-test</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homo</groupId>
+                <artifactId>homo-core-mq-base-test</artifactId>
                 <version>${revision}</version>
             </dependency>
 <!--            <dependency>-->

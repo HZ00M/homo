@@ -1,12 +1,12 @@
 package com.homo.core.rpc.client;
 
-import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.utils.exception.HomoException;
+import com.homo.core.utils.module.ServiceModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -8,7 +8,6 @@ import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;

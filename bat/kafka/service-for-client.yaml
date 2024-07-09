@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-service-client
+  namespace: homo-test
+spec:
+  selector:
+    app: kafka
+  ports:
+    - name: for-client
+      protocol: TCP
+      port: 9093
+      targetPort: 9093
+  type: LoadBalancer # 根据需求调整为LoadBalancer或ClusterIP
+#  给外部调用端口 客户端bat脚本调用的话window本地hosts文件 配的域名必须是kafka-service-client，
+#  因为连接后kafka会提供KAFKA_ADVERTISED_LISTENERS配置的地址kafka-service-client供客户端进行后续请求，
+#  此时如果hosts不配置kafka-service-client的话会导致域名解析失败

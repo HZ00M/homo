@@ -1,7 +1,5 @@
 package com.homo.core.facade.service;
 
-import com.homo.core.facade.rpc.RpcType;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @ToString
 public class ConfirmOffsetPair {
+    private int partition;
     /**
      * 消费到的offset
      */
@@ -21,14 +22,15 @@ public class ConfirmOffsetPair {
      */
     final AtomicLong commitOffset = new AtomicLong(0);
 
-    public ConfirmOffsetPair(long first, long last) {
+    public ConfirmOffsetPair(int partition,long first, long last) {
+        this.partition = partition;
         consumeOffset.set(last);
         confirmOffset.set(first - 1); //因为确认一条此值就加1，confirmOffset应该是first的前一个offset位置
         commitOffset.set(confirmOffset.get()); //初始提交的位置设置与confirmSet一致
     }
 
-    public static ConfirmOffsetPair of(long first,long last){
-        return new ConfirmOffsetPair(first,last);
+    public static ConfirmOffsetPair of(int partition,long first,long last){
+        return new ConfirmOffsetPair(partition,first,last);
     }
 
     public long addConsumerCount(int count){

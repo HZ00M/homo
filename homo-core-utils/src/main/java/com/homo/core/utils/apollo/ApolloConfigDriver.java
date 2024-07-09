@@ -3,7 +3,6 @@ package com.homo.core.utils.apollo;
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
-import com.ctrip.framework.apollo.spring.property.AutoUpdateConfigChangeListener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;

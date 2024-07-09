@@ -3,7 +3,6 @@ package com.homo.core.rpc.client;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.rpc.base.serial.RpcHandleInfo;
-import io.homo.proto.client.ParameterMsg;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

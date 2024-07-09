@@ -7,11 +7,11 @@ import com.homo.core.facade.rpc.RpcServerFactory;
 import com.homo.core.rpc.grpc.RpcClientFactoryGrpcImpl;
 import com.homo.core.rpc.grpc.RpcServerFactoryGrpcImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-@Configuration
+@AutoConfiguration
 @Slf4j
 @Import({RpcGrpcClientProperties.class, RpcGrpcServerProperties.class})
 public class GrpcRpcAutoConfiguration {

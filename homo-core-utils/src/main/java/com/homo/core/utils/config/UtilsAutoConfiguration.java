@@ -16,20 +16,32 @@ import com.homo.core.utils.serial.JacksonSerializationProcessor;
 import com.homo.core.utils.spring.GetBeanUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 
 import java.util.Set;
 
+/**
+ * 自动配置类的创建顺序
+ *  字符排序>AutoConfigureOrder>AutoConfigureAfter||AutoConfigureBefore
+ * 参考 AutoConfigurationImportSelector getInPriorityOrder()
+ */
 @Slf4j
 @Import({ModuleProperties.class, ZipKinProperties.class})
-@Configuration
+@AutoConfiguration
+//@AutoConfigureOrder(1) utoConfiguration使用@Order无效  需要使用@AutoConfigureOrder才能生效
 public class UtilsAutoConfiguration {
+    /**
+     * 优先级要比框架更改  以打印框架运行日志
+     * @return
+     */
     @Bean("homoLogHandler")
+    @Order(1)
     public HomoLogHandler homoLogHandler(){
         log.info("register bean homoLogHandler");
         HomoLogHandler homoLogHandler = new HomoLogHandler();
@@ -61,7 +73,7 @@ public class UtilsAutoConfiguration {
     }
 
     @Bean("rootModule")
-    @DependsOn("configDriver")
+    @DependsOn({"configDriver"})
     public RootModule rootModule(){
         log.info("register bean rootModule");
         RootModule rootModule = new RootModuleImpl();
@@ -96,4 +108,5 @@ public class UtilsAutoConfiguration {
         log.info("register bean homoSerializationProcessor implement JacksonSerializationProcessor");
         return new JacksonSerializationProcessor();
     }
+
 }

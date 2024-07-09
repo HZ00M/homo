@@ -1,9 +1,6 @@
 package com.homo.core.facade.mq.consumer;
 
 import com.homo.core.facade.mq.MQSupport;
-import com.homo.core.facade.mq.MQType;
-import com.homo.core.facade.mq.consumer.ReceiverSink;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * 驱动层接收到的Topic就是真实的Topic。

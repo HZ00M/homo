@@ -1,6 +1,5 @@
 package com.homo.core.rpc.base.service;
 
-import brave.Span;
 import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.rpc.base.CallData;
 import com.homo.core.rpc.base.RpcInterceptor;
@@ -11,7 +10,6 @@ import com.homo.core.utils.concurrent.queue.IdCallQueue;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.exception.HomoException;
 import com.homo.core.utils.rector.Homo;
-import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.client.ParameterMsg;
 import lombok.extern.slf4j.Slf4j;
 

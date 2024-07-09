@@ -47,14 +47,34 @@ public class MQProducerImpl implements MQProducer {
 
     @Override
     public <T extends Serializable> void send(@NotNull String originTopic, @NotNull T message) throws Exception {
-        String realTopic = getRealTopic(originTopic);
-        driver.sendMessage(realTopic, encodeMessage(realTopic, message));
+        send(originTopic,null,message,null);
+    }
+
+    @Override
+    public <T extends Serializable> void send(@NotNull String originTopic, @NotNull String key, @NotNull T message) throws Exception {
+        send(originTopic,key,message,null);
     }
 
     @Override
     public <T extends Serializable> void send(@NotNull String originTopic, @NotNull T message, @NotNull ProducerCallback callback) throws Exception {
+        send(originTopic,null,message,callback);
+    }
+
+    @Override
+    public <T extends Serializable> void send(@NotNull String originTopic, String key, @NotNull T message, ProducerCallback callback) throws Exception {
         String realTopic = getRealTopic(originTopic);
-        driver.sendMessage(realTopic, encodeMessage(realTopic, message), callback);
+        log.debug("MQProducer send realTopic {} key {} message {}",realTopic,key,message);
+        driver.sendMessage(realTopic, key, encodeMessage(realTopic, message), callback);
+    }
+
+    public <T extends java.io.Serializable> void registerCodec(@NotNull String originTopic, @NotNull MQCodeC<T, byte[]> codec) {
+        String realTopic = this.getRealTopic(originTopic);
+        codecRegister.setCodec(realTopic, codec);
+    }
+
+    @Override
+    public <T extends Serializable> void registerGlobalCodec(@NotNull MQCodeC<T, byte[]> codec) {
+        codecRegister.setDefaultCodec(codec);
     }
 
     @Override

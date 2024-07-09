@@ -1,0 +1,25 @@
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: zookeeper-deployment
+  namespace: homo-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+        - name: zookeeper
+          image: zookeeper:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 2181
+          env:
+            - name: ALLOW_ANONYMOUS_LOGIN
+              value: 'yes'

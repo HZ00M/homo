@@ -11,6 +11,7 @@ import java.util.Objects;
 @Data
 @ToString
 public class OffsetPair implements Serializable,Comparable<OffsetPair> {
+    private int partition;
     private long first;
     private long last;
 
@@ -24,7 +25,7 @@ public class OffsetPair implements Serializable,Comparable<OffsetPair> {
         return Long.compare(last,o.last);
     }
 
-    public static OffsetPair of(long first,long last){
-        return new OffsetPair(first,last);
+    public static OffsetPair of(int partition,long first,long last){
+        return new OffsetPair(partition,first,last);
     }
 }

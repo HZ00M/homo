@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.*;
 import java.util.Arrays;
@@ -303,10 +304,10 @@ public class HomoTypeUtil {
         return false;
     }
 
-    public static @Nullable SerializedLambda getSerializedLambda(Class<?> functionInterface) {
+    public static @Nullable SerializedLambda getSerializedLambda(Serializable functionInterface) {
         try {
             //MessageSink继承了Serializable接口, 如果是Lambda一定会实现一个无参方法writeReplace。
-            Method method = functionInterface.getDeclaredMethod("writeReplace");
+            Method method = functionInterface.getClass().getDeclaredMethod("writeReplace");
             method.setAccessible(true);
             return  (SerializedLambda) method.invoke(functionInterface);
         } catch (Exception e) {

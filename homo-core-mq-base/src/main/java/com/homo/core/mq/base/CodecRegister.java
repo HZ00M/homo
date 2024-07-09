@@ -32,8 +32,8 @@ public class CodecRegister<DEST> {
         MQCodeC<T,DEST> codec= (MQCodeC<T,DEST>)codecMap.get(topic);
         if(codec==null){
             codec=(MQCodeC<T,DEST>)defaultCodec;
-            if(log.isDebugEnabled()){
-                log.debug("未找到 {} 特定的编码器，返回默认编码器",topic);
+            if(log.isTraceEnabled()){
+                log.trace("未找到 {} 特定的编码器，返回默认编码器",topic);
             }
         }
         return codec;

@@ -7,12 +7,12 @@ import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.state.ServiceStateHandlerImpl;
 import com.homo.core.rpc.base.state.ServiceStateMgrImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 
-@Configuration
+@AutoConfiguration
 @Slf4j
 @Import(ServerStateProperties.class)
 public class RpcBaseAutoConfiguration {

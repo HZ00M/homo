@@ -1,7 +1,5 @@
 package com.core.ability.base;
 
-import brave.Span;
-import brave.Tracer;
 import com.core.ability.base.call.CallSystem;
 import com.google.protobuf.ByteString;
 import com.homo.core.facade.ability.EntityType;
@@ -15,7 +13,6 @@ import com.homo.core.rpc.client.RpcClientMgr;
 import com.homo.core.rpc.client.RpcHandlerInfoForClient;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.spring.GetBeanUtil;
-import com.homo.core.utils.trace.ZipkinUtil;
 import io.homo.proto.entity.EntityRequest;
 import io.homo.proto.entity.EntityResponse;
 import lombok.Setter;

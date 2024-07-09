@@ -1,7 +1,5 @@
 package com.homo.core.facade.gate;
 
-import lombok.Data;
-
 public interface GateMessage<T> {
 
     GateMessageHeader getHeader();

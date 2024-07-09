@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
-import org.springframework.util.Assert;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 

@@ -27,9 +27,10 @@ public class MQKafkaConsumerDriverFactory implements MQConsumerDriverFactory {
 
     @Override
     public @NotNull MQConsumerDriver create(String group) {
-        Properties consumerProperties = new Properties(prototype);
+        Properties consumerProperties = new Properties();
+        consumerProperties.putAll(prototype);
         consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG,group);
-        return new MQKafkaConsumerDriver(mqKafkaProperties,consumerProperties);
+        return new MQKafkaConsumerDriver(group,mqKafkaProperties,consumerProperties);
     }
 
     public Properties buildKafkaProperties() {
@@ -38,6 +39,8 @@ public class MQKafkaConsumerDriverFactory implements MQConsumerDriverFactory {
         properties.put(ConsumerConfig.RETRY_BACKOFF_MS_CONFIG, mqKafkaProperties.getRetryBackoffMs());
         properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,mqKafkaProperties.getMaxPollRecords());
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,mqKafkaProperties.getAutoCommit());
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,mqKafkaProperties.getKeyDeserializer());
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,mqKafkaProperties.getValueDeserializer());
         return properties;
     }
 }
