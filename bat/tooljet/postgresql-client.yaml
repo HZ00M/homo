@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgresql-for-client
+  namespace: wuhui-dev-dubian  
+spec:
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432 
+  selector:
+    app: postgres
+  type: LoadBalancer  

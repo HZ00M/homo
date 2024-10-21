@@ -1,0 +1,52 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: redis-deployment
+  namespace: yh-crawler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      namespace: yh-crawler
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:5.0.5
+          command:
+            - redis-server
+          args:
+            - /usr/local/etc/redis.conf
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+              subPath: redis
+            - name: redis-config
+              mountPath: /usr/local/etc
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+      restartPolicy: Always
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: yh-crawler-pvc
+        - name: redis-config
+          configMap:
+            name: redis-conf
+            items:
+              - key: redis.conf
+                path: redis.conf
+            defaultMode: 420
+

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql-deployment
+  namespace: yh-crawler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - postgres
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: postgres
+          image: default.registry.tke-syyx.com/om/postgres:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 5432
+          resources:
+            requests:
+              cpu: "1"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          volumeMounts:
+            - name: postgres-pv-storage  #这是在 volumes 部分定义的卷名称。
+              mountPath: /var/lib/postgresql/data  #这是容器内的路径，你希望把卷挂载到这个路径，注意该目录是绝对路径，否则挂载无效。（建议进去容器pwd看当前路径确认）
+              subPath: postgresql #这是卷中的子目录，表示你只想把PersistentVolume 中的postgresql-data挂载到var/lib/postgresql/data上
+          env:
+           - name: POSTGRES_USER
+             valueFrom:
+               secretKeyRef:
+                name: postgresql-secret
+                key: POSTGRES_USER
+           - name: POSTGRES_PASSWORD
+             valueFrom:
+                secretKeyRef:
+                  name: postgresql-secret
+                  key: POSTGRES_PASSWORD
+      volumes:
+        - name: postgres-pv-storage
+          persistentVolumeClaim:
+            claimName: yh-crawler-pvc

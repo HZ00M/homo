@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgrest-config
+  namespace: wuhui-dev-dubian
+data:
+  PGRST_DB_URI: "postgres://postgres:123456@postgres:5432/tooljet_db?sslmode=disable"
+  PGRST_DB_SCHEMA: "public"
+  PGRST_DB_ANON_ROLE: "anon"
+  PGRST_JWT_SECRET: 718bb4bdc96fb39abac60c5795dc6e5953afc4dcd028ffdfd46221ab0a19d017

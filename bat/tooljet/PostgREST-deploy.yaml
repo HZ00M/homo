@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgrest
+  namespace: wuhui-dev-dubian
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgrest
+  template:
+    metadata:
+      labels:
+        app: postgrest
+    spec:
+      containers:
+        - name: postgrest
+          image: default.registry.tke-syyx.com/om/postgrest:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: postgrest-config

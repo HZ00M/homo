@@ -1,0 +1,15 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: yh-crawler-pv
+spec:
+  capacity:
+    storage: 200Mi
+  nfs:
+    server: 10.100.0.112
+    path: /home/nfs-share/nfs-subdir-auto/yh-crawler
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: nfs-subdir-client
+  volumeMode: Filesystem

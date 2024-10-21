@@ -1,0 +1,16 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  namespace: yh-crawler
+  name: yh-crawler-pvc
+  labels:
+    ## This is the namespace of the PVC
+    dir: yh-crawler
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 200Mi
+  storageClassName: nfs-subdir-client
+  volumeMode: Filesystem

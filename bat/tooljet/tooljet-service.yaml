@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: tooljet-service
+  namespace: wuhui-dev-dubian 
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  selector:
+    component: tooljet 
+  type: ClusterIP 

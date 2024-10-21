@@ -1,0 +1,26 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-for-client
+  namespace: yh-crawler
+spec:
+  ports:
+    - protocol: TCP
+      port: 30379
+      targetPort: 6379
+  selector:
+    app: redis
+  type: LoadBalancer
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  namespace: yh-crawler
+spec:
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: redis

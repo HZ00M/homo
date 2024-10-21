@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nocobase-deployment
+  namespace: yh-crawler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nocobase
+  template:
+    metadata:
+      labels:
+        app: nocobase
+    spec:
+      containers:
+        - name: nocobase
+          image: registry.cn-shanghai.aliyuncs.com/nocobase/nocobase:latest
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "1Gi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          ports:
+            - containerPort: 80
+          env:
+            # 应用的密钥，用于生成用户 token 等
+            # 如果 APP_KEY 修改了，旧的 token 也会随之失效
+            # 可以是任意随机字符串，并确保不对外泄露
+            - name: APP_KEY
+              value: abc123
+            # 数据库类型，支持 postgres, mysql, mariadb, sqlite
+            - name: DB_DIALECT
+              value: postgres
+            # 数据库主机，可以替换为已有的数据库服务器 IP
+            - name: DB_HOST
+              value: postgres
+            # 数据库名
+            - name: DB_DATABASE
+              value: crawler
+            # 数据库用户
+            - name: DB_USER
+              value: postgres
+            # 数据库密码
+            - name: DB_PASSWORD
+              value: '123456'
+              # 表导出限制
+            - name: EXPORT_LIMIT
+              value: '30000'
+          volumeMounts:
+            - name: nocobase-storage
+              mountPath: /app/nocobase/storage
+              subPath: nocobase
+      volumes:
+        - name: nocobase-storage
+          persistentVolumeClaim:
+            claimName: yh-crawler-pvc

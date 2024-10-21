@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tooljet-deployment
+  namespace: wuhui-dev-dubian
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      component: tooljet
+  template:
+    metadata:
+      labels:
+        component: tooljet
+    spec:
+      imagePullSecrets:
+        - name: docker-secret
+      containers:
+        - name: container
+          image: default.registry.tke-syyx.com/syyx-tpf/tooljet-ee:v2.62.0-ee2.22.1
+          imagePullPolicy: IfNotPresent
+          args: ["npm", "run", "start:prod"]
+          resources:
+            limits:
+              memory: "2000Mi"
+              cpu: "2000m"
+            requests:
+              memory: "1000Mi"
+              cpu: "1000m"
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              port: 3000
+              path: /api/health
+            successThreshold: 1
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 6
+          env:
+            - name: PG_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: tooljet-secret
+                  key: POSTGRES_HOST
+            - name: PG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: tooljet-secret
+                  key: POSTGRES_USER
+            - name: PG_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: tooljet-secret
+                  key: POSTGRES_PASSWORD
+            - name: PG_DB
+              valueFrom:
+                secretKeyRef:
+                  name: tooljet-secret
+                  key: POSTGRES_DB
+            - name: LOCKBOX_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tooljet-secret
+                  key: LOCKBOX_MASTER_KEY
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: tooljet-secret
+                  key: SECRET_KEY_BASE
+            - name: TOOLJET_HOST
+              value: "http://tooljet-service"
+            - name: ENABLE_MARKETPLACE_FEATURE
+              value: 'true'
+            - name: REDIS_HOST
+              value: redis.wuhui-dev-dubian.svc.cluster.local
+            - name: REDIS_PORT
+              value: '30379'
+            - name: DEPLOYMENT_PLATFORM
+              value: k8s
+            # Set the env values below for Tooljet Database
+            - name: ENABLE_TOOLJET_DB
+              value: "true"
+            - name: TOOLJET_DB
+              value: "tooljet_db"
+            - name: TOOLJET_DB_USER
+              value: "postgres"
+            - name: TOOLJET_DB_PASS
+              value: "123456"
+            - name: TOOLJET_DB_HOST
+              value: "postgres"
+            - name: TOOLJET_DB_PORT
+              value: "5432"
+            - name: LOG_FILE_PATH
+              value: tooljet/log/tooljet-audit.log
+            - name: PGRST_HOST
+              value: "postgrest-service:3000"
+            - name: SERVER_HOST
+              value: "postgrest-service"
+            - name: PGRST_JWT_SECRET
+              value: 718bb4bdc96fb39abac60c5795dc6e5953afc4dcd028ffdfd46221ab0a19d017

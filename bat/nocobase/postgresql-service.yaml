@@ -1,0 +1,27 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgresql-for-client
+  namespace: yh-crawler
+spec:
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432 
+  selector:
+    app: postgres
+  type: LoadBalancer
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgres
+  namespace: yh-crawler
+spec:
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres
