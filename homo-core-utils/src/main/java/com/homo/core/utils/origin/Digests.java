@@ -21,7 +21,6 @@ import java.security.SecureRandom;
  * <p>
  * 返回ByteSource，可进一步被编码为Hex, Base64或UrlSafeBase64
  *
- * @author calvin
  */
 public class Digests {
 

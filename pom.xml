@@ -42,6 +42,7 @@
         <module>homo-core-mq-producer</module>
         <module>homo-core-mq-base</module>
         <module>homo-core-mq-driver-kafka</module>
+        <module>homo-turntable-utils</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -50,7 +51,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>1.0.0.39-SNAPSHOT</revision>
+        <revision>1.0.0.42-SNAPSHOT</revision>
         <spring.boot.version>2.3.12.RELEASE</spring.boot.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -294,7 +295,6 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
-
             <dependency>
                 <artifactId>homo-core-rpc-client</artifactId>
                 <groupId>com.homo</groupId>
@@ -315,7 +315,11 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
-
+            <dependency>
+                <artifactId>homo-turntable-utils</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
 
             <!--            第三方依赖             -->
             <dependency>

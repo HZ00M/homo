@@ -24,10 +24,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.TimeZone;
 
-/**
- * @author liujun
- * @create 2021/3/30 11:04
- */
 public class JacksonMapper {
 
     private ObjectMapper objectMapper;

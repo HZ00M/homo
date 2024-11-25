@@ -9,6 +9,11 @@ COPY sources.list /etc/apt/sources.list
 
 # 安装构建 Python 所需的依赖
 RUN apt-get update && apt-get install -y \
+    iptables \
+    iputils-ping \
+    telnet\
+    curl\
+    dnsutils \
     wget \
     build-essential \
     libssl-dev \

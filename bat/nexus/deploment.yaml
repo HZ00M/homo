@@ -13,6 +13,9 @@ spec:
       labels:
         app: nexus-app
     spec:
+      securityContext: # 这里是 Pod 的安全上下文
+        runAsUser: 0
+        runAsGroup: 0
       containers:
         - name: nexus-container
           image: sonatype/nexus3 # 使用Nexus官方Docker镜像或自定义镜像

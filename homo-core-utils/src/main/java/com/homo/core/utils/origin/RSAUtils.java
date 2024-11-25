@@ -24,7 +24,6 @@ import java.util.Map;
  * 非对称加密算法可以用来对对称加密的密钥加密，这样保证密钥的安全也就保证了数据的安全
  * </p>
  *
- * @author IceWee
  * @date 2012-4-26
  * @version 1.0
  */
@@ -32,7 +31,6 @@ import java.util.Map;
 
 /**
  * Created with IDEA
- * Author : 80092008
  * Date : 2015-02-05
  * Time : 18:36
  */

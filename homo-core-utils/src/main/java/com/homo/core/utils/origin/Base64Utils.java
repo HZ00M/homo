@@ -12,14 +12,12 @@ import java.io.*;
  * 依赖javabase64-1.3.1.jar
  * </p>
  *
- * @author IceWee
  * @date 2012-5-19
  * @version 1.0
  */
 
 /**
  * Created with IDEA
- * Author : 80092008
  * Date : 2015-02-05
  * Time : 18:37
  */

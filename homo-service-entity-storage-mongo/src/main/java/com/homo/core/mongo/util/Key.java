@@ -1,9 +1,6 @@
 package com.homo.core.mongo.util;
 
-/**
- * 数据库 KEY 管理
- * @author aisen
- */
+
 public final class Key {
     private final static String COLLECTION_FORMAT = "col_%s_%s";        //col_appId_regionId
     private final static String PRIMARY_FORMAT = "primary_%s_%s_%s";    //primary_logic_ownerId_key

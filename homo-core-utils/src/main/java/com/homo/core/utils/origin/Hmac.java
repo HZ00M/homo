@@ -16,7 +16,6 @@ import java.util.Arrays;
  * <p>Copyright (c) 2015 www.oppo.com Inc. All rights reserved.</p>
  * <p>Company: OPPO</p>
  *
- * @author Yibowen
  * @time 16:06
  * @since 2015-06-02
  */

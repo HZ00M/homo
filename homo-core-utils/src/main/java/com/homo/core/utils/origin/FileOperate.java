@@ -14,7 +14,6 @@ import java.nio.channels.FileChannel;
  * <p>Copyright (c) 2015 www.oppo.com Inc. All rights reserved.</p>
  * <p>Company: OPPO</p>
  *
- * @author Yibowen
  * @time 14:19
  * @since 2015-05-27
  */

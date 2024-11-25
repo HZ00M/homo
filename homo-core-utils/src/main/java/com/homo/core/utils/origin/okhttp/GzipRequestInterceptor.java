@@ -7,10 +7,6 @@ import okhttp3.Response;
 
 import java.io.IOException;
 
-/**
- * @author liujun
- * @create 2020/12/19 17:36
- */
 public class GzipRequestInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {

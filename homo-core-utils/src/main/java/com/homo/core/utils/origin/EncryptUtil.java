@@ -12,7 +12,6 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * 3DES加解密工具类
  *
- * @author 80058500
  */
 public class EncryptUtil {
 

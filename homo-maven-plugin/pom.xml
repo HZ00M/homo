@@ -28,6 +28,10 @@
             <artifactId>homo-core-extend-utils</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-turntable-utils</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.docker-java</groupId>
             <artifactId>docker-java</artifactId>
             <version>${docker.version}</version>

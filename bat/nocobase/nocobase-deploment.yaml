@@ -18,11 +18,11 @@ spec:
           image: registry.cn-shanghai.aliyuncs.com/nocobase/nocobase:latest
           resources:
             requests:
-              cpu: "200m"
-              memory: "1Gi"
-            limits:
+              memory: "2000Mi"
               cpu: "1000m"
-              memory: "1Gi"
+            limits:
+              memory: "2000Mi"
+              cpu: "1000m"
           ports:
             - containerPort: 80
           env:

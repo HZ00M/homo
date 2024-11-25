@@ -3,12 +3,7 @@ package com.homo.core.utils.origin;
 import org.apache.commons.lang3.StringUtils;
 
 
-/**
- * 提供Base64编码解码
- *
- * @author 80036381
- *         2011-1-7
- */
+
 public class Base64 {
     /**
      * base64编码

@@ -1662,7 +1662,6 @@ public final class StringUtil {
 
 	/**
 	 * 截取字符串,从指定位置开始,截取指定长度的字符串<br>
-	 * author weibaohui
 	 *
 	 * @param input 原始字符串
 	 * @param fromIndex 开始的index,包括
