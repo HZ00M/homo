@@ -1,0 +1,86 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "io.homo.proto.relational.test";     // 指定包名
+option java_outer_classname = "RelationalTest"; // 指定类名
+
+message DrawCardPb{
+  int64  id = 1;
+  int32 poolId = 2;
+  string userId = 3;
+}
+//收发协议
+message SaveDrawCardReq
+{
+  DrawCardPb drawCard = 1;
+}
+
+message SaveDrawCardResp{
+  int32  code = 1;
+  int64  id = 2;
+}
+
+//收发协议
+message InsertDrawCardReq
+{
+  DrawCardPb drawCard = 1;
+}
+
+message InsertDrawCardResp{
+  int32  code = 1;
+  int64  id = 2;
+}
+
+//收发协议
+message InsertsDrawCardReq
+{
+  repeated DrawCardPb drawCard = 1;
+}
+
+message InsertsDrawCardResp{
+  int32  code = 1;
+  repeated int64  ids = 2;
+}
+message UpdateDrawCardReq
+{
+  DrawCardPb drawCard = 2;
+}
+
+message UpdateDrawCardResp{
+  int32  code = 1;
+}
+
+message QueryDrawCardReq{
+  repeated int64 ids = 1;
+}
+
+message QueryDrawCardResp{
+  int32  code = 1;
+  repeated DrawCardPb drawCards = 2;
+}
+
+message DeleteDrawCardReq{
+  repeated int64 ids = 1;
+}
+
+message DeleteDrawCardResp{
+  int32  code = 1;
+}
+
+message ExecuteSqlReq{
+  string sql = 1;
+}
+
+message ExecuteSqlResp{
+  int32  code = 1;
+  repeated string results = 2;
+}
+
+message AggregateReq{
+  string sql = 1;
+}
+
+message AggregateResp{
+  int32  code = 1;
+  string result = 2;
+}
+

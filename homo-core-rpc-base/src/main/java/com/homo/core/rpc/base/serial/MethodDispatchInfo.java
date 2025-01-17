@@ -12,6 +12,7 @@ import com.homo.core.utils.serial.FSTSerializationProcessor;
 import com.homo.core.utils.serial.FastjsonSerializationProcessor;
 import com.homo.core.utils.serial.HomoSerializationProcessor;
 import com.homo.core.utils.serial.ProtoSerializationProcessor;
+import com.homo.core.utils.upload.UploadFile;
 import io.homo.proto.client.ParameterMsg;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -27,11 +28,11 @@ public class MethodDispatchInfo implements RpcSecurity {
     private Method method;
     private int paramCount;
     private SerializeInfo[] paramSerializeInfos;
-    private SerializeInfo[] returnSerializeInfos;
+    private SerializeInfo returnSerializeInfo;
     private RpcSecurity rpcSecurity;
     private RpcContentType paramContentType = RpcContentType.BYTES;
-    private static ByteRpcContent bytesRpcContent = new ByteRpcContent();
-    private static JsonRpcContent jsonRpcContent = new JsonRpcContent();
+    private RpcContent paramContent;
+    private RpcContent returnContent;
     // 向参数数组中填充podId和parameterMsg的标志
     private boolean paddingParams = false;
     private int paddingOffset;
@@ -47,12 +48,39 @@ public class MethodDispatchInfo implements RpcSecurity {
 
     private void init() {
         this.paramCount = exportParamCount();
-        this.paramSerializeInfos = exportSerializeInfo(method.getParameterTypes());
-        this.returnSerializeInfos = exportSerializeInfo(getTypeParamsByType(method.getGenericReturnType()));
+        this.paramSerializeInfos = exportParamsSerializeInfo(method.getParameterTypes());
+        this.returnSerializeInfo = exportrReturnSerializeInfo(method.getGenericReturnType());
     }
 
+    private SerializeInfo exportrReturnSerializeInfo(Type returnType) {
+        Class<?> generateClass = getTypeParamsByType(returnType)[0];
+        if (returnType == null) {
+            return null;
+        }
+        try {
+            HomoSerializationProcessor serializationProcessor;
+            if (com.google.protobuf.GeneratedMessageV3.class.isAssignableFrom(generateClass)) {
+                serializationProcessor = new ProtoSerializationProcessor();
+                returnContent = new ByteRpcContent();
+            } else if (JSONObject.class.isAssignableFrom(generateClass) || JSONArray.class.isAssignableFrom(generateClass)) {
+                serializationProcessor = new FastjsonSerializationProcessor();
+                returnContent = new JsonRpcContent();
+            } else if (UploadFile.class.isAssignableFrom(generateClass)) {
+                serializationProcessor = null;//todo
+                returnContent = new FileRpcContent();
+            } else {
+                serializationProcessor = new FSTSerializationProcessor();
+                returnContent = new ByteRpcContent();
+            }
+            SerializeInfo serializeInfo = exportSerializeInfo(generateClass, serializationProcessor);
+            return serializeInfo;
+        } catch (Exception e) {
+            log.error("exportrReturnSerializeInfo error", e);
+            return null;
+        }
+    }
 
-    private SerializeInfo[] exportSerializeInfo(Class<?>[] classes) {
+    private SerializeInfo[] exportParamsSerializeInfo(Class<?>[] classes) {
         if (classes == null) {
             return null;
         }
@@ -63,9 +91,16 @@ public class MethodDispatchInfo implements RpcSecurity {
                 HomoSerializationProcessor serializationProcessor;
                 if (com.google.protobuf.GeneratedMessageV3.class.isAssignableFrom(clazz)) {
                     serializationProcessor = new ProtoSerializationProcessor();
+                    paramContentType = RpcContentType.BYTES;
+                    paramContent = new ByteRpcContent();
                 } else if (JSONObject.class.isAssignableFrom(clazz) || JSONArray.class.isAssignableFrom(clazz)) {
                     serializationProcessor = new FastjsonSerializationProcessor();
                     paramContentType = RpcContentType.JSON;
+                    paramContent = new JsonRpcContent();
+                } else if (UploadFile.class.isAssignableFrom(clazz)) {
+                    serializationProcessor = null;
+                    paramContentType = RpcContentType.FILE;
+                    paramContent = new FileRpcContent();
                 } else {
                     serializationProcessor = new FSTSerializationProcessor();
                 }
@@ -77,7 +112,7 @@ public class MethodDispatchInfo implements RpcSecurity {
             }
             return serializeInfos;
         } catch (Exception e) {
-            log.error("exportSerializeInfo error", e);
+            log.error("exportParamsSerializeInfo error", e);
             return null;
         }
     }
@@ -123,77 +158,38 @@ public class MethodDispatchInfo implements RpcSecurity {
         return rpcSecurity.isCallAllowed(srcServiceName);
     }
 
-
-    public Object[] unSerializeParam(Integer podId, ParameterMsg parameterMsg, RpcContent rpcContent) {
+    public Object[] covertToActualParam(RpcContent rpcContent) {
+        return covertToActualParam(null, null,rpcContent);
+    }
+    public Object[] covertToActualParam(Integer podId, ParameterMsg parameterMsg, RpcContent rpcContent) {
         int paramCount = paramSerializeInfos.length;
         if (paramCount <= 0) {
             return null;
         }
-        return rpcContent.unSerializeParams(paramSerializeInfos, paddingOffset, podId, parameterMsg);
+        return rpcContent.unSerializeToActualParams(paramSerializeInfos, paddingOffset, podId, parameterMsg);
     }
 
-    public Object[] unSerializeReturn( RpcContent rpcContent) {
-        int paramCount = paramSerializeInfos.length;
-        if (paramCount <= 0) {
-            return null;
-        }
-        return rpcContent.unSerializeParams(returnSerializeInfos, 0, null, null);
-    }
-
-    public Object[] unSerializeParam(RpcContent rpcContent) {
-        return rpcContent.unSerializeParams(paramSerializeInfos, 0, null, null);
-    }
-    public Object[] unSerializeParam(RpcContent rpcContent,Integer podId, ParameterMsg parameterMsg) {
-        return this.unSerializeParam(podId, parameterMsg, rpcContent);
-    }
-
-    public RpcContent serializeParamContent(Object[] params) {
-        if (paramSerializeInfos == null || paramSerializeInfos.length <= 0) {
-            return new ByteRpcContent();
-        }
+    public RpcContent warpToRpcContent(String funName, Object[] rawParams) {
+        RpcContent rpcContent;
         if (paramContentType.equals(RpcContentType.BYTES)) {
-            ByteRpcContent byteRpcContent = new ByteRpcContent();
-            byte[][] bytesData = serializeParam(params, byteRpcContent);
-            byteRpcContent.setData(bytesData);
-            return byteRpcContent;
+            rpcContent = new ByteRpcContent();
         } else if (paramContentType.equals(RpcContentType.JSON)) {
-            JsonRpcContent jsonRpcContent = new JsonRpcContent();
-            String jsonData = serializeParam(params, jsonRpcContent);
-            jsonRpcContent.setData(jsonData);
-            return jsonRpcContent;
-        }
-        return null;
-    }
-
-    public <T, R> R serializeParam(Object[] params, RpcContent<T, R> rpcContent) {
-        R serializeData = null;
-        if (paramSerializeInfos == null || paramSerializeInfos.length <= 0) {
-            return serializeData;
-        }
-        if (paramContentType.equals(RpcContentType.BYTES)) {
-            serializeData = rpcContent.serializeParams(params, paramSerializeInfos, 0);
-        } else if (paramContentType.equals(RpcContentType.JSON)) {
-            serializeData = rpcContent.serializeParams(params, paramSerializeInfos, 0);
-        }
-        return serializeData;
-    }
-
-    public Object serializeForReturn(Object[] params) {
-        Object serializeData = null;
-        if (returnSerializeInfos == null || returnSerializeInfos.length <= 0) {
-            return serializeData;
-        }
-        if (params[0] instanceof String){
-            //todo 还没想好，如果返回值是String 先用jsonContent处理处理序列化
-            serializeData = jsonRpcContent.serializeParams(params, returnSerializeInfos, 0);
+            rpcContent = new JsonRpcContent();
+        } else if (paramContentType.equals(RpcContentType.FILE)) {
+            rpcContent = new FileRpcContent();
         }else {
-            serializeData = bytesRpcContent.serializeParams(params, returnSerializeInfos, 0);
+            rpcContent = new ByteRpcContent();
         }
-        return serializeData;
+        rpcContent.setId(funName);
+        rpcContent.setReturnType(returnSerializeInfo.getParamType());
+        rpcContent.setParam(rpcContent.serializeRawParams(rawParams, paramSerializeInfos, paddingOffset));
+        return rpcContent;
     }
 
 
-    public Integer choicePodIndex(Object o, Method method, Object[] objects) {
-        return null;
+    public Object serializeForReturn(Object returnValue) {
+        Object object = returnContent.serializeReturn(returnValue, returnSerializeInfo);
+        return object;
     }
+
 }

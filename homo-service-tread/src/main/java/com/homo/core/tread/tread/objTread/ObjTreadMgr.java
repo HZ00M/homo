@@ -7,9 +7,9 @@ import com.homo.core.facade.tread.tread.enums.ExecRet;
 import com.homo.core.facade.tread.tread.enums.SeqType;
 import com.homo.core.facade.tread.tread.op.SeqPoint;
 import com.homo.core.tread.tread.config.TreadProperties;
-import com.homo.core.utils.fun.Func2Ex;
-import com.homo.core.utils.fun.Func3Ex;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.Func2PWithException;
+import com.homo.core.utils.fun.Func3PWithException;
+import com.homo.core.utils.fun.FuncWithException;
 import com.homo.core.utils.module.Module;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
@@ -83,49 +83,49 @@ public class ObjTreadMgr  implements TreadMgr<Object>, Module {
         }
     }
 
-    public boolean registerPromiseSetFun(String source, Func2Ex<Object, Object, Homo<Object>> setFun) {
+    public boolean registerPromiseSetFun(String source, Func2PWithException<Object, Object, Homo<Object>> setFun) {
         throw new RuntimeException("ObjTreadMgr unSupport registerPromiseSetFun!");
     }
 
-    public boolean registerSetFun(String source, Func2Ex<Object, Object, Object> setFun) {
+    public boolean registerSetFun(String source, Func2PWithException<Object, Object, Object> setFun) {
         throw new RuntimeException("ObjTreadMgr unSupport registerSetFun!");
     }
 
-    public boolean registerPromiseGetFun(String source, FuncEx<Object, Homo<Object>> getFun) {
+    public boolean registerPromiseGetFun(String source, FuncWithException<Object, Homo<Object>> getFun) {
         throw new RuntimeException("ObjTreadMgr unSupport registerPromiseGetFun!");
     }
 
-    public boolean registerGetFun(String source, FuncEx<Object, Object> getFun) {
+    public boolean registerGetFun(String source, FuncWithException<Object, Object> getFun) {
         throw new RuntimeException("ObjTreadMgr unSupport registerGetFun!");
     }
 
     @Override
-    public <P> boolean registerCreateObjFun(Class<P> mgrClassType,Func2Ex<P, Object, Object> getObjFun, String... sources) {
+    public <P> boolean registerCreateObjFun(Class<P> mgrClassType, Func2PWithException<P, Object, Object> getObjFun, String... sources) {
         throw new RuntimeException("ObjTreadMgr unSupport registerGetFun!");
     }
 
     @Override
-    public <P> boolean registerPromiseCreateObjFun(Class<P> mgrClassType,Func2Ex<P, Object, Homo<Object>> getObjFun, String... sources) {
+    public <P> boolean registerPromiseCreateObjFun(Class<P> mgrClassType, Func2PWithException<P, Object, Homo<Object>> getObjFun, String... sources) {
         throw new RuntimeException("ObjTreadMgr unSupport registerPromiseCreateObjFun!");
     }
 
     @Override
-    public <P> boolean registerGetObjFun(Class<P> mgrClassType,Func2Ex<P, Object, Object> getObjFun, String... sources) {
+    public <P> boolean registerGetObjFun(Class<P> mgrClassType, Func2PWithException<P, Object, Object> getObjFun, String... sources) {
         throw new RuntimeException("ObjTreadMgr unSupport registerGetObjFun!");
     }
 
     @Override
-    public <P> boolean registerPromiseGetObjFun(Class<P> mgrClassType,Func2Ex<P, Object, Homo<Object>> getObjFun, String... sources) {
+    public <P> boolean registerPromiseGetObjFun(Class<P> mgrClassType, Func2PWithException<P, Object, Homo<Object>> getObjFun, String... sources) {
         throw new RuntimeException("ObjTreadMgr unSupport registerPromiseGetObjFun!");
     }
 
     @Override
-    public <P> boolean registerSetObjFun(Class<P> mgrClassType, Func3Ex<P, Object, Object, Object> setObjFun, String... sources) {
+    public <P> boolean registerSetObjFun(Class<P> mgrClassType, Func3PWithException<P, Object, Object, Object> setObjFun, String... sources) {
         throw new RuntimeException("ObjTreadMgr unSupport registerSetObjFun!");
     }
 
     @Override
-    public <P> boolean registerPromiseSetObjFun(Class<P> mgrClassType, Func3Ex<P, Object, Object, Homo<Object>> setObjFun, String... sources) {
+    public <P> boolean registerPromiseSetObjFun(Class<P> mgrClassType, Func3PWithException<P, Object, Object, Homo<Object>> setObjFun, String... sources) {
         throw new RuntimeException("ObjTreadMgr unSupport registerPromiseSetObjFun!");
     }
 

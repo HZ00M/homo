@@ -1,17 +1,22 @@
 package com.homo.core.utils.rector;
 
 import brave.Span;
+import com.homo.core.utils.callback.CallBack;
 import com.homo.core.utils.concurrent.event.SwitchThreadEvent;
+import com.homo.core.utils.concurrent.lock.IdLocker;
 import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.queue.CallQueueProducer;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
-import com.homo.core.utils.fun.ConsumerEx;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.ConsumerWithException;
+import com.homo.core.utils.fun.FuncWithException;
+import com.homo.core.utils.fun.SupplierWithException;
 import com.homo.core.utils.trace.TraceLogUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
@@ -26,6 +31,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.*;
 
 @Slf4j
@@ -37,7 +44,7 @@ public class Homo<T> extends Mono<T> {
     }
 
     public static <T> Homo<T> queue(IdCallQueue idCallQueue, Callable<Homo<T>> callable, Runnable errCb) {
-        return Homo.warp(new ConsumerEx<HomoSink<T>>() {
+        return Homo.warp(new ConsumerWithException<HomoSink<T>>() {
             @Override
             public void accept(HomoSink<T> tHomoSink) throws Exception {
                 Span span = ZipkinUtil.getTracing().tracer().currentSpan();
@@ -126,15 +133,15 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(Mono.defer(warp));
     }
 
-    public static <T> Homo<T> warp(ConsumerEx<HomoSink<T>> callback) {
+    public static <T> Homo<T> warp(ConsumerWithException<HomoSink<T>> callback) {
         Consumer<MonoSink<T>> consumer =
-                sink -> {
+                monoSink -> {
                     try {
-                        HomoSink<T> homoSink = new HomoSink<>(sink);
+                        HomoSink<T> homoSink = new HomoSink<>(monoSink);
                         callback.accept(homoSink);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        sink.error(e);
+                        monoSink.error(e);
                     }
                 };
         return Homo.warp(Mono.create(consumer));
@@ -152,7 +159,7 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(mono.switchIfEmpty(alternate));
     }
 
-    public final <R> Homo<R> nextDo(FuncEx<? super T, ? extends Mono<? extends R>> transformer) {
+    public final <R> Homo<R> nextDo(FuncWithException<? super T, ? extends Mono<? extends R>> transformer) {
         Function<? super T, ? extends Mono<? extends R>> warp = (Function<T, Mono<? extends R>>) origin -> {
             if (origin == Optional.empty()) {
                 origin = null;
@@ -306,7 +313,7 @@ public class Homo<T> extends Mono<T> {
     }
 
     public final Homo<T> errorContinue(
-            FuncEx<? super Throwable, ? extends Mono<? extends T>> fallback) {
+            FuncWithException<? super Throwable, ? extends Mono<? extends T>> fallback) {
         Function<? super Throwable, ? extends Mono<? extends T>> warp =
                 (Function<? super Throwable, Mono<? extends T>>)
                         t -> {
@@ -379,8 +386,157 @@ public class Homo<T> extends Mono<T> {
     }
 
     public Homo<T> zipCalling(String tag) {
-        return this;//todo 实现合并调用
+        return zipToBeforeCalling(tag, ()->this);
     }
 
+    private static final IdLocker lockForZipCall= new IdLocker();
+    private static final ConcurrentHashMap<String, ConcurrentLinkedDeque<CallBack<Object>>> tagToZipCallContext = new ConcurrentHashMap<>();
 
+    /**
+     * 将呼叫压缩到之前的tag
+     * 如果之前有未完成的调用，就不用发起新的调用，等待之前的调用返回时统一返回
+     * @param tag tag
+     * @param supplier 提供一个异步请求
+     * @param <T> 返回值类型参数
+     * @return 异步调用句柄
+     */
+    public static <T> Homo<T> zipToBeforeCalling(String tag, SupplierWithException<Homo<T>> supplier) {
+        ConsumerWithException<HomoSink<T>> consumer =
+                sink->{
+                    CallBack<Object> retFunc = new CallBack<Object>() {
+                        @Override
+                        public void onBack(Object value) {
+                            sink.success((T)value);
+                        }
+
+                        @Override
+                        public void onError(Throwable throwable) {
+                            log.error("zipToBeforeCalling ObjCallBack onError, {} :", tag, throwable);
+                            sink.error(throwable);
+                        }
+                    };
+                    lockForZipCall.lock(tag,()->{
+                        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+                        // 到这里为止都是同步的， 为每个对象的读取请求创建一个专属的回调队列
+                        ConcurrentLinkedDeque<CallBack<Object>> concurrentLinkedDeque =
+                                tagToZipCallContext.computeIfAbsent(tag, newTag -> new ConcurrentLinkedDeque<>());
+                        concurrentLinkedDeque.add(retFunc);
+                        //第一次加入的时候，才需要发起请求,直接调用size会有性能问题
+                        CallBack<Object> previousFun = concurrentLinkedDeque.peek();
+                        if (previousFun == null){
+                            fromSupplier(supplier)
+                                    .consumerValue(
+                                            ret->{
+                                                Callable<ConcurrentLinkedDeque<CallBack<Object>>> tagRemoveCallable = () -> tagToZipCallContext.remove(tag);
+                                                ConcurrentLinkedDeque<CallBack<Object>> tagCallBacks = lockForZipCall.lockCallable(tag,tagRemoveCallable);
+                                                tagCallBacks.forEach(callback -> {
+                                                    if (log.isDebugEnabled()) {
+                                                        log.debug("zipToBeforeCalling tag_{} call ret {}", tag, ret);
+                                                    }
+                                                    callback.onBack(ret);
+                                                });
+                                            }
+                                    )
+                                    .catchError(throwable -> {
+                                        ConcurrentLinkedDeque<CallBack<Object>> tagCallBacks;
+                                        // 如果不在同一个线程就需要再加一次锁，否则就不用枷锁
+                                        if (callQueue != CallQueueMgr.getInstance().getLocalQueue()){
+                                            tagCallBacks = lockForZipCall.lockCallable(tag,()->tagToZipCallContext.remove(tag));
+                                        }else {
+                                            tagCallBacks = tagToZipCallContext.remove(tag);
+                                        }
+                                        tagCallBacks.forEach(callback -> {
+                                            callback.onError(throwable);
+                                        });
+                                    }).start();
+                        }else {
+                            if (log.isDebugEnabled()) {
+                                log.debug("zipToBeforeCalling waiting to call tag_{}", tag);
+                            }
+                        }
+                    });
+                };
+        return Homo.warp(consumer);
+    }
+
+    /**
+     * 包装一个supplier
+     * @param supplier 提供一个Homo
+     * @return 返回一个Homo
+     * @param <T> 返回值类型
+     */
+    public static <T> Homo<T> fromSupplier(SupplierWithException<Homo<T>> supplier) {
+        Supplier<Homo<T>> wrapper = ()->{
+            try {
+                return supplier.get();
+            } catch (Exception e) {
+                return Homo.error(e);
+            }
+        };
+        return Homo.warp(Mono.defer(wrapper));
+    }
+
+    public static void main(String[] args) {
+        // 一个简单的发布者
+        Publisher<Integer> publisher = subscriber -> {
+            Subscription subscription = new Subscription() {
+                private boolean canceled = false;
+                private int count = 0;
+
+                @Override
+                public void request(long n) {
+                    if (n <= 0) {
+                        subscriber.onError(new IllegalArgumentException("Request must be positive!"));
+                        return;
+                    }
+                    for (int i = 0; i < n && !canceled; i++) {
+                        subscriber.onNext(count++);
+                    }
+                    if (count >= 5 && !canceled) {
+                        subscriber.onComplete();
+                    }
+                }
+
+                @Override
+                public void cancel() {
+                    canceled = true;
+                }
+            };
+
+            subscriber.onSubscribe(subscription);
+        };
+
+        // 一个简单的订阅者
+        Subscriber<Integer> subscriber = new Subscriber<Integer>() {
+            private Subscription subscription;
+
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                this.subscription = subscription;
+                System.out.println("Subscribed!");
+                subscription.request(3); // 一开始请求 3 个数据项
+            }
+
+            @Override
+            public void onNext(Integer item) {
+                System.out.println("Received: " + item);
+                if (item == 2) {
+                    subscription.request(5); // 再请求 5 个数据项
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                System.out.println("Error: " + t.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("Completed!");
+            }
+        };
+
+        // 发布者订阅订阅者
+        publisher.subscribe(subscriber);
+    }
 }

@@ -4,8 +4,8 @@ import com.homo.core.tread.tread.AbstractTreadMgr;
 import com.homo.core.tread.tread.config.TreadProperties;
 import com.homo.core.tread.tread.exception.TreadGetException;
 import com.homo.core.tread.tread.exception.TreadSetException;
-import com.homo.core.utils.fun.Func2Ex;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.Func2PWithException;
+import com.homo.core.utils.fun.FuncWithException;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,22 +41,22 @@ public class IntTreadMgr extends AbstractTreadMgr<Integer> {
     }
 
     @Override
-    protected FuncEx<Integer, Integer> beforeCheckApply() {
+    protected FuncWithException<Integer, Integer> beforeCheckApply() {
         return getValue -> getValue == null ? 0 : getValue;
     }
 
     @Override
-    protected Func2Ex<Integer, Integer, Integer> subStrategy() {
+    protected Func2PWithException<Integer, Integer, Integer> subStrategy() {
         return (opValue, getValue) -> getValue - opValue;
     }
 
     @Override
-    protected Func2Ex<Integer, Integer, Integer> addStrategy() {
+    protected Func2PWithException<Integer, Integer, Integer> addStrategy() {
         return Integer::sum;
     }
 
     @Override
-    protected Func2Ex<Object, Integer, Homo<Integer>> setMethodWrapStrategy(Method method,String source) {
+    protected Func2PWithException<Object, Integer, Homo<Integer>> setMethodWrapStrategy(Method method, String source) {
         return (object, opValue) -> {
             try {
                 Object invoke = method.invoke(object, opValue);
@@ -75,7 +75,7 @@ public class IntTreadMgr extends AbstractTreadMgr<Integer> {
 
 
     @Override
-    protected FuncEx<Object, Homo<Integer>> getMethodWrapStrategy(Method method,String source) {
+    protected FuncWithException<Object, Homo<Integer>> getMethodWrapStrategy(Method method, String source) {
         return object -> {
             try {
                 Object invoke = method.invoke(object);

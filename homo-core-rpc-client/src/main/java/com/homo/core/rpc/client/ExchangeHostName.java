@@ -3,7 +3,7 @@ package com.homo.core.rpc.client;
 import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
-import com.homo.core.utils.fun.MultiFunA;
+import com.homo.core.utils.fun.MultiFun1PWithException;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.spring.GetBeanUtil;
 import io.homo.proto.client.ParameterMsg;
@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 
 @Slf4j
-public enum ExchangeHostName implements MultiFunA<ServiceInfo, Homo<String>> {
+public enum ExchangeHostName implements MultiFun1PWithException<ServiceInfo, Homo<String>> {
     not_wrap {
         @Override
         public Homo<String> apply(ServiceInfo serverInfo, Object... objs) throws Exception {
@@ -27,7 +27,7 @@ public enum ExchangeHostName implements MultiFunA<ServiceInfo, Homo<String>> {
         @Override
         public Homo<String> apply(ServiceInfo serverInfo, Object... o) throws Exception {
             String tagName = serverInfo.getServiceTag();
-            if (serverInfo.getIsStateful() < 1) {
+            if (!serverInfo.isStateful) {
                 return Homo.result(tagName);
             }
             return Homo.result(null);
@@ -91,7 +91,7 @@ public enum ExchangeHostName implements MultiFunA<ServiceInfo, Homo<String>> {
     },
     ;
 
-    public static List<MultiFunA<ServiceInfo, Homo<String>>> registerFun = new ArrayList<>();
+    public static List<MultiFun1PWithException<ServiceInfo, Homo<String>>> registerFun = new ArrayList<>();
 
     static {
         registerFun.add(statefulLess);
@@ -103,10 +103,10 @@ public enum ExchangeHostName implements MultiFunA<ServiceInfo, Homo<String>> {
 
     public static Homo<String> exchange(ServiceInfo tagName, Object... objs) {
         Homo<String> chain = Homo.result(null);
-        Iterator<MultiFunA<ServiceInfo, Homo<String>>> iterator = registerFun.iterator();
+        Iterator<MultiFun1PWithException<ServiceInfo, Homo<String>>> iterator = registerFun.iterator();
         try {
             while (iterator.hasNext()) {
-                MultiFunA<ServiceInfo, Homo<String>> next = iterator.next();
+                MultiFun1PWithException<ServiceInfo, Homo<String>> next = iterator.next();
                 chain = chain.nextDo(ret -> {
                     if (ret == null) {
                         return next.apply(tagName, objs);
@@ -122,7 +122,7 @@ public enum ExchangeHostName implements MultiFunA<ServiceInfo, Homo<String>> {
         }
     }
 
-    public static void register(MultiFunA<ServiceInfo, Homo<String>> fun) {
+    public static void register(MultiFun1PWithException<ServiceInfo, Homo<String>> fun) {
         registerFun.add(fun);
     }
 

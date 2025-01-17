@@ -48,9 +48,9 @@ public class ModuleMgrImpl implements ModuleMgr, SmartLifecycle {
         modules = new ArrayList<>(moduleMap.values());
         modules.sort(Comparator.comparing(Module::getOrder));
         for (Module module : modules) {
-            log.info("module {} initModules start", module.getClass().getName());
+            log.info("module {} moduleInit start", module.getClass().getName());
             module.moduleInit();
-            log.info("module {} initModules end", module.getClass().getName());
+            log.info("module {} moduleInit end", module.getClass().getName());
         }
     }
 

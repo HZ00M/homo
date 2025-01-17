@@ -63,7 +63,10 @@ public class CallAbility extends AbstractAbility implements ICallAbility {
         CallDispatcher callDispatcher = getEntityCallDispatcher(getOwner().getClass());
         Assert.isTrue(callDispatcher != null, "CallAbility build callDispatcher is null ");
         Span span = ZipkinUtil.getTracing().tracer().currentSpan().tag("callEntity", funName);
-        return callDispatcher.callFun(getOwner(), srcName, funName, new ByteRpcContent(data, span), idCallQueue, queueId, podId, parameterMsg);
+        ByteRpcContent rpcContent = new ByteRpcContent();
+        rpcContent.setId(funName);
+        rpcContent.setParam(data);
+        return callDispatcher.callFun(getOwner(), srcName, funName, rpcContent, idCallQueue, queueId, podId, parameterMsg);
 
     }
 

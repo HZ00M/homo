@@ -1,0 +1,6 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+    com.homo.relational.driver.mysql.config.RelationalMysqlAutoConfiguration
+org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=\
+    com.homo.relational.driver.mysql.config.CustomAutoConfigurationImportFilter
+
+

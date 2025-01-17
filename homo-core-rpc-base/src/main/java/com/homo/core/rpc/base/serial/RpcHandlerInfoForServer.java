@@ -29,15 +29,15 @@ public class RpcHandlerInfoForServer extends RpcHandleInfo {
 //        return methodDispatchInfo.serializeReturn(param);
 //    }
 
-    public Object[] unSerializeParamForInvoke(String funName, RpcContent rpcContent, Integer podId, ParameterMsg parameterMsg) {
+    public Object[] unSerializeParamForInvokeLocalMethod(String funName, RpcContent rpcContent, Integer podId, ParameterMsg parameterMsg) {
         //内部调用
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.unSerializeParam(rpcContent,podId,parameterMsg);
+        return methodDispatchInfo.covertToActualParam(podId,parameterMsg,rpcContent);
     }
 
-    public Object[] unSerializeParamForInvoke(String funName, RpcContent rpcContent) {
+    public Object[] unSerializeParamForInvokeLocalMethod(String funName, RpcContent rpcContent) {
         //外部调用，由proxy构建podId与prameterMsg
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.unSerializeParam(rpcContent);
+        return methodDispatchInfo.covertToActualParam(rpcContent);
     }
 }

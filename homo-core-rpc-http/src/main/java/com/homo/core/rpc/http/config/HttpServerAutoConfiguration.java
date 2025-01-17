@@ -1,9 +1,11 @@
 package com.homo.core.rpc.http.config;
 
 import com.homo.core.configurable.rpc.RpcHttpServerProperties;
+import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcServerFactory;
+import com.homo.core.rpc.http.HttpRpcServerFactory;
 import com.homo.core.rpc.http.MockWebServer;
-import com.homo.core.rpc.http.RpcServerFactoryHttpImpl;
+import com.homo.core.rpc.http.HttpRpcClientFactory;
 import com.homo.core.rpc.http.exception.HomoHttpExceptionHandler;
 import com.homo.core.rpc.http.filter.CorsFilter;
 import com.homo.core.rpc.http.filter.TraceFilter;
@@ -43,10 +45,16 @@ public class HttpServerAutoConfiguration {
         return new HomoHttpExceptionHandler();
     }
 
-    @Bean("rpcHttpFactory")
-    public RpcServerFactory rpcHttpFactory(){
-        log.info("register bean rpcHttpFactory");
-        return new RpcServerFactoryHttpImpl();
+    @Bean("httpRpcServerFactory")
+    public RpcServerFactory httpRpcServerFactory(){
+        log.info("register bean httpRpcServerFactory");
+        return new HttpRpcServerFactory();
+    }
+
+    @Bean("httpRpcClientFactory")
+    public RpcClientFactory httpRpcClientFactory(){
+        log.info("register bean httpRpcClientFactory");
+        return new HttpRpcClientFactory();
     }
 
     /**

@@ -1,7 +1,7 @@
 package com.homo.core.facade.tread.tread;
 
 import com.homo.core.facade.tread.tread.op.SeqPoint;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.FuncWithException;
 import lombok.Data;
 import lombok.ToString;
 
@@ -23,7 +23,7 @@ public class TreadContext<T> {
     public Iterator<SeqPoint<T>> addIterator;
     public SeqPoint<T> processingSeqPoint;
     public StringBuilder recordBuilder;
-    public Map<Object, FuncEx<Object, Object>> createObjFunMap;
+    public Map<Object, FuncWithException<Object, Object>> createObjFunMap;
     public Map<Object, Object> mgrObjMap;
 
     public String getOwnerId() {
@@ -31,7 +31,7 @@ public class TreadContext<T> {
     }
 
     public TreadContext(String ownerId, List<SeqPoint<T>> subs, List<SeqPoint<T>> adds,
-                        Map<Object, FuncEx<Object, Object>> createObjFunMap,
+                        Map<Object, FuncWithException<Object, Object>> createObjFunMap,
                         Map<Object, Object> mgrObjMap) {
         this.ownerId = ownerId;
         this.subs = subs;
@@ -60,7 +60,7 @@ public class TreadContext<T> {
         return adds;
     }
 
-    public FuncEx<Object, Object> getCreateObjFun(Object identity) {
+    public FuncWithException<Object, Object> getCreateObjFun(Object identity) {
         return createObjFunMap.get(identity);
     }
 

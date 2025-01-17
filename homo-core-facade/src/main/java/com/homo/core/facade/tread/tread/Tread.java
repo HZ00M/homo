@@ -3,7 +3,7 @@ package com.homo.core.facade.tread.tread;
 import com.homo.core.facade.tread.tread.enums.ExecRet;
 import com.homo.core.facade.tread.tread.enums.SeqType;
 import com.homo.core.facade.tread.tread.op.SeqPoint;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.FuncWithException;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
@@ -36,7 +36,7 @@ public class Tread<T> {
     public String id;
     protected HashMap<SeqType, List<SeqPoint<T>>> seqMap;
     protected Class<T> typeClass;
-    protected Map<Object, FuncEx<Object, Object>> createSupplierMap = new HashMap<>();
+    protected Map<Object, FuncWithException<Object, Object>> createSupplierMap = new HashMap<>();
     public Map<Object, Object> mgrObjMap = new HashMap<>();
 
     protected Tread(String id, Class<T> typeClass) {
@@ -67,7 +67,7 @@ public class Tread<T> {
         return this;
     }
 
-    protected Tread<T> registerCreateFun(Object identity, FuncEx<Object, Object> createSupplier) {
+    protected Tread<T> registerCreateFun(Object identity, FuncWithException<Object, Object> createSupplier) {
         if (createSupplierMap.containsKey(identity)) {
             throw new RuntimeException("registerCreateFun repeat identity " + identity + ",please verify legitimacy");
         }

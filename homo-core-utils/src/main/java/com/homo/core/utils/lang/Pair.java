@@ -9,6 +9,9 @@ public class Pair<K, V>  implements Serializable {
     private K key;
     private V value;
 
+    public static <K, V> Pair<K, V> of(K first, V second) {
+        return new Pair<>(first, second);
+    }
     /**
      * 构造
      *

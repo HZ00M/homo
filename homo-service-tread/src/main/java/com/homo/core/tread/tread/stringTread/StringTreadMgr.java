@@ -4,8 +4,8 @@ import com.homo.core.tread.tread.AbstractTreadMgr;
 import com.homo.core.tread.tread.config.TreadProperties;
 import com.homo.core.tread.tread.exception.TreadGetException;
 import com.homo.core.tread.tread.exception.TreadSetException;
-import com.homo.core.utils.fun.Func2Ex;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.Func2PWithException;
+import com.homo.core.utils.fun.FuncWithException;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,22 +41,22 @@ public class StringTreadMgr extends AbstractTreadMgr<String> {
     }
 
     @Override
-    protected FuncEx<String, String> beforeCheckApply() {
+    protected FuncWithException<String, String> beforeCheckApply() {
         return getValue -> getValue;
     }
 
     @Override
-    protected Func2Ex<String, String, String> subStrategy() {
+    protected Func2PWithException<String, String, String> subStrategy() {
         return (opValue, getValue) -> opValue;
     }
 
     @Override
-    protected Func2Ex<String, String, String> addStrategy() {
+    protected Func2PWithException<String, String, String> addStrategy() {
         return (opValue, getValue) -> opValue;
     }
 
     @Override
-    protected Func2Ex<Object, String, Homo<String>> setMethodWrapStrategy(Method method, String source) {
+    protected Func2PWithException<Object, String, Homo<String>> setMethodWrapStrategy(Method method, String source) {
         return (object, opValue) -> {
             try {
                 Object invoke = method.invoke(object, opValue);
@@ -74,7 +74,7 @@ public class StringTreadMgr extends AbstractTreadMgr<String> {
     }
 
     @Override
-    protected FuncEx<Object, Homo<String>> getMethodWrapStrategy(Method method,String source) {
+    protected FuncWithException<Object, Homo<String>> getMethodWrapStrategy(Method method, String source) {
         return object -> {
             try {
                 Object invoke = method.invoke(object);

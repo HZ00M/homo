@@ -11,5 +11,6 @@ public class ServiceInfo {
     public String serviceTag;
     public String serverHost;
     public Integer serverPort;
-    public Integer isStateful;
+    public boolean isStateful;
+    public Integer driverType;
 }

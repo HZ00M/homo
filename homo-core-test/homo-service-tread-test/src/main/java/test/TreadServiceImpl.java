@@ -1,8 +1,8 @@
 package test;
 
 import com.homo.core.tread.tread.intTread.IntTreadMgr;
-import com.homo.core.utils.fun.Func2Ex;
-import com.homo.core.utils.fun.Func3Ex;
+import com.homo.core.utils.fun.Func2PWithException;
+import com.homo.core.utils.fun.Func3PWithException;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,7 @@ public class TreadServiceImpl  implements TreadService{
             return Homo.result(treadHandler.g);
         });
 
-        treadMgr.registerGetObjFun(TreadHandler.class, new Func2Ex<TreadHandler, Object, Object>() {
+        treadMgr.registerGetObjFun(TreadHandler.class, new Func2PWithException<TreadHandler, Object, Object>() {
             public Object apply(TreadHandler treadHandler, Object o) throws Exception {
                 log.info("registerGetObjFun call mgrObj {} id {}",treadHandler,o);
                 Integer id = (Integer) o;
@@ -59,7 +59,7 @@ public class TreadServiceImpl  implements TreadService{
                 return equipInfoModel;
             }
         }, ResourceType.EQUIP_NUM);
-        treadMgr.registerCreateObjFun(TreadHandler.class, new Func2Ex<TreadHandler, Object, Object>() {
+        treadMgr.registerCreateObjFun(TreadHandler.class, new Func2PWithException<TreadHandler, Object, Object>() {
             @Override
             public Object apply(TreadHandler treadHandler, Object o) throws Exception {
                 log.info("registerCreateObjFun call mgrObj {} id {}",treadHandler,o);
@@ -68,7 +68,7 @@ public class TreadServiceImpl  implements TreadService{
                 return equipInfoModel;
             }
         }, ResourceType.EQUIP_NUM);
-        treadMgr.registerSetObjFun(TreadHandler.class, new Func3Ex<TreadHandler, Object, Object, Object>() {
+        treadMgr.registerSetObjFun(TreadHandler.class, new Func3PWithException<TreadHandler, Object, Object, Object>() {
 
             @Override
             public Object apply(TreadHandler treadHandler, Object o, Object o2) throws Exception {

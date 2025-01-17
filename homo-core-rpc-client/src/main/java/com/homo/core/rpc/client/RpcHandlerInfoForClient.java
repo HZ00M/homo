@@ -1,6 +1,7 @@
 package com.homo.core.rpc.client;
 
 import com.homo.core.facade.rpc.RpcContent;
+import com.homo.core.facade.rpc.SerializeInfo;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.rpc.base.serial.RpcHandleInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -11,15 +12,21 @@ public class RpcHandlerInfoForClient extends RpcHandleInfo {
         exportMethodInfos(rpcClazz);
     }
 
-    public RpcContent serializeParamForInvoke(String funName, Object[] param) {
+    public RpcContent serializeParamForInvokeRemoteMethod(String funName, Object[] param) {
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.serializeParamContent(param);
+        return methodDispatchInfo.warpToRpcContent(funName,param);
     }
 
 
-    public Object[] unSerializeParamForCallback(String funName, RpcContent rpcContent) {
+    public Object serializeParamForCallback(String funName, RpcContent rpcContent) {
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
-        return methodDispatchInfo.unSerializeReturn(rpcContent);
+        return methodDispatchInfo.serializeForReturn(rpcContent);
+    }
+
+    public Object unSerializeReturnValue(String funName, RpcContent rpcContent) {
+        MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
+        SerializeInfo returnSerializeInfo = methodDispatchInfo.getReturnSerializeInfo();
+        return returnSerializeInfo.processor.readValue((byte[])rpcContent.getReturn(),returnSerializeInfo.paramType);
     }
 
 }

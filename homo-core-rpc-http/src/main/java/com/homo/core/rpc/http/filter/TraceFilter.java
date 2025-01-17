@@ -3,6 +3,7 @@ package com.homo.core.rpc.http.filter;
 import brave.Span;
 import brave.Tracer;
 import brave.propagation.TraceContext;
+import com.homo.core.rpc.http.HomoHttpHeader;
 import com.homo.core.utils.trace.TraceLogUtil;
 import com.homo.core.utils.trace.ZipkinUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ public class TraceFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String url = exchange.getRequest().getURI().toASCIIString();
-        Span rootSpan = buildRootSpan(url,exchange);
+        Span rootSpan = buildRootSpan(url, exchange);
         long traceId = rootSpan.context().traceId();
         log.trace("TraceFilter process start url {} traceId {}", url, traceId);
         Tracer.SpanInScope spanInScope = ZipkinUtil.startScope(rootSpan);
@@ -36,10 +37,12 @@ public class TraceFilter implements WebFilter {
         String url = exchange.getRequest().getURI().toASCIIString();
         Map<String, String> headerInfo = exchange.getRequest().getHeaders().toSingleValueMap();
         try {
-            if (headerInfo.containsKey("traceId") && headerInfo.containsKey("spanId") && headerInfo.containsKey("sampled")) {
-                long traceId = Long.parseLong(headerInfo.get("traceId"));
-                long spanId = Long.parseLong(headerInfo.get("spanId"));
-                Boolean sampled = Boolean.parseBoolean(headerInfo.get("sampled"));
+            if (headerInfo.containsKey(HomoHttpHeader.X_TRACE_ID.param()) &&
+                    headerInfo.containsKey(HomoHttpHeader.X_SPAN_ID.param()) &&
+                    headerInfo.containsKey(HomoHttpHeader.X_SAMPLED.param())) {
+                long traceId = Long.parseLong(headerInfo.get(HomoHttpHeader.X_TRACE_ID.param()));
+                long spanId = Long.parseLong(headerInfo.get(HomoHttpHeader.X_SPAN_ID.param()));
+                Boolean sampled = Boolean.parseBoolean(headerInfo.get(HomoHttpHeader.X_SAMPLED.param()));
                 TraceContext traceContext =
                         TraceContext.newBuilder()
                                 .spanId(spanId)
@@ -54,20 +57,20 @@ public class TraceFilter implements WebFilter {
                         .tag("url", url);
                 log.info(
                         "DefaultMapping getSpan traceId {}, sampled {} parent_spanId {} spanId {} msgId {}",
-                        traceContext.traceId(),
+                        Long.toHexString(traceContext.traceId()),
                         traceContext.sampled(),
-                        traceContext.spanId(),
-                        span.context().spanId(),
+                        Long.toHexString(traceContext.spanId()),
+                        Long.toHexString(span.context().spanId()),
                         name);
 
-            }else {
+            } else {
                 span = ZipkinUtil.newSRSpan()
                         .name("proxyTrace")
                         .annotate(ZipkinUtil.SERVER_RECEIVE_TAG)
                         .tag("type", "router")
                         .tag("url", url);
             }
-            TraceLogUtil.setTraceIdBySpan(span,name);
+            TraceLogUtil.setTraceIdBySpan(span, name);
         } catch (Exception e) {
             log.error("DefaultMapping setSpanIfNeed msgId {} error", name, e);
         }

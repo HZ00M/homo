@@ -20,21 +20,21 @@ public class CallEvent extends AbstractTraceEvent implements CallQueueProducer {
         this.id = String.format("CallEvent_%s_%s", callData.getSrcName(), callData.getMethodDispatchInfo().getMethod().getName());
         this.callData = callData;
         this.sink = homoSink;
-        this.span =callData.getSpan();
+        this.span = callData.getSpan();
     }
 
     @Override
     public void process() {
         try {
-            TraceLogUtil.setTraceIdBySpan(span,id);
+            TraceLogUtil.setTraceIdBySpan(span, id);
             if (Homo.class.isAssignableFrom(callData.getMethodDispatchInfo().getMethod().getReturnType())) {
                 Homo<?> homo = (Homo<?>) callData.invoke(callData.getO(), callData.getParams());
                 homo.consumerEmpty(() -> {
-                             sink.error(HomoError.throwError(HomoError.callEmpty));
+                            sink.error(HomoError.throwError(HomoError.callEmpty));
                         })
                         .consumerValue(ret -> {
-                             Object[] resParam = new Object[]{ret};
-                            Object serializeParamForBack = callData.getMethodDispatchInfo().serializeForReturn(resParam);
+//                            Object[] resParam = new Object[]{ret};
+                            Object serializeParamForBack = callData.getMethodDispatchInfo().serializeForReturn(ret);
                             sink.success(serializeParamForBack);
                         })
                         .catchError(throwable -> {
@@ -44,13 +44,13 @@ public class CallEvent extends AbstractTraceEvent implements CallQueueProducer {
             } else {
                 try {
                     Object invoke = callData.invoke(callData.getO(), callData.getParams());
-                     if (sink != null) sink.success(invoke);
+                    if (sink != null) sink.success(invoke);
                 } catch (Exception e) {
-                     if (sink != null) sink.error(e);
+                    if (sink != null) sink.error(e);
                 }
             }
         } catch (Throwable e) {
-             sink.error(e);
+            sink.error(e);
         }
     }
 

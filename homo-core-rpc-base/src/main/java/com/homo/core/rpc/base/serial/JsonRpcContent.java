@@ -14,13 +14,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class JsonRpcContent implements RpcContent<String, String> {
-    private String data;
+    private String msgId;
+    private String paramData;
+    private String returnData;
     private Span span;
+    private Class<?> returnType;
+    @Override
+    public String getId() {
+        return msgId;
+    }
+
+    @Override
+    public void setId(String id) {
+        this.msgId = id;
+    }
 
     @Override
     public RpcContentType getType() {
@@ -28,17 +36,27 @@ public class JsonRpcContent implements RpcContent<String, String> {
     }
 
     @Override
-    public String getData() {
-        return data;
+    public String getParam() {
+        return paramData;
     }
 
     @Override
-    public void setData(String data) {
-        this.data = data;
+    public void setParam(String data) {
+        this.paramData = data;
     }
 
     @Override
-    public Object[] unSerializeParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId, ParameterMsg parameterMsg) {
+    public String getReturn() {
+        return returnData;
+    }
+
+    @Override
+    public void setReturn(String data) {
+        this.returnData = data;
+    }
+
+    @Override
+    public Object[] unSerializeToActualParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId, ParameterMsg parameterMsg) {
         int paramCount = paramSerializeInfoList.length;
         if (paramCount <= 0) {
             return null;
@@ -48,7 +66,7 @@ public class JsonRpcContent implements RpcContent<String, String> {
             returnParams[0] = podId;
             returnParams[1] = parameterMsg;
         }
-        String jsonStr = getData();
+        String jsonStr = getParam();
         JSONValidator.Type type = JSONValidator.from(jsonStr).setSupportMultiValue(true).getType();
         if (type == JSONValidator.Type.Array) {
             JSONArray jsonArray = JSON.parseArray(jsonStr);
@@ -95,22 +113,39 @@ public class JsonRpcContent implements RpcContent<String, String> {
     }
 
     @Override
-    public String serializeParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
+    public String serializeRawParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
         String retStr;
+        //todo 这里需要优化  不再只序列化第一个参数
         if (params.length == 1) {
             if (params[0] instanceof String) {
                 retStr = (String) params[0];
             } else {
-                retStr = JSON.toJSONString(params[0]);
+                retStr = paramSerializeInfoList[0].getProcessor().writeString(params[0]);
             }
         } else {
-            retStr = JSON.toJSONString(params);
+            retStr = paramSerializeInfoList[0].getProcessor().writeString(params[0]);
         }
         return retStr;
     }
 
     @Override
+    public String serializeReturn(Object returnValue, SerializeInfo returnSerializeInfo) {
+        String retStr = returnSerializeInfo.getProcessor().writeString(returnValue);
+        return retStr;
+    }
+
+    @Override
+    public void setReturnType(Class<?> returnType) {
+        this.returnType = returnType;
+    }
+
+    @Override
     public Span getSpan() {
         return span;
+    }
+
+    @Override
+    public void setSpan(Span span) {
+        this.span = span;
     }
 }

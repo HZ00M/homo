@@ -2,7 +2,7 @@ package com.homo.core.tread.tread;
 
 import com.homo.core.facade.tread.tread.Tread;
 import com.homo.core.facade.tread.tread.TreadMgr;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.FuncWithException;
 import org.springframework.util.Assert;
 
 import java.util.function.BiPredicate;
@@ -65,7 +65,7 @@ public class BoolTread extends Tread<Boolean> {
      * @param sources 资源属性列表
      * @return
      */
-    public BoolTread registerCreateFun(Object id, FuncEx<Object, Object> newObjSupplier, String ... sources) {
+    public BoolTread registerCreateFun(Object id, FuncWithException<Object, Object> newObjSupplier, String ... sources) {
         for (String source : sources) {
             registerCreateFun(TreadMgr.buildIdentity(id, source), newObjSupplier);
         }

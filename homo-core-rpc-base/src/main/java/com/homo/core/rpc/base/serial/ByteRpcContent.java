@@ -5,18 +5,24 @@ import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.facade.rpc.SerializeInfo;
 import io.homo.proto.client.ParameterMsg;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class ByteRpcContent implements RpcContent<byte[][],byte[][]> {
-    byte[][] data;
+public class ByteRpcContent implements RpcContent<byte[][],byte[]> {
+    private String msgId;
+    private byte[][] paramData;
+    private byte[] returnData;
+    private Class<?> returnType;
     Span span;
+
+    @Override
+    public String getId() {
+        return msgId;
+    }
+    @Override
+    public void setId(String id) {
+        this.msgId = id;
+    }
 
 
     @Override
@@ -25,38 +31,48 @@ public class ByteRpcContent implements RpcContent<byte[][],byte[][]> {
     }
 
     @Override
-    public byte[][] getData() {
-        return data;
+    public byte[][] getParam() {
+        return paramData;
     }
 
     @Override
-    public void setData(byte[][] data) {
-        this.data = data;
+    public void setParam(byte[][] data) {
+        this.paramData = data;
     }
 
     @Override
-    public Object[] unSerializeParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId , ParameterMsg parameterMsg) {
+    public byte[] getReturn() {
+        return returnData;
+    }
+
+    @Override
+    public void setReturn(byte[] data) {
+        this.returnData = data;
+    }
+
+    @Override
+    public Object[] unSerializeToActualParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId , ParameterMsg parameterMsg) {
         int paramCount = paramSerializeInfoList.length;
         if (paramCount <= 0) {
             return null;
         }
-        Object[] returnParams = new Object[paramCount];
+        Object[] actualParam = new Object[paramCount];
         if (frameParamOffset == 2){
-            returnParams[0] = podId;
-            returnParams[1] = parameterMsg;
+            actualParam[0] = podId;
+            actualParam[1] = parameterMsg;
         }
-        byte[][] data = getData();
+        byte[][] data = getParam();
         int dataIndex = 0;
         for (int i = frameParamOffset; i < paramSerializeInfoList.length; i++) {
             Object value = paramSerializeInfoList[i].processor.readValue(data[dataIndex], paramSerializeInfoList[i].paramType);
-            returnParams[i] = value;
+            actualParam[i] = value;
             dataIndex++;
         }
-        return returnParams;
+        return actualParam;
     }
 
     @Override
-    public byte[][] serializeParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
+    public byte[][] serializeRawParams(Object[] params, SerializeInfo[] paramSerializeInfoList, int frameParamOffset) {
         if (paramSerializeInfoList == null || paramSerializeInfoList.length == 0) {
             return null;
         }
@@ -70,5 +86,15 @@ public class ByteRpcContent implements RpcContent<byte[][],byte[][]> {
         return byteParams;
     }
 
+    @Override
+    public byte[] serializeReturn(Object returnValue, SerializeInfo returnSerializeInfo) {
+        byte[] returnBytes = returnSerializeInfo.processor.writeByte(returnValue);
+        return returnBytes;
+    }
+
+    @Override
+    public void setReturnType(Class<?> returnType) {
+        this.returnType = returnType;
+    }
 
 }

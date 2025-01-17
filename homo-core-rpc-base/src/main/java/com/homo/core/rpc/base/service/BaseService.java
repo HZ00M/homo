@@ -22,6 +22,8 @@ import io.homo.proto.entity.EntityResponse;
 import io.homo.proto.entity.Ping;
 import io.homo.proto.entity.Pong;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -29,8 +31,9 @@ import org.springframework.core.annotation.AnnotationUtils;
 /**
  * 提供获取服务器信息及服务调用的基本能力
  */
-@Slf4j
 public class BaseService implements Service, IEntityService, ServiceModule {
+    // 默认是 private，改为 protected 或 public
+    protected static final Logger log = LoggerFactory.getLogger(BaseService.class);
     @Autowired(required = false)
     @Lazy
     ICallSystem callSystem;
@@ -56,7 +59,7 @@ public class BaseService implements Service, IEntityService, ServiceModule {
     @Override
     public void afterAllModuleInit() {
         preServerInit();
-        GetBeanUtil.getBean(ServiceStateMgr.class).setServiceInfo(hostName, new ServiceInfo(tagName, hostName, port, stateful ? 1 : 0)).start();
+        GetBeanUtil.getBean(ServiceStateMgr.class).setServiceInfo(hostName, new ServiceInfo(tagName, hostName, port, stateful,driverType.ordinal())).start();
         afterServerInit();
     }
     @Override

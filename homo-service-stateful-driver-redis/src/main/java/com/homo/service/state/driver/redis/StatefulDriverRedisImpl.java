@@ -153,7 +153,7 @@ public class StatefulDriverRedisImpl implements StatefulDriver {
         String loadTimestamp = LoadInfo.join(load, System.currentTimeMillis(), state);
         Map<String, String> dataMap = new HashMap<>();
         dataMap.put(podNumStr, loadTimestamp);
-        CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
+        CallQueue callQueue = CallQueueMgr.getInstance().getQueue(CallQueueMgr.frame_queue_id);
         Span span = ZipkinUtil.getTracing().tracer().nextSpan().name("setServiceState").tag("type","state").annotate(ZipkinUtil.CLIENT_SEND_TAG);
         Homo<Boolean> warp = Homo.warp(
                         asyncRedisPool.hsetAsyncReactive(stateQueryKey, dataMap))

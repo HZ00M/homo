@@ -7,9 +7,9 @@ import com.homo.core.facade.tread.tread.enums.ExecRet;
 import com.homo.core.facade.tread.tread.enums.SeqType;
 import com.homo.core.facade.tread.tread.op.SeqPoint;
 import com.homo.core.tread.tread.exception.*;
-import com.homo.core.utils.fun.Func2Ex;
-import com.homo.core.utils.fun.Func3Ex;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.Func2PWithException;
+import com.homo.core.utils.fun.Func3PWithException;
+import com.homo.core.utils.fun.FuncWithException;
 import com.homo.core.utils.module.Module;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
@@ -39,11 +39,11 @@ import java.util.function.Supplier;
 @Slf4j
 public abstract class AbstractTreadMgr<T>  implements TreadMgr<T>,Module {
 
-    protected Map<String, Func2Ex<Object, T, Homo<T>>> setFuncMap = new HashMap<>();
-    protected Map<String, FuncEx<Object, Homo<T>>> getFunMap = new HashMap<>();
-    protected Map<String, Func2Ex<Object, Object, Homo<Object>>> createObjFunMap = new HashMap<>();
-    protected Map<String, Func3Ex<Object, Object, Object, Homo<Object>>> setObjFunMap = new HashMap<>();
-    protected Map<String, Func2Ex<Object, Object, Homo<Object>>> getObjFunMap = new HashMap<>();
+    protected Map<String, Func2PWithException<Object, T, Homo<T>>> setFuncMap = new HashMap<>();
+    protected Map<String, FuncWithException<Object, Homo<T>>> getFunMap = new HashMap<>();
+    protected Map<String, Func2PWithException<Object, Object, Homo<Object>>> createObjFunMap = new HashMap<>();
+    protected Map<String, Func3PWithException<Object, Object, Object, Homo<Object>>> setObjFunMap = new HashMap<>();
+    protected Map<String, Func2PWithException<Object, Object, Homo<Object>>> getObjFunMap = new HashMap<>();
     protected Map<String, Class<?>> sourceNameToCreateClassTypeMap = new HashMap<>();
     protected Map<String, Class<?>> sourceNameToGetClassTypeMap = new HashMap<>();
     protected Map<String, Class<?>> sourceNameToSetClassTypeMap = new HashMap<>();
@@ -54,15 +54,15 @@ public abstract class AbstractTreadMgr<T>  implements TreadMgr<T>,Module {
 
     public abstract BiPredicate<T, T> defaultSubCheckPredicate();
 
-    protected abstract FuncEx<T, T> beforeCheckApply();
+    protected abstract FuncWithException<T, T> beforeCheckApply();
 
-    protected abstract Func2Ex<T, T, T> subStrategy();
+    protected abstract Func2PWithException<T, T, T> subStrategy();
 
-    protected abstract Func2Ex<T, T, T> addStrategy();
+    protected abstract Func2PWithException<T, T, T> addStrategy();
 
-    protected abstract Func2Ex<Object, T, Homo<T>> setMethodWrapStrategy(Method method, String source);
+    protected abstract Func2PWithException<Object, T, Homo<T>> setMethodWrapStrategy(Method method, String source);
 
-    protected abstract FuncEx<Object, Homo<T>> getMethodWrapStrategy(Method method, String source);
+    protected abstract FuncWithException<Object, Homo<T>> getMethodWrapStrategy(Method method, String source);
 
     public void init(Class<T> scanType, String scanPath) {
         scanCreateObjMethod(scanPath);
@@ -482,7 +482,7 @@ public abstract class AbstractTreadMgr<T>  implements TreadMgr<T>,Module {
         log.info("Tread scanGetObjMethod finish getObjFunMap {}", getObjFunMap);
     }
 
-    protected static Func3Ex<Object, Object, Object, Homo<Object>> wrapSetObjMethod(Method method, String source) {
+    protected static Func3PWithException<Object, Object, Object, Homo<Object>> wrapSetObjMethod(Method method, String source) {
         return (mgr, identity, setObj) -> {
             try {
                 Object invoke;
@@ -521,7 +521,7 @@ public abstract class AbstractTreadMgr<T>  implements TreadMgr<T>,Module {
         };
     }
 
-    protected static Func2Ex<Object, Object, Homo<Object>> wrapCreateObjMethod(Method method, String source) {
+    protected static Func2PWithException<Object, Object, Homo<Object>> wrapCreateObjMethod(Method method, String source) {
         return (mgrObj, identity) -> {
             try {
                 Object invoke = method.invoke(mgrObj, identity);
@@ -536,7 +536,7 @@ public abstract class AbstractTreadMgr<T>  implements TreadMgr<T>,Module {
         };
     }
 
-    protected static Func2Ex<Object, Object, Homo<Object>> wrapGetObjMethod(Method method, String source) {
+    protected static Func2PWithException<Object, Object, Homo<Object>> wrapGetObjMethod(Method method, String source) {
         return (mgrObj, identity) -> {
             try {
                 Object invoke = method.invoke(mgrObj, identity);
@@ -552,13 +552,13 @@ public abstract class AbstractTreadMgr<T>  implements TreadMgr<T>,Module {
     }
 
     @Override
-    public boolean registerSetFun(String source, Func2Ex<Object, T, T> setFun) {
-        Func2Ex<Object, T, Homo<T>> wrapSetFun = (o, addCount) -> Homo.result(setFun.apply(o, addCount));
+    public boolean registerSetFun(String source, Func2PWithException<Object, T, T> setFun) {
+        Func2PWithException<Object, T, Homo<T>> wrapSetFun = (o, addCount) -> Homo.result(setFun.apply(o, addCount));
         return registerPromiseSetFun(source, wrapSetFun);
     }
 
     @Override
-    public boolean registerPromiseSetFun(String source, Func2Ex<Object, T, Homo<T>> setFun) {
+    public boolean registerPromiseSetFun(String source, Func2PWithException<Object, T, Homo<T>> setFun) {
         if (setFuncMap.containsKey(source)) {
             log.error("registerPromiseSetFun find conflict source {}, please redefine source!", source);
             return false;
@@ -568,13 +568,13 @@ public abstract class AbstractTreadMgr<T>  implements TreadMgr<T>,Module {
     }
 
     @Override
-    public boolean registerGetFun(String source, FuncEx<Object, T> getFun) {
-        FuncEx<Object, Homo<T>> wrapGetFun = (obj) -> Homo.result(getFun.apply(obj));
+    public boolean registerGetFun(String source, FuncWithException<Object, T> getFun) {
+        FuncWithException<Object, Homo<T>> wrapGetFun = (obj) -> Homo.result(getFun.apply(obj));
         return registerPromiseGetFun(source, wrapGetFun);
     }
 
     @Override
-    public boolean registerPromiseGetFun(String source, FuncEx<Object, Homo<T>> getFun) {
+    public boolean registerPromiseGetFun(String source, FuncWithException<Object, Homo<T>> getFun) {
         if (getFunMap.containsKey(source)) {
             log.error("registerPromiseGetFun find conflict source {}, please redefine source!", source);
             return false;
@@ -584,58 +584,58 @@ public abstract class AbstractTreadMgr<T>  implements TreadMgr<T>,Module {
     }
 
     @Override
-    public <P> boolean registerCreateObjFun(Class<P> mgrClassType, Func2Ex<P, Object, Object> createObjFun, String... sources) {
-        Func2Ex<P, Object, Homo<Object>> warpCreateFun = (mgrObj, id) -> Homo.result(createObjFun.apply(mgrObj, id));
+    public <P> boolean registerCreateObjFun(Class<P> mgrClassType, Func2PWithException<P, Object, Object> createObjFun, String... sources) {
+        Func2PWithException<P, Object, Homo<Object>> warpCreateFun = (mgrObj, id) -> Homo.result(createObjFun.apply(mgrObj, id));
         return registerPromiseCreateObjFun(mgrClassType, warpCreateFun, sources);
     }
 
     @Override
-    public <P> boolean registerPromiseCreateObjFun(Class<P> mgrClassType, Func2Ex<P, Object, Homo<Object>> getObjFun, String... sources) {
+    public <P> boolean registerPromiseCreateObjFun(Class<P> mgrClassType, Func2PWithException<P, Object, Homo<Object>> getObjFun, String... sources) {
         for (String source : sources) {
             if (createObjFunMap.containsKey(source)) {
                 log.error("registerPromiseCreateObjFun find conflict source {}, please redefine source!", source);
                 return false;
             }
             sourceNameToCreateClassTypeMap.put(source, mgrClassType);
-            createObjFunMap.put(source, (Func2Ex<Object, Object, Homo<Object>>) getObjFun);
+            createObjFunMap.put(source, (Func2PWithException<Object, Object, Homo<Object>>) getObjFun);
         }
         return true;
     }
 
     @Override
-    public <P> boolean registerGetObjFun(Class<P> mgrClassType, Func2Ex<P, Object, Object> getObjFun, String... sources) {
-        Func2Ex<P, Object, Homo<Object>> wrapGetObjFun = (mgrObj, id) -> Homo.result(getObjFun.apply(mgrObj, id));
+    public <P> boolean registerGetObjFun(Class<P> mgrClassType, Func2PWithException<P, Object, Object> getObjFun, String... sources) {
+        Func2PWithException<P, Object, Homo<Object>> wrapGetObjFun = (mgrObj, id) -> Homo.result(getObjFun.apply(mgrObj, id));
         return registerPromiseGetObjFun(mgrClassType, wrapGetObjFun, sources);
     }
 
     @Override
-    public <P> boolean registerPromiseGetObjFun(Class<P> mgrClassType, Func2Ex<P, Object, Homo<Object>> getObjFun, String... sources) {
+    public <P> boolean registerPromiseGetObjFun(Class<P> mgrClassType, Func2PWithException<P, Object, Homo<Object>> getObjFun, String... sources) {
         for (String source : sources) {
             if (getObjFunMap.containsKey(source)) {
                 log.error("registerPromiseGetObjFun find conflict source {}, please redefine source!", source);
                 return false;
             }
             sourceNameToGetClassTypeMap.put(source, mgrClassType);
-            getObjFunMap.put(source, (Func2Ex<Object, Object, Homo<Object>>) getObjFun);
+            getObjFunMap.put(source, (Func2PWithException<Object, Object, Homo<Object>>) getObjFun);
         }
         return true;
     }
 
     @Override
-    public <P> boolean registerSetObjFun(Class<P> mgrClassType, Func3Ex<P, Object, Object, Object> setObjFun, String... sources) {
-        Func3Ex<P, Object, Object, Homo<Object>> wrapSetObjFun = (mgrObj, id, setObj) -> Homo.result(setObjFun.apply(mgrObj, id, setObj));
+    public <P> boolean registerSetObjFun(Class<P> mgrClassType, Func3PWithException<P, Object, Object, Object> setObjFun, String... sources) {
+        Func3PWithException<P, Object, Object, Homo<Object>> wrapSetObjFun = (mgrObj, id, setObj) -> Homo.result(setObjFun.apply(mgrObj, id, setObj));
         return registerPromiseSetObjFun(mgrClassType, wrapSetObjFun, sources);
     }
 
     @Override
-    public <P> boolean registerPromiseSetObjFun(Class<P> mgrClassType, Func3Ex<P, Object, Object, Homo<Object>> setObjFun, String... sources) {
+    public <P> boolean registerPromiseSetObjFun(Class<P> mgrClassType, Func3PWithException<P, Object, Object, Homo<Object>> setObjFun, String... sources) {
         for (String source : sources) {
             if (setObjFunMap.containsKey(source)) {
                 log.error("registerPromiseSetObjFun find conflict source {}, please redefine source!", source);
                 return false;
             }
             sourceNameToSetClassTypeMap.put(source, mgrClassType);
-            setObjFunMap.put(source, (Func3Ex<Object, Object, Object, Homo<Object>>) setObjFun);
+            setObjFunMap.put(source, (Func3PWithException<Object, Object, Object, Homo<Object>>) setObjFun);
         }
         return true;
     }

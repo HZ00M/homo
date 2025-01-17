@@ -42,12 +42,14 @@ public class CallDispatcher {
             return Homo.error(HomoError.throwError(HomoError.callAllow));
         }
         Object[] unSerializeParam;
+        rpcContent.setReturnType(methodDispatchInfo.getReturnSerializeInfo().getParamType());
         if (podId == null && parameterMsg == null){//如果填充参数是空，则不填充
-            unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName, rpcContent);
+            unSerializeParam = rpcHandleInfo.unSerializeParamForInvokeLocalMethod(funName, rpcContent);
         }else {
-            unSerializeParam = rpcHandleInfo.unSerializeParamForInvoke(funName, rpcContent, podId, parameterMsg);
+            unSerializeParam = rpcHandleInfo.unSerializeParamForInvokeLocalMethod(funName, rpcContent, podId, parameterMsg);
         }
-        Homo<CallData> callTask = Homo.result(new CallData(handler, methodDispatchInfo, unSerializeParam, queueId, srcService, locKQueue, rpcContent.getSpan(),true, CallQueueMgr.DEFAULT_CHOICE_THREAD_STRATEGY));
+        Homo<CallData> callTask = Homo.result(new CallData(handler, methodDispatchInfo, unSerializeParam, queueId, srcService, locKQueue,
+                rpcContent.getSpan(),true, CallQueueMgr.DEFAULT_CHOICE_THREAD_STRATEGY));
         Homo retPromise;
         if (interceptor != null) {
             retPromise = callTask.nextDo(call -> interceptor.onCall(handler, funName, unSerializeParam, call));

@@ -4,7 +4,7 @@ import brave.Span;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
-import com.homo.core.utils.fun.ConsumerEx;
+import com.homo.core.utils.fun.ConsumerWithException;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.rector.HomoSink;
 import lombok.Data;
@@ -56,7 +56,7 @@ public class CallData implements RpcInterceptor {
 
     @Override
     public Homo onCall(Object handle, String funName, Object[] params, CallData callData) {
-        return Homo.warp(new ConsumerEx<HomoSink<Homo>>() {
+        return Homo.warp(new ConsumerWithException<HomoSink<Homo>>() {
             @Override
             public void accept(HomoSink<Homo> homoSink) throws Exception {
                 CallEvent callEvent = new CallEvent(CallData.this, homoSink);

@@ -3,6 +3,7 @@ package com.homo.core.rpc.client;
 import com.homo.core.facade.rpc.RpcAgentClient;
 import com.homo.core.facade.rpc.RpcClientFactory;
 import com.homo.core.facade.rpc.RpcType;
+import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.utils.exception.HomoException;
@@ -32,22 +33,18 @@ public class RpcClientMgr implements ServiceModule, ApplicationContextAware {
         }
     }
 
-    public RpcAgentClient getGrpcAgentClient(String realHostName) throws HomoException {
-        boolean statefulService = ServiceUtil.isStatefulService(realHostName);
-        return getGrpcAgentClient(realHostName, statefulService);
-    }
 
-    public RpcAgentClient getGrpcAgentClient(String realHostName, boolean isStateful) throws HomoException {
+    public RpcAgentClient getAgentClient(String realHostName, ServiceInfo serviceInfo) throws HomoException {
         RpcAgentClient rpcAgentClient;
+        Integer driverType = serviceInfo.driverType;
+        RpcType rpcType = RpcType.of(driverType);
         synchronized (RpcAgentClient.class) {
             //k8s域名格式: hostname(tagName带-n序号).tagName.namespaceId.svc.cluster.local
             rpcAgentClient = rpcAgentClientMap.computeIfAbsent(realHostName, s -> {
                 String host = ServiceUtil.getServiceHostNameByRealHost(realHostName);
                 int port = ServiceUtil.getServicePortByRealHost(realHostName);
-                log.info("new agent begin  hostname {} port {} isStateful {}", realHostName, port, isStateful);
-
-                RpcAgentClient newAgent = rpcClientFactoryMap.get(RpcType.grpc).newAgent(host, port, isStateful);
-                log.info("new agent finish  hostname {} port {} isStateful {}", realHostName, port, isStateful);
+                log.info("new agent  realHostName {}  serviceInfo {}", realHostName, serviceInfo);
+                RpcAgentClient newAgent = rpcClientFactoryMap.get(rpcType).newAgent(host, serviceInfo);
                 return newAgent;
             });
         }

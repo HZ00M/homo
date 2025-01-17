@@ -6,7 +6,6 @@ import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
-import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.rpc.client.ExchangeHostName;
@@ -26,8 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 import java.lang.reflect.Method;
 
@@ -59,18 +56,18 @@ public class RpcProxy implements MethodInterceptor {
             String tag = export.tagName();
             String serviceHostName = ServiceUtil.getServiceHostNameByTag(tag);
             Integer port = ServiceUtil.getServicePortByTag(tag);
-            Integer stateful = export.isStateful() ? 1 : 0;
-            ServiceInfo serviceInfo = new ServiceInfo(tag, serviceHostName, port, stateful);
+            boolean stateful = export.isStateful() ;
+            ServiceInfo serviceInfo = new ServiceInfo(tag, serviceHostName, port, stateful,rpcType.ordinal());
             serviceStateMgr.setLocalServiceInfo(tag, serviceInfo);
         }
     }
 
     @Override
-    public Homo intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+    public Homo intercept(Object o, Method method, Object[] params, MethodProxy methodProxy) throws Throwable {
         Class<?> declaringClass = method.getDeclaringClass();
         //接口及其继承的接口都找不到此方法,调用对象父类方法
         if (!interfaceType.equals(declaringClass) && !HomoInterfaceUtil.getAllInterfaces(interfaceType).contains(declaringClass)) {
-            return (Homo) methodProxy.invokeSuper(o, objects);
+            return (Homo) methodProxy.invokeSuper(o, params);
         }
         String methodName = method.getName();
         log.trace(
@@ -79,32 +76,35 @@ public class RpcProxy implements MethodInterceptor {
                 methodName,
                 declaringClass.getSimpleName());
         CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
-        Span span = ZipkinUtil.getTracing().tracer().currentSpan();
-//        Span span = ZipkinUtil.getTracing().tracer().nextSpan().annotate(ZipkinUtil.CLIENT_SEND_TAG).tag("type","rpcProxy:intercept");
+        Span currentSpan = ZipkinUtil.getTracing().tracer().currentSpan();
+        if (currentSpan == null){
+            currentSpan = ZipkinUtil.getTracing().tracer().newTrace();
+        }
+        Span finalCurrentSpan = currentSpan;
         return GetBeanUtil.getBean(ServiceStateMgr.class).getServiceInfo(tagName)
                 .nextDo(serviceInfo -> {
-                    return ExchangeHostName.exchange(serviceInfo, objects)
+                    return ExchangeHostName.exchange(serviceInfo, params)
                             .nextDo(realHostName -> {
                                 if (!StringUtils.isEmpty(realHostName)) {
                                     boolean isStateful = ServiceUtil.isStatefulService(realHostName);
-                                    RpcContent callContent = rpcHandlerInfoForClient.serializeParamForInvoke(methodName, objects);
-                                    callContent.setSpan(span);
+                                    RpcContent rpcContent = rpcHandlerInfoForClient.serializeParamForInvokeRemoteMethod(methodName, params);
+                                    rpcContent.setSpan(finalCurrentSpan);
                                     return rpcClientMgr
-                                            .getGrpcAgentClient(realHostName, isStateful)
-                                            .rpcCall(methodName, callContent)
-                                            .switchThread(callQueue,span)
+                                            .getAgentClient(realHostName, serviceInfo)
+                                            .rpcCall(methodName, rpcContent)
+                                            .switchThread(callQueue,finalCurrentSpan)
                                             .nextDo(ret -> {
-                                                span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
-                                                return processReturn(methodName, (Tuple2<String, ByteRpcContent>) ret);
+                                                finalCurrentSpan.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish();
+                                                return processReturn(methodName, rpcContent);
                                             })
                                             .catchError(throwable -> {
-                                                span.error((Throwable) throwable);
+                                                finalCurrentSpan.error((Throwable) throwable);
                                                 log.error("rpc client call throwable {}", throwable);
                                                 HomoError.throwError(HomoError.rpcAgentTypeNotSupport);
                                             })
                                             ;
                                 } else {
-                                    span.error(new RuntimeException("realHostName empty"));
+                                    finalCurrentSpan.error(new RuntimeException("realHostName empty"));
                                     return Homo.result(HomoError.throwError(HomoError.hostNotFound, tagName));
                                 }
                             });
@@ -112,28 +112,13 @@ public class RpcProxy implements MethodInterceptor {
     }
 
     @NotNull
-    private Homo processReturn(String methodName, Tuple2<String, ByteRpcContent> ret) throws HomoException {
-        Tuple2<String, ByteRpcContent> retTuple = ret;
-        String msgId = retTuple.getT1();
-        ByteRpcContent rpcContent = retTuple.getT2();
+    private Homo processReturn(String methodName, RpcContent rpcContent) throws HomoException {
+        String msgId = rpcContent.getId();
         if (!msgId.equals(methodName)) {//返回的msgId不等于方法名  抛出异常
-            return Homo.error(HomoError.throwError(Integer.parseInt(msgId), msgId));
+            return Homo.error(HomoError.throwError(HomoError.defaultError, msgId));
         }
-        Object[] param = rpcHandlerInfoForClient.unSerializeParamForCallback(methodName, rpcContent);
-        Homo returnHomo;
-        /**
-         * 如果返回值是空 或 长度为0，返回null
-         * 如果返回值长度为1，返回第一个元素
-         * 如果返回值是数组，返回Tuples
-         */
-        if (param == null || param.length == 0) {
-            returnHomo = Homo.result(null);
-        } else if (param.length <= 1) {
-            returnHomo = Homo.result(param[0]);
-        } else {
-            returnHomo = Homo.result(Tuples.fromArray(param));
-        }
-        return returnHomo;
+        Object returnValue = rpcHandlerInfoForClient.unSerializeReturnValue(methodName, rpcContent);
+        return Homo.result(returnValue);
     }
 
 

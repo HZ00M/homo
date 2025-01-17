@@ -10,7 +10,7 @@ import com.homo.core.facade.ability.SaveAble;
 import com.homo.core.utils.concurrent.lock.IdLocker;
 import com.homo.core.utils.concurrent.queue.CallQueue;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
-import com.homo.core.utils.fun.Func2Ex;
+import com.homo.core.utils.fun.Func2PWithException;
 import com.homo.core.utils.module.ServiceModule;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.reflect.HomoAnnotationUtil;
@@ -124,7 +124,7 @@ public class StorageEntityMgr extends CacheEntityMgr implements ServiceModule {
                                             return Homo.result((T)ret);
                                         });
                             } else {
-                                Func2Ex<Class<? extends AbilityEntity>, String, Homo<? extends AbilityEntity>> createFun = notFoundCreateFunMap.get(clazz);
+                                Func2PWithException<Class<? extends AbilityEntity>, String, Homo<? extends AbilityEntity>> createFun = notFoundCreateFunMap.get(clazz);
                                 if (createFun != null) {
                                     //如果注册了创建函数，则调用默认创建函数
                                     return (Homo<T>) createFun.apply(clazz, id)

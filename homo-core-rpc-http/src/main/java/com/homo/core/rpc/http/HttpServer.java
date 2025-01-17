@@ -4,6 +4,7 @@ import brave.Span;
 import com.alibaba.fastjson.JSON;
 import com.homo.core.facade.rpc.RpcServer;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
+import com.homo.core.rpc.base.serial.FileRpcContent;
 import com.homo.core.rpc.base.serial.JsonRpcContent;
 import com.homo.core.rpc.http.dto.ResponseMsg;
 import com.homo.core.utils.rector.Homo;
@@ -69,14 +70,16 @@ public class HttpServer {
      * @param <T>
      * @return
      */
-    public <T> Mono<DataBuffer> onCall(String msgId, byte[][] data, ServerHttpResponse response) {
+    public <T> Mono<DataBuffer> onBytesCall(String msgId, byte[][] data, ServerHttpResponse response) {
         Span span = ZipkinUtil.getTracing().tracer().currentSpan();
-        ByteRpcContent rpcContent = new ByteRpcContent(data, span);
+        ByteRpcContent rpcContent = new ByteRpcContent();
+        rpcContent.setMsgId(msgId);
+        rpcContent.setSpan(span);
+        rpcContent.setParam(data);
         return rpcServer.onCall("HttpServer", msgId, rpcContent)
                 .nextDo(ret -> {
-                    byte[][] res = ret;
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
-                    DataBuffer buffer = dataBufferFactory.wrap(res[0]);
+                    DataBuffer buffer = dataBufferFactory.wrap(ret);
                     return Mono.just(buffer);
                 });
     }
@@ -90,9 +93,12 @@ public class HttpServer {
      * @param <T>
      * @return
      */
-    public <T> Mono<DataBuffer> onCall(String msgId, String data, ServerHttpResponse response) {
+    public <T> Mono<DataBuffer> onJsonCall(String msgId, String data, ServerHttpResponse response) {
         Span span = ZipkinUtil.getTracing().tracer().currentSpan();
-        JsonRpcContent rpcContent = new JsonRpcContent(data,span);
+        JsonRpcContent rpcContent = new JsonRpcContent();
+        rpcContent.setId(msgId);
+        rpcContent.setSpan(span);
+        rpcContent.setParam(data);
         return rpcServer.onCall("HttpServer", msgId, rpcContent)
                 .nextDo(ret -> {
                     ResponseMsg msg = ResponseMsg.builder().msgId(msgId).codeDesc("ok").msgContent(ret).code(HttpStatus.OK.value()).build();
@@ -122,7 +128,7 @@ public class HttpServer {
         return rpcServer.onCall("HttpServer", msgId, rpcContent)
                 .nextDo(ret -> {
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
-                    DataBuffer buffer = dataBufferFactory.wrap("success".getBytes(StandardCharsets.UTF_8));
+                    DataBuffer buffer = dataBufferFactory.wrap(ret);
                     return Mono.just(buffer);
                 });
     }

@@ -20,8 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -91,9 +89,9 @@ public class EntityRpcProxy implements MethodInterceptor {
         //发起远程调用
         String methodName = method.getName();
         EntityRequest.Builder builder = EntityRequest.newBuilder().setType(type).setId(id).setFunName(methodName);
-        ByteRpcContent rpcContent = (ByteRpcContent) rpcHandlerInfoForClientMap.get(interfaceType).serializeParamForInvoke(methodName, objects);
+        ByteRpcContent rpcContent = (ByteRpcContent) rpcHandlerInfoForClientMap.get(interfaceType).serializeParamForInvokeRemoteMethod(methodName, objects);
         if (rpcContent != null) {
-            byte[][] data = rpcContent.getData();
+            byte[][] data = rpcContent.getParam();
             if (data != null) {
                 for (byte[] datum : data) {
                     builder.addContent(ByteString.copyFrom(datum));
@@ -116,29 +114,22 @@ public class EntityRpcProxy implements MethodInterceptor {
                     }
                     return ExchangeHostName.exchange(serviceInfo, entityRequest)
                             .nextDo(realName -> {
-                                RpcContent rpcContent = serviceEntityRpcInfo.serializeParamForInvoke(IEntityService.default_entity_call_method, new Object[]{-1, entityRequest});
-                                return rpcClientMgr.getGrpcAgentClient(realName, true)
+                                RpcContent rpcContent = serviceEntityRpcInfo.serializeParamForInvokeRemoteMethod(IEntityService.default_entity_call_method, new Object[]{-1, entityRequest});
+                                return rpcClientMgr.getAgentClient(realName, serviceInfo)
                                         .rpcCall(IEntityService.default_entity_call_method, rpcContent)
 //                                        .switchThread(currentCallQueue,currentSpan)
-                                        .consumerValue(ret -> {
-                                            Tuple2<String, RpcContent> msgIdAndContent = (Tuple2<String, RpcContent>) ret;
-                                            Object[] entityData = serviceEntityRpcInfo.unSerializeParamForCallback(IEntityService.default_entity_call_method, msgIdAndContent.getT2());
-                                            EntityResponse entityResponse = (EntityResponse) entityData[0];
+                                        .nextDo(ret -> {
+                                            Object entityData = serviceEntityRpcInfo.serializeParamForCallback(IEntityService.default_entity_call_method, rpcContent);
+                                            EntityResponse entityResponse = (EntityResponse) entityData;
                                             ByteRpcContent logicContent = new ByteRpcContent();
                                             List<ByteString> contentList = entityResponse.getContentList();
                                             byte[][] data = new byte[contentList.size()][];
                                             for (int i = 0; i < contentList.size(); i++) {
                                                 data[i] = contentList.get(i).toByteArray();
                                             }
-                                            logicContent.setData(data);
-                                            Object[] dataObjs = rpcHandlerInfoForClientMap.get(interfaceType).unSerializeParamForCallback(methodName, logicContent);
-                                            if (dataObjs == null || dataObjs.length == 0) {
-                                                Homo.result(null);
-                                            } else if (dataObjs.length <= 1) {
-                                                Homo.result(dataObjs[0]);
-                                            } else {
-                                                Homo.result(Tuples.fromArray(dataObjs));
-                                            }
+                                            logicContent.setParam(data);
+                                            Object dataObjs = rpcHandlerInfoForClientMap.get(interfaceType).serializeParamForCallback(methodName, logicContent);
+                                            return Homo.result(dataObjs);//可能有Bug
                                         });
                             });
                 });

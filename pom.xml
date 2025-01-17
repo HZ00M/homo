@@ -43,6 +43,8 @@
         <module>homo-core-mq-base</module>
         <module>homo-core-mq-driver-kafka</module>
         <module>homo-turntable-utils</module>
+        <module>homo-core-relational-base</module>
+        <module>homo-core-relational-driver-mysql</module>
     </modules>
 
     <groupId>com.homo</groupId>
@@ -151,6 +153,16 @@
             <!--            工程依赖  子类主动引入           -->
             <dependency>
                 <artifactId>homo-core-system</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-relational-base</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-core-relational-driver-mysql</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
@@ -852,7 +864,7 @@
             <dependency>
                 <groupId>io.projectreactor</groupId>
                 <artifactId>reactor-bom</artifactId>
-                <version>2020.0.10</version>
+                <version>2020.0.22</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

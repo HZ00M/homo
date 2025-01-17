@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.homo.core.configurable.rpc.RpcHttpServerProperties;
 import com.homo.core.rpc.http.HttpServer;
-import com.homo.core.rpc.http.RpcServerFactoryHttpImpl;
+import com.homo.core.rpc.http.HttpRpcServerFactory;
 import com.homo.core.utils.exception.HomoError;
 import com.homo.core.utils.module.DriverModule;
 import com.homo.core.utils.spring.GetBeanUtil;
@@ -23,7 +23,7 @@ public class AbstractHttpMapping implements DriverModule {
     protected static final String HOMO_REMOTE_ADDRESS = "HOMO_REMOTE_ADDRESS";
     protected static RpcHttpServerProperties rpcHttpServerProperties;
     public void moduleInit(){
-        routerHttpServerMap = RpcServerFactoryHttpImpl.httpServerMap;
+        routerHttpServerMap = HttpRpcServerFactory.httpServerMap;
         rpcHttpServerProperties = GetBeanUtil.getBean(RpcHttpServerProperties.class);
     }
 

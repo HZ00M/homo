@@ -2,7 +2,7 @@ package com.homo.core.tread.tread.intTread;
 
 import com.homo.core.facade.tread.tread.Tread;
 import com.homo.core.facade.tread.tread.TreadMgr;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.FuncWithException;
 import org.springframework.util.Assert;
 
 import java.util.function.BiPredicate;
@@ -65,7 +65,7 @@ public class IntTread extends Tread<Integer> {
      * @param sources 资源属性列表
      * @return
      */
-    public IntTread registerCreateFun(Object id, FuncEx<Object, Object> newObjSupplier, String ... sources) {
+    public IntTread registerCreateFun(Object id, FuncWithException<Object, Object> newObjSupplier, String ... sources) {
         for (String source : sources) {
             registerCreateFun(TreadMgr.buildIdentity(id, source), newObjSupplier);
         }

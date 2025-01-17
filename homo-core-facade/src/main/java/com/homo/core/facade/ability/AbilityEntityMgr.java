@@ -1,6 +1,6 @@
 package com.homo.core.facade.ability;
 
-import com.homo.core.utils.fun.Func2Ex;
+import com.homo.core.utils.fun.Func2PWithException;
 import com.homo.core.utils.rector.Homo;
 
 import java.util.HashMap;
@@ -168,9 +168,9 @@ public interface AbilityEntityMgr {
      */
     void registerRemoveProcess(Class<?> clazz, Consumer<AbilityEntity> consumer);
 
-    Map<Class<? extends AbilityEntity>, Func2Ex<Class<? extends AbilityEntity>, String, Homo<? extends AbilityEntity>>> notFoundCreateFunMap = new HashMap<>();
+    Map<Class<? extends AbilityEntity>, Func2PWithException<Class<? extends AbilityEntity>, String, Homo<? extends AbilityEntity>>> notFoundCreateFunMap = new HashMap<>();
 
-    default void registerEntityNotFoundProcess(Class<? extends AbilityEntity> abilityEntity, Func2Ex<Class<? extends AbilityEntity>, String, Homo<? extends AbilityEntity>> createFun) {
+    default void registerEntityNotFoundProcess(Class<? extends AbilityEntity> abilityEntity, Func2PWithException<Class<? extends AbilityEntity>, String, Homo<? extends AbilityEntity>> createFun) {
         notFoundCreateFunMap.put(abilityEntity, createFun);
     }
 }

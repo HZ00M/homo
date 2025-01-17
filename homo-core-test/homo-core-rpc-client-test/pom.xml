@@ -54,6 +54,9 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-core-rpc-http</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-relational-facade-test</artifactId>
+        </dependency>
     </dependencies>
 </project>

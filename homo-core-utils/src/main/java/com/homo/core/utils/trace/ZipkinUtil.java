@@ -14,7 +14,7 @@ import brave.sampler.SamplerFunction;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
 import com.homo.core.utils.apollo.ConfigDriver;
 import com.homo.core.utils.config.ZipKinProperties;
-import com.homo.core.utils.fun.ConsumerEx;
+import com.homo.core.utils.fun.ConsumerWithException;
 import com.homo.core.utils.module.RootModule;
 import com.homo.core.utils.module.SupportModule;
 import io.grpc.ClientInterceptor;
@@ -283,7 +283,7 @@ public class ZipkinUtil implements SupportModule {
      * @param onScopeClose 结束时的回调函数
      * @return 返回绑定的span
      */
-    public static Span startScope(Span span, ConsumerEx<Span> consumer, @Nullable Consumer<Span> onScopeClose) {
+    public static Span startScope(Span span, ConsumerWithException<Span> consumer, @Nullable Consumer<Span> onScopeClose) {
         try (Tracer.SpanInScope ss = startScope(span)) {
             consumer.accept(span);
             return span;
@@ -306,7 +306,7 @@ public class ZipkinUtil implements SupportModule {
      * @return 返回绑定的span
      * @throws Exception 抛出异常
      */
-    public static Span startScopeThrowable(Span span, ConsumerEx<Span> consumer, Consumer<Span> onScopeClose) throws Exception {
+    public static Span startScopeThrowable(Span span, ConsumerWithException<Span> consumer, Consumer<Span> onScopeClose) throws Exception {
         try (Tracer.SpanInScope ws = startScope(span)) {
             consumer.accept(span);
             return span;
@@ -329,7 +329,7 @@ public class ZipkinUtil implements SupportModule {
      * @return 返回传入的span
      * @throws Exception 抛出异常
      */
-    public static Span startScopeThrowable(Span span, ConsumerEx<Span> consumer)
+    public static Span startScopeThrowable(Span span, ConsumerWithException<Span> consumer)
             throws Exception {
         return startScopeThrowable(span, consumer, null);
     }
@@ -342,7 +342,7 @@ public class ZipkinUtil implements SupportModule {
      * @return 返回绑定的span
      * @throws Exception 抛出异常
      */
-    public static Span startScopeThrowable(String name, ConsumerEx<Span> consumer, Consumer<Span> onScopeClose)
+    public static Span startScopeThrowable(String name, ConsumerWithException<Span> consumer, Consumer<Span> onScopeClose)
             throws Exception {
         return startScopeThrowable(nextOrCreateSRSpan().name(name), consumer, onScopeClose);
     }
@@ -359,7 +359,7 @@ public class ZipkinUtil implements SupportModule {
     public static <T> Span startScopeThrowable(
             SamplerFunction<T> function,
             T arg,
-            ConsumerEx<Span> consumer,
+            ConsumerWithException<Span> consumer,
             Consumer<Span> onScopeClose)
             throws Exception {
         return startScopeThrowable(null, function, arg, consumer, onScopeClose);
@@ -381,7 +381,7 @@ public class ZipkinUtil implements SupportModule {
             String name,
             SamplerFunction<T> function,
             T arg,
-            ConsumerEx<Span> consumer,
+            ConsumerWithException<Span> consumer,
             Consumer<Span> onScopeClose)
             throws Exception {
         Span span = newSpanIfNotSampled(function, arg).name(name);
@@ -397,7 +397,7 @@ public class ZipkinUtil implements SupportModule {
      * @return 返回绑定的span
      * @throws Exception 抛出异常
      */
-    public static <T> Span startScopeAndFinish(String finishAnnotate, SamplerFunction<T> function, T arg, ConsumerEx<Span> consumer) {
+    public static <T> Span startScopeAndFinish(String finishAnnotate, SamplerFunction<T> function, T arg, ConsumerWithException<Span> consumer) {
         return startScope(
                 getTracing().tracer().nextSpan(function,arg).annotate(finishAnnotate),
                 consumer,
@@ -413,7 +413,7 @@ public class ZipkinUtil implements SupportModule {
      * @return 返回绑定的span
      * @throws Exception 抛出异常
      */
-    public static <T> Span startScopeAndFinishThrowable(String finishAnnotate, SamplerFunction<T> function, T arg, ConsumerEx<Span> consumer) throws Exception {
+    public static <T> Span startScopeAndFinishThrowable(String finishAnnotate, SamplerFunction<T> function, T arg, ConsumerWithException<Span> consumer) throws Exception {
         return startScopeThrowable(
                 function,
                 arg,
@@ -429,7 +429,7 @@ public class ZipkinUtil implements SupportModule {
      * @param consumer       执行函数
      * @return 返回传入的span
      */
-    public static Span startScopeWithSamplerFunAndFinish(String finishAnnotate, Span span, ConsumerEx<Span> consumer) {
+    public static Span startScopeWithSamplerFunAndFinish(String finishAnnotate, Span span, ConsumerWithException<Span> consumer) {
         return startScope(span, consumer, identitySpan -> {
             identitySpan.tag(FINISH_TAG, "startSamplerFunAndFinish").annotate(finishAnnotate).finish();
         });
@@ -443,7 +443,7 @@ public class ZipkinUtil implements SupportModule {
      * @param consumer       执行函数
      * @return 返回传入的span
      */
-    public static Span startScopeWithSamplerFunAndFinishThrowable(String finishAnnotate, Span span, ConsumerEx<Span> consumer) throws Exception {
+    public static Span startScopeWithSamplerFunAndFinishThrowable(String finishAnnotate, Span span, ConsumerWithException<Span> consumer) throws Exception {
         return startScopeThrowable(span, consumer, identitySpan -> identitySpan.tag(FINISH_TAG, "startScopeWithSamplerFunAndFinishThrowable").annotate(finishAnnotate).finish());
     }
 

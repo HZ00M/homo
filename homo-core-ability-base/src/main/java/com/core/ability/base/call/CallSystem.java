@@ -77,7 +77,8 @@ public class CallSystem implements ICallSystem, ServiceModule {
             }
             String serviceHost = ServiceUtil.getServiceHostNameByTag(mainService.getTagName());
             int servicePort = ServiceUtil.getServicePortByTag(mainService.getTagName());
-            serviceStateMgr.setServiceInfo(entityType.type(), new ServiceInfo(mainService.getTagName(), serviceHost, servicePort, mainService.isStateful() ? 1 : 0))
+            ServiceInfo serviceInfo = new ServiceInfo(mainService.getTagName(), serviceHost, servicePort, mainService.isStateful(), mainService.getType().ordinal());
+            serviceStateMgr.setServiceInfo(entityType.type(), serviceInfo)
                     .catchError(throwable -> {
                         log.error("setServiceNameTag error entity {}", entityType.type(), throwable);
                     })

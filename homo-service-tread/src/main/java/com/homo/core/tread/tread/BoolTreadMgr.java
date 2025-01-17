@@ -3,8 +3,8 @@ package com.homo.core.tread.tread;
 import com.homo.core.tread.tread.config.TreadProperties;
 import com.homo.core.tread.tread.exception.TreadGetException;
 import com.homo.core.tread.tread.exception.TreadSetException;
-import com.homo.core.utils.fun.Func2Ex;
-import com.homo.core.utils.fun.FuncEx;
+import com.homo.core.utils.fun.Func2PWithException;
+import com.homo.core.utils.fun.FuncWithException;
 import com.homo.core.utils.rector.Homo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,22 +40,22 @@ public class BoolTreadMgr extends AbstractTreadMgr<Boolean> {
     }
 
     @Override
-    protected FuncEx<Boolean, Boolean> beforeCheckApply() {
+    protected FuncWithException<Boolean, Boolean> beforeCheckApply() {
         return getValue -> getValue;
     }
 
     @Override
-    protected Func2Ex<Boolean, Boolean, Boolean> subStrategy() {
+    protected Func2PWithException<Boolean, Boolean, Boolean> subStrategy() {
         return (opValue, getValue) -> opValue;
     }
 
     @Override
-    protected Func2Ex<Boolean, Boolean, Boolean> addStrategy() {
+    protected Func2PWithException<Boolean, Boolean, Boolean> addStrategy() {
         return (opValue, getValue) -> opValue;
     }
 
     @Override
-    protected Func2Ex<Object, Boolean, Homo<Boolean>> setMethodWrapStrategy(Method method,String source) {
+    protected Func2PWithException<Object, Boolean, Homo<Boolean>> setMethodWrapStrategy(Method method, String source) {
         return (object, opValue) -> {
             try {
                 Object invoke = method.invoke(object, opValue);
@@ -73,7 +73,7 @@ public class BoolTreadMgr extends AbstractTreadMgr<Boolean> {
     }
 
     @Override
-    protected FuncEx<Object, Homo<Boolean>> getMethodWrapStrategy(Method method,String source) {
+    protected FuncWithException<Object, Homo<Boolean>> getMethodWrapStrategy(Method method, String source) {
         return object -> {
             try {
                 Object invoke = method.invoke(object);

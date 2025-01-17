@@ -6,13 +6,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
 import com.homo.core.facade.rpc.RpcContentType;
-import com.homo.core.rpc.http.FileRpcContent;
+import com.homo.core.rpc.base.serial.FileRpcContent;
 import com.homo.core.rpc.http.HttpServer;
-import com.homo.core.rpc.http.upload.DefaultUploadFile;
-import com.homo.core.rpc.http.upload.UploadFile;
 import com.homo.core.utils.module.Module;
 import com.homo.core.utils.serial.FSTSerializationProcessor;
 import com.homo.core.utils.trace.ZipkinUtil;
+import com.homo.core.utils.upload.DefaultUploadFile;
 import io.homo.proto.client.ClientRouterHeader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -91,7 +90,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         String msg = JSON.toJSONString(list);
         log.info("httpGet begin port {} msgId {} msg {}", port, msgId, msg);
         HttpServer httpServer = routerHttpServerMap.get(port);
-        Mono<DataBuffer> respBuffer = httpServer.onCall(msgId, msg, response);
+        Mono<DataBuffer> respBuffer = httpServer.onJsonCall(msgId, msg, response);
         return response.writeAndFlushWith(Mono.just(respBuffer))
                 .doFinally(ret -> {
                     if (span != null) {
@@ -148,7 +147,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                                         msg = JSON.toJSONString(list);
                                         log.info("httpJsonPost begin port {} msgId {} msg {}", port, msgId, msg);
                                         HttpServer httpServer = routerHttpServerMap.get(port);
-                                        Mono<DataBuffer> bufferMono = httpServer.onCall(msgId, msg, response);
+                                        Mono<DataBuffer> bufferMono = httpServer.onJsonCall(msgId, msg, response);
                                         monoSink.success(bufferMono);
                                     } catch (Exception e) {
                                         monoSink.error(e);
@@ -191,7 +190,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                                 log.info("httpProtoPost begin port {} msgId {} ", port, msgId);
                                 dataBuffer.read(msgContent);
                                 HttpServer httpServer = routerHttpServerMap.get(port);
-                                Mono<DataBuffer> bufferMono = httpServer.onCall(msgId, msg, response);
+                                Mono<DataBuffer> bufferMono = httpServer.onBytesCall(msgId, msg, response);
                                 monoSink.success(bufferMono);
                             } catch (Exception e) {
                                 monoSink.error(e);
@@ -215,56 +214,103 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
      * @param filePart 上传的文件内容 //todo 验证文件上传
      * @return
      */
-    @PostMapping(value = "/upload/*", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Mono<Void> requestBodyFlux(ServerWebExchange exchange, @RequestPart("file") FilePart filePart) {
+    @PostMapping(value = "/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Mono<Void> httpFormBody(ServerWebExchange exchange, @RequestPart("file") FilePart filePart) {
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
         int port = exportPort(request);
         String msgId = exportMsgId(request);
-        Mono<Mono<DataBuffer>> resp = Mono.create(monoMonoSink -> {
-            MultiValueMap<String, String> queryParams = request.getQueryParams();
-            Mono<MultiValueMap<String, String>> formData = exchange.getFormData();
-            // 把form-data模式中的参数，除了文件类型之外取出来放到formData
-            Mono<MultiValueMap<String, String>> multipartData = exchange.getMultipartData()
-                    .map(multiValueMap -> {
-                        MultiValueMap<String, String> mmMap = new LinkedMultiValueMap<>();
-                        multiValueMap.forEach((key, partList) -> {
-                            if (partList.get(0) instanceof FormFieldPart) {
-                                List<String> paramList = partList.stream().map(item -> ((FormFieldPart) item).value()).collect(Collectors.toList());
-                                mmMap.put(key, paramList);
-                            }
-                        });
-                        return mmMap;
+        return exchange.getMultipartData() // 解析multipart数据
+                .flatMap(multiValueMap -> {
+                    // 解析form-data中的字段
+                    MultiValueMap<String, String> formDataMap = new LinkedMultiValueMap<>();
+                    multiValueMap.forEach((key, parts) -> {
+                        if (parts.get(0) instanceof FormFieldPart) {
+                            List<String> values = parts.stream()
+                                    .map(part -> ((FormFieldPart) part).value())
+                                    .collect(Collectors.toList());
+                            formDataMap.put(key, values);
+                        }
                     });
-            Mono<MultiValueMap<String, String>> finalFormData =
-                    Mono.just(new LinkedMultiValueMap<String, String>())
-                            .flatMap(linkMap ->
-                                    //flatMap从另一个publisher获取，（异步的转换发布的元素并返回一个新的Mono，被转换的元素和新Mono是动态绑定的。）
-                                    formData.map(map -> {
-                                        linkMap.putAll(map);
-                                        return linkMap;
-                                    })
-                            ).flatMap(linkMap ->
-                                    multipartData.map(map -> {
-                                                linkMap.putAll(map);
-                                                return linkMap;
-                                            }
-                                    )
-                            );
-            Map<String, String> headers = request.getHeaders().toSingleValueMap();
-            String filename = filePart.filename();
-            Flux<DataBuffer> content = filePart.content();
-            Span span = ZipkinUtil.nextOrCreateSRSpan();
-            UploadFile uploadFile = new DefaultUploadFile(filename, headers, queryParams, finalFormData, content);
-            FileRpcContent byteRpcContent = new FileRpcContent(uploadFile, RpcContentType.FILE, span);
-            try {
-                Mono<DataBuffer> dataBufferMono = routerHttpServerMap.get(port).onFileUpload(msgId, byteRpcContent, response);//todo 处理文件类型请求
-                monoMonoSink.success(dataBufferMono);
-            } catch (Exception e) {
-                monoMonoSink.error(e);
-            }
-        });
-        return response.writeAndFlushWith(resp);
+
+                    // 准备文件信息
+                    String filename = filePart.filename();
+                    Flux<DataBuffer> content = filePart.content();
+                    Map<String, String> headers = request.getHeaders().toSingleValueMap();
+
+                    Span span = ZipkinUtil.nextOrCreateSRSpan(); // Zipkin追踪
+                    DefaultUploadFile uploadFile = new DefaultUploadFile(filename, headers, request.getQueryParams(), formDataMap, content);
+
+                    FileRpcContent fileRpcContent = new FileRpcContent();
+                    fileRpcContent.setId(msgId);
+                    fileRpcContent.setSpan(span);
+                    fileRpcContent.setParam(uploadFile);
+
+                    // 调用路由服务处理文件上传
+                    Mono<DataBuffer> uploadResult;
+                    try {
+                        uploadResult = routerHttpServerMap.get(port).onFileUpload(msgId, fileRpcContent, response);
+                    } catch (Exception e) {
+                        log.error("File upload failed, msgId: {}, error: {}", msgId, e.getMessage(), e);
+                        return Mono.error(e);
+                    }
+
+                    // 返回响应
+                    return response.writeAndFlushWith(Mono.just(uploadResult.flux()));
+                })
+                .doOnError(e -> log.error("Failed to handle file upload: {}", e.getMessage(), e))
+                .then();
+//        Mono<Mono<DataBuffer>> resp = Mono.create(monoMonoSink -> {
+//            // 获取queryParams（来自URL）和formData（来自POST的数据）
+//            MultiValueMap<String, String> params = request.getQueryParams();
+//            Mono<MultiValueMap<String, String>> formData = exchange.getFormData();
+//            // 把form-data模式中的参数，除了文件类型之外取出来放到formData
+//            // 解析multipart数据，提取form-data模式的字段
+//            Mono<MultiValueMap<String, String>> multipartData = exchange.getMultipartData()
+//                    .map(multiValueMap -> {
+//                        MultiValueMap<String, String> mmMap = new LinkedMultiValueMap<>();
+//                        multiValueMap.forEach((key, partList) -> {
+//                            if (partList.get(0) instanceof FormFieldPart) {
+//                                List<String> paramList = partList.stream().map(item -> ((FormFieldPart) item).value()).collect(Collectors.toList());
+//                                mmMap.put(key, paramList);
+//                            }
+//                        });
+//                        return mmMap;
+//                    });
+//            // 合并formData和multipartData
+//            Mono<MultiValueMap<String, String>> resultData =
+//                    Mono.just(new LinkedMultiValueMap<String, String>())
+//                            .flatMap(linkMap ->
+//                                    //flatMap从另一个publisher获取，（异步的转换发布的元素并返回一个新的Mono，被转换的元素和新Mono是动态绑定的。）
+//                                    formData.map(map -> {
+//                                        linkMap.putAll(map);
+//                                        return linkMap;
+//                                    })
+//                            ).flatMap(linkMap ->
+//                                    multipartData.map(map -> {
+//                                                linkMap.putAll(map);
+//                                                return linkMap;
+//                                            }
+//                                    )
+//                            );
+//            // 从请求头中获取文件相关信息
+//            Map<String, String> headers = request.getHeaders().toSingleValueMap();
+//            String filename = filePart.filename();
+//            Flux<DataBuffer> content = filePart.content();
+//            Span span = ZipkinUtil.nextOrCreateSRSpan();
+//            DefaultUploadFile uploadFile = new DefaultUploadFile(filename, headers, params, resultData, content);
+//            FileRpcContent fileRpcContent = new FileRpcContent();
+//            fileRpcContent.setId(msgId);
+//            fileRpcContent.setSpan(span);
+//            fileRpcContent.setParam(uploadFile);
+//            try {
+//                Mono<DataBuffer> dataBufferMono = routerHttpServerMap.get(port).onFileUpload(msgId, fileRpcContent, response);
+//                monoMonoSink.success(dataBufferMono);
+//            } catch (Exception e) {
+//                monoMonoSink.error(e);
+//            }
+//        });
+//        return response.writeAndFlushWith(resp);
     }
 
     @Override
