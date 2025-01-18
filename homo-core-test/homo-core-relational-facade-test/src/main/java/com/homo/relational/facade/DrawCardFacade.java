@@ -37,4 +37,6 @@ public interface DrawCardFacade {
     Homo<ExecuteSqlResp> execute(ExecuteSqlReq req);
 
     Homo<AggregateResp> aggregate(AggregateReq req);
+
+    Homo<AggregateResp> lookUp(AggregateReq req);
 }

@@ -9,9 +9,13 @@ import com.homo.core.rpc.base.service.BaseService;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.upload.DefaultUploadFile;
 import com.homo.relational.base.aggregate.HomoAggregation;
+import com.homo.relational.base.aggregate.op.GroupOp;
+import com.homo.relational.base.aggregate.op.ProjectOp;
 import com.homo.relational.base.criteria.HomoCriteria;
 import com.homo.relational.domain.DrawCardTable;
+import com.homo.relational.vo.DrawCardVO;
 import com.homo.relational.facade.DrawCardFacade;
+import com.homo.relational.vo.LookUpVO;
 import io.homo.proto.relational.test.*;
 import io.homo.proto.rpc.HttpHeadInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -109,8 +113,7 @@ public class DrawCardService extends BaseService implements DrawCardFacade {
     public Homo<QueryDrawCardResp> queryFindOne(QueryDrawCardReq req) {
         List<Long> idsList = req.getIdsList();
         log.info("queryFindOne start idsList {}", idsList);
-        HomoCriteria criteria = HomoCriteria.where("user_id").eq(idsList.get(0))
-                .or("user_id").eq(idsList.get(1));
+        HomoCriteria criteria = HomoCriteria.where("id").eq(idsList.get(0));
         return relationalTemplate.find(DrawCardTable.class)
                 .matching(
                         HomoQuery.query(criteria)
@@ -129,8 +132,7 @@ public class DrawCardService extends BaseService implements DrawCardFacade {
     public Homo<QueryDrawCardResp> queryFindExists(QueryDrawCardReq req) {
         List<Long> idsList = req.getIdsList();
         log.info("queryFindExists start idsList {}", idsList);
-        HomoCriteria criteria = HomoCriteria.where("user_id").in(idsList.toArray())
-                .or("pool_id").eq("1");
+        HomoCriteria criteria = HomoCriteria.where("user_id").in(idsList.toArray());
         return relationalTemplate.find(DrawCardTable.class)
                 .matching(
                         HomoQuery.query(criteria)
@@ -157,7 +159,7 @@ public class DrawCardService extends BaseService implements DrawCardFacade {
                 .all()
                 .nextDo(ret->{
                     log.info("delete success, ret {}", ret);
-                    return Homo.result(DeleteDrawCardResp.newBuilder().setCode(1).build());
+                    return Homo.result(DeleteDrawCardResp.newBuilder().setCode(0).build());
                 });
     }
 
@@ -166,7 +168,6 @@ public class DrawCardService extends BaseService implements DrawCardFacade {
         log.info("updateEntity start, req {}", req);
         DrawCardTable drawCardTable = DrawCardTable.coverPbTo(req.getDrawCard());
         HomoCriteria criteria = HomoCriteria.where("id").eq(drawCardTable.getId());
-        drawCardTable.setPoolId(1111);
         return relationalTemplate
                 .update(DrawCardTable.class)
                 .matching(
@@ -213,18 +214,37 @@ public class DrawCardService extends BaseService implements DrawCardFacade {
     public Homo<AggregateResp> aggregate(AggregateReq req) {
         HomoAggregation aggregation = HomoAggregation.newBuilder(DrawCardTable.class)
                 .project("user_id")
-                .group("user_id")
-                .count("id")
-                .sum("pool_id")
+                .group(GroupOp.create("user_id").sum("pool_id").as("sum_pool_id_1"))
+                .sum("pool_id","sum_pool_id_2")
                 .match(HomoCriteria.where("id").greaterThan("1"))
                 .build();
-        return relationalTemplate.aggregate(aggregation,DrawCardTable.class)
+        return relationalTemplate.aggregate(aggregation, DrawCardVO.class)
                 .all()
                 .nextDo(ret->{
                     log.info("aggregate success, ret {}", ret);
                     return Homo.result(AggregateResp.newBuilder().setCode(1).build());
                 });
     }
+
+    @Override
+    public Homo<AggregateResp> lookUp(AggregateReq req) {
+        HomoAggregation aggregation = HomoAggregation.newBuilder(DrawCardTable.class)
+//                .project("user_id","pool_id","name")
+                .project(ProjectOp.New().andProject("user_id").andProject("pool_id")
+                        .andProject("name","pool_name").andProject("user_name"))
+                .lookup("pool_record","pool_id","id","key","name")
+                .lookup("user_record","user_id","id","key2","user_name")
+                .match(HomoCriteria.where("pool_id").eq(1).or("pool_id").eq(2))
+                .limit(4)
+                .build();
+        return relationalTemplate.aggregate(aggregation, LookUpVO.class)
+                .all()
+                .nextDo(ret->{
+                    log.info("aggregate success, ret {}", ret);
+                    return Homo.result(AggregateResp.newBuilder().setCode(1).build());
+                });
+    }
+
 
     @Override
     public Homo<JSONObject> updateRecord(JSONObject req, JSONObject header) {

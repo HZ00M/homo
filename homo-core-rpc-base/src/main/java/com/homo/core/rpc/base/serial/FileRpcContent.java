@@ -72,4 +72,9 @@ public class FileRpcContent implements RpcContent<UploadFile,byte[]> {
         byte[] retBytes = returnSerializeInfo.getProcessor().writeByte(param);
         return retBytes;
     }
+
+    @Override
+    public Object unSerializeReturnValue(SerializeInfo returnSerializeInfo) {
+        return returnSerializeInfo.processor.readValue(returnData,returnSerializeInfo.paramType);
+    }
 }

@@ -83,11 +83,11 @@ public class HomoAggregation implements AggregateOperation.Aggregation {
         /**
          * 根据属性聚合
          *
-         * @param field 属性名称
+         * @param groupOp 属性名称
          * @return 聚合选项
          */
-        public Builder group(String field) {
-            return addOperation(new GroupOp(field));
+        public Builder group(GroupOp groupOp) {
+            return addOperation(groupOp);
         }
 
         ;
@@ -125,7 +125,17 @@ public class HomoAggregation implements AggregateOperation.Aggregation {
          * 聚合后的数据总量
          */
         public Builder count(String column) {
-            return addOperation(new CountOp(column));
+            String alias = String.format("count_%s", column);
+            return count(column,alias);
+        }
+
+        /**
+         * count id 聚合后的数据总量 [{id: 1, value: 2}, {id: 2, value: 2}] => COUNT() => 2
+         * Returns:
+         * 聚合后的数据总量
+         */
+        public Builder count(String column,String alias) {
+            return addOperation(new CountOp(column,alias));
         }
 
         /**
@@ -135,6 +145,15 @@ public class HomoAggregation implements AggregateOperation.Aggregation {
          */
         public Builder sum(String column) {
             String alias = String.format("sum_%s", column);
+            return sum(column, alias);
+        }
+
+        /**
+         * sum value 聚合后的数据总量 [{id: 1, value: 2}, {id: 2, value: 3}] => SUM() => 5
+         * Returns:
+         * sum计算后数值
+         */
+        public Builder sum(String column,String alias) {
             return addOperation(new SumOp(column, alias));
         }
 
@@ -153,7 +172,16 @@ public class HomoAggregation implements AggregateOperation.Aggregation {
          * fields – 需要取哪些字段到结果中
          */
         public Builder project(String... fields){
-            return addOperation(new ProjectOp(fields));
+            return project(new ProjectOp(fields));
+        }
+
+        /**
+         * 性映射 { id: 1, value: 2, city: "test"} => project(id, value) => { id: 1, value: 2}
+         * Params:
+         * fields – 需要取哪些字段到结果中
+         */
+        public Builder project(ProjectOp op){
+            return addOperation(op);
         }
 
         /**
@@ -179,9 +207,9 @@ public class HomoAggregation implements AggregateOperation.Aggregation {
          * Params:
          * from – 需要join的表名 localField – A表条件字段 foreignField – B表条件字段 alias – 映射匹配记录的名称
          */
-        public Builder lookup(String from, String localField, String foreignField, String alias){
+        public Builder lookup(String from, String localField, String foreignField, String alias,String... joinColumns){
             TableSchema tableSchema = SchemaInfoCoordinator.getTable(from);
-            return addOperation(new LookUpOp(tableSchema, localField, foreignField, alias));
+            return addOperation(new LookUpOp(tableSchema, localField, foreignField, alias,joinColumns));
         }
     }
 }

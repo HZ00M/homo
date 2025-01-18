@@ -97,4 +97,9 @@ public class ByteRpcContent implements RpcContent<byte[][],byte[]> {
         this.returnType = returnType;
     }
 
+    @Override
+    public Object unSerializeReturnValue(SerializeInfo returnSerializeInfo) {
+        return returnSerializeInfo.processor.readValue(returnData,returnSerializeInfo.paramType);
+    }
+
 }

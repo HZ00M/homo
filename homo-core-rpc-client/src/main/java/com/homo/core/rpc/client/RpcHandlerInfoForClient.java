@@ -26,7 +26,8 @@ public class RpcHandlerInfoForClient extends RpcHandleInfo {
     public Object unSerializeReturnValue(String funName, RpcContent rpcContent) {
         MethodDispatchInfo methodDispatchInfo = getMethodDispatchInfo(funName);
         SerializeInfo returnSerializeInfo = methodDispatchInfo.getReturnSerializeInfo();
-        return returnSerializeInfo.processor.readValue((byte[])rpcContent.getReturn(),returnSerializeInfo.paramType);
+        return rpcContent.unSerializeReturnValue(returnSerializeInfo);
+
     }
 
 }

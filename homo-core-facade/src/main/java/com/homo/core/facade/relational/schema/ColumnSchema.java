@@ -13,6 +13,7 @@ import java.util.Map;
 
 @Data
 public class ColumnSchema {
+    public static final int STRING_KEY_DEFAULT_LENGTH = 191;
     public static final int DEFAULT_LENGTH = 255;
     public static final int DEFAULT_PRECISION = 19;
     public static final int DEFAULT_SCALE = 2;

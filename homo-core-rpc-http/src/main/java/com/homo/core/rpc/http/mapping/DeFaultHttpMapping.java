@@ -19,6 +19,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
@@ -178,6 +179,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
         Map<String, String> headerInfo = request.getHeaders().toSingleValueMap();
         Span span = ZipkinUtil.currentSpan();
         Mono<Mono<DataBuffer>> resp = DataBufferUtils.join(request.getBody())
+                .defaultIfEmpty(new DefaultDataBufferFactory().allocateBuffer(0)) // 创建一个空的 DataBuffer 作为默认值
                 .flatMap(dataBuffer ->
                         Mono.create(monoSink -> {
                             try {

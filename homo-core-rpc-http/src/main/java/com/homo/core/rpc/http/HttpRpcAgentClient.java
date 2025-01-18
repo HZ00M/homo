@@ -56,7 +56,7 @@ public class HttpRpcAgentClient implements RpcAgentClient {
             } else if (content.getType().equals(RpcContentType.JSON)) {
                 JsonRpcContent jsonRpcContent = (JsonRpcContent) content;
                 String data = jsonRpcContent.getParam();
-                rpcResult = httpJsonHandle(funName, data);
+                rpcResult = httpJsonHandle(funName, jsonRpcContent);
             } else if (content.getType().equals(RpcContentType.FILE)) {
                 FileRpcContent fileRpcContent = (FileRpcContent) content;
                 UploadFile uploadFile = fileRpcContent.getParam();
@@ -75,7 +75,8 @@ public class HttpRpcAgentClient implements RpcAgentClient {
         }
     }
 
-    private Homo httpJsonHandle(String funName, String data) {
+    private Homo httpJsonHandle(String funName, JsonRpcContent content) {
+        String param = content.getParam();
         Span span = ZipkinUtil.currentSpan();
         String uri = URI.create(String.format("http://%s:%d/%s", targetServiceName, targetPort, funName)).toString();
         try {
@@ -86,13 +87,9 @@ public class HttpRpcAgentClient implements RpcAgentClient {
                             .header(HomoHttpHeader.X_TRACE_ID.param(), String.valueOf(span.context().traceId()))
                             .header(HomoHttpHeader.X_SPAN_ID.param(), String.valueOf(span.context().spanId()))
                             .header(HomoHttpHeader.X_SAMPLED.param(), String.valueOf(span.context().sampled()))
-                            .bodyValue(data)
+                            .bodyValue(param)
                             .retrieve()
                             .bodyToMono((byte[].class))
-                            .map(bytes->{
-                                //todo 处理返回值
-                                 return null;
-                            })
                             .doOnSuccess(response -> span.finish())
                             .doOnError(span::error)// 阻塞调用，可改为异步处理。
             );
@@ -130,18 +127,19 @@ public class HttpRpcAgentClient implements RpcAgentClient {
         Span span = ZipkinUtil.currentSpan();
         String uri = URI.create(String.format("http://%s:%d/%s", targetServiceName, targetPort, funName)).toString();
         try {
-            return webClient.post()
-                    .uri(uri)
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .header(HomoHttpHeader.X_TRACE_ID.param(), String.valueOf(span.context().traceId()))
-                    .header(HomoHttpHeader.X_SPAN_ID.param(), String.valueOf(span.context().spanId()))
-                    .header(HomoHttpHeader.X_SAMPLED.param(), String.valueOf(span.context().sampled()))
-                    .bodyValue(uploadFile.content())
-                    .retrieve()
-                    .bodyToMono(Homo.class)
-                    .doOnSuccess(response -> span.finish())
-                    .doOnError(span::error)
-                    .block(); // 阻塞调用，可改为异步处理。
+            return Homo.warp(
+                    webClient.post()
+                            .uri(uri)
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .header(HomoHttpHeader.X_TRACE_ID.param(), String.valueOf(span.context().traceId()))
+                            .header(HomoHttpHeader.X_SPAN_ID.param(), String.valueOf(span.context().spanId()))
+                            .header(HomoHttpHeader.X_SAMPLED.param(), String.valueOf(span.context().sampled()))
+                            .bodyValue(uploadFile.content())
+                            .retrieve()
+                            .bodyToMono(byte[].class)
+                            .doOnSuccess(response -> span.finish())
+                            .doOnError(span::error)
+            );
         } catch (WebClientResponseException e) {
             log.error("HTTP request failed: {}", e.getResponseBodyAsString(), e);
             return Homo.error(e);

@@ -6,15 +6,17 @@ import org.springframework.util.Assert;
 
 @Data
 public class CountOp implements AggregationOp {
-    private final String fieldName;
+    private final String column;
+    private final String alias;
 
     /**
      * 根据fieldName 分组
-     * @param fieldName 属性
+     * @param column 属性
      */
-    public CountOp(String fieldName) {
-        Assert.hasText(fieldName, "Field name must not be null or empty!");
-        this.fieldName = fieldName;
+    public CountOp(String column, String alias) {
+        Assert.hasText(column, "Field name must not be null or empty!");
+        this.column = column;
+        this.alias = alias;
     }
 
     @Override
@@ -23,15 +25,16 @@ public class CountOp implements AggregationOp {
     }
 
     public static class Builder{
+        String column;
+        public Builder(String column) {
+            this.column = column;
+        }
+
         /**
-         * 分组后别名
-         * Params:
-         * fieldName – 别名
-         * @param fieldName
-         * @return
+         * @param alias 别名
          */
-        public CountOp as(String fieldName) {
-            return new CountOp(fieldName);
+        public SumOp as(String alias) {
+            return new SumOp(column, alias);
         }
     }
 }

@@ -157,7 +157,8 @@ public class MysqlSchemaAccessDialect implements SchemaAccessDialect {
             }
             if (col.getQuotedName().equals(pkname)) {
                 // to support dialects that have their own identity data type
-                buf.append(typeNames.getTypeName(typeNames.get(typeName), col.getLength(), col.getPrecision(), col.getScale()));
+                int stringKeyLength = Math.min(col.getLength(), ColumnSchema.STRING_KEY_DEFAULT_LENGTH);
+                buf.append(typeNames.getTypeName(typeNames.get(typeName), stringKeyLength, col.getPrecision(), col.getScale()));
                 buf.append(' ').append(getIdentityColumnString(typeNames.get(typeName)));
             } else {
                 buf.append(typeNames.getTypeName(typeNames.get(typeName), col.getLength(), col.getPrecision(), col.getScale()));

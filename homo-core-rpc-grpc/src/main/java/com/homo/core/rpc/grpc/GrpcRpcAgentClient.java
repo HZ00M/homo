@@ -47,11 +47,11 @@ public class GrpcRpcAgentClient implements RpcAgentClient {
         Span span = ZipkinUtil.getTracing().tracer()
                 .nextSpan()
                 .name(funName)
-                .tag("type","rpcCall")
-                .tag("srcServiceName",srcServiceName)
-                .tag("targetServiceName",targetServiceName)
-                .tag("funName",funName);
-        try(Tracer.SpanInScope spanInScope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)){
+                .tag("type", "rpcCall")
+                .tag("srcServiceName", srcServiceName)
+                .tag("targetServiceName", targetServiceName)
+                .tag("funName", funName);
+        try (Tracer.SpanInScope spanInScope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)) {
             Homo rpcResult;
             if (content.getType().equals(RpcContentType.BYTES)) {
                 ByteRpcContent byteRpcContent = (ByteRpcContent) content;
@@ -72,17 +72,17 @@ public class GrpcRpcAgentClient implements RpcAgentClient {
                 log.error("asyncCall contentType unknown, targetServiceName {} funName {} contentType {}", targetServiceName, funName, content.getType());
                 rpcResult = Homo.error(new RuntimeException("rpcCall contentType unknown"));
             }
-            return rpcResult.consumerValue(ret->{
+            return rpcResult.consumerValue(ret -> {
                 span.finish();
                 content.setReturn(ret);
             });
-        }catch (Exception e){
+        } catch (Exception e) {
             return Homo.error(e);
         }
 
     }
 
-    private  Homo asyncBytesCall(String funName, byte[][] data) {
+    private Homo asyncBytesCall(String funName, byte[][] data) {
         Span span = ZipkinUtil.currentSpan();
         Req.Builder builder = Req.newBuilder().setSrcService(srcServiceName).setMsgId(funName);
         if (data != null) {
@@ -106,7 +106,7 @@ public class GrpcRpcAgentClient implements RpcAgentClient {
         return rpcClient.asyncBytesCall(req);
     }
 
-    private  Homo asyncBytesStreamCall(String funName, byte[][] paramData) throws IOException {
+    private Homo asyncBytesStreamCall(String funName, byte[][] paramData) throws IOException {
         Span span = ZipkinUtil.currentSpan();
         StreamReq.Builder builder = StreamReq.newBuilder()
                 .setSrcService(srcServiceName)
@@ -135,7 +135,7 @@ public class GrpcRpcAgentClient implements RpcAgentClient {
         return rpcClient.asyncBytesStreamCall(reqId, streamReqWithReqId);
     }
 
-    private  Homo asyncJsonCall(String funName, String data) {
+    private Homo asyncJsonCall(String funName, String data) {
         Span span = ZipkinUtil.currentSpan();
         JsonReq.Builder builder = JsonReq.newBuilder()
                 .setSrcService(srcServiceName)

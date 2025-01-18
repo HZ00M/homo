@@ -142,6 +142,10 @@ public class SelectSpecAdaptor<T> implements SelectOperation.SelectSpec<T> {
                         .doOnNext(ret -> {
                             log.debug("findOne realQuery {} ret {}", realQuery, ret);
                         })
+                        .doOnError(throwable ->{
+                            log.warn("findOne error {}", throwable.getMessage());
+                            Homo.result(throwable);
+                        })
         );
     }
 

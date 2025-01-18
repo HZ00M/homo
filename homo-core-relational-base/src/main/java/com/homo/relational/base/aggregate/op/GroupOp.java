@@ -14,7 +14,7 @@ public class GroupOp implements AggregationOp {
     private final String field;
     private final List<GroupTargetOperation> operations;
 
-    public GroupOp(String field) {
+    private GroupOp(String field) {
         this.field = field;
         this.operations = new ArrayList<>();
     }
@@ -30,6 +30,10 @@ public class GroupOp implements AggregationOp {
         this.operations.addAll(nextOperations);
     }
 
+    public static GroupOp create(String field){
+        return new GroupOp(field);
+    }
+
     protected GroupOp and(GroupTargetOperation operation) {
         return new GroupOp(this, Collections.singletonList(operation));
     }
@@ -39,7 +43,7 @@ public class GroupOp implements AggregationOp {
      * @return 属性名称
      */
     public Builder count(){
-        return newBuilder(OpType.SUM,null,1);
+        return addGroupTargetOp(OpType.SUM,null,1);
     }
 
     /**
@@ -48,7 +52,7 @@ public class GroupOp implements AggregationOp {
      * @return
      */
     public Builder sum(String reference){
-        return newBuilder(OpType.SUM,reference,null);
+        return addGroupTargetOp(OpType.SUM,reference,null);
     }
 
     /**
@@ -57,7 +61,7 @@ public class GroupOp implements AggregationOp {
      * @return
      */
     public Builder avg(String reference){
-        return newBuilder(OpType.AVG,reference,null);
+        return addGroupTargetOp(OpType.AVG,reference,null);
     }
 
     /**
@@ -66,7 +70,7 @@ public class GroupOp implements AggregationOp {
      * @return
      */
     public Builder max(String reference){
-        return newBuilder(OpType.MAX,reference,null);
+        return addGroupTargetOp(OpType.MAX,reference,null);
     }
 
     /**
@@ -75,7 +79,7 @@ public class GroupOp implements AggregationOp {
      * @return
      */
     public Builder min(String reference){
-        return newBuilder(OpType.MIN,reference,null);
+        return addGroupTargetOp(OpType.MIN,reference,null);
     }
 
     @Override
@@ -100,8 +104,7 @@ public class GroupOp implements AggregationOp {
             return this.groupOp.and(operation.withAlias(alias));
         }
     }
-
-    private Builder newBuilder(OpType opType, @Nullable String reference, @Nullable Object value) {
+    private Builder addGroupTargetOp(OpType opType, @Nullable String reference, @Nullable Object value) {
         return new Builder(this, new GroupTargetOperation(opType, null, reference, value));
     }
 

@@ -148,4 +148,9 @@ public class JsonRpcContent implements RpcContent<String, String> {
     public void setSpan(Span span) {
         this.span = span;
     }
+
+    @Override
+    public Object unSerializeReturnValue(SerializeInfo returnSerializeInfo) {
+        return returnSerializeInfo.processor.readValue(returnData,returnSerializeInfo.paramType);
+    }
 }

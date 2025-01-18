@@ -10,12 +10,14 @@ public class LookUpOp implements AggregationOp {
     private final String localField;
     private final String foreignField;
     private final String alias;
+    private final String[] joinColumns;
 
-    public LookUpOp(TableSchema from, String localField, String foreignField, String alias) {
+    public LookUpOp(TableSchema from, String localField, String foreignField, String alias,String... joinColumns) {
         this.from = from;
         this.localField = localField;
         this.foreignField = foreignField;
         this.alias = alias;
+        this.joinColumns = joinColumns;
     }
     @Override
     public OpType getOpType() {

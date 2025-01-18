@@ -24,15 +24,20 @@ public class ProjectOp implements AggregationOp {
     private static final List<Projection> NONE = Collections.emptyList();
     @Getter
     private final List<Projection> projections;
+
+    public static ProjectOp New() {
+        return new ProjectOp(NONE);
+    }
     public ProjectOp(Class<?> type) {
         this(NONE, getFromType(type));
     }
     public ProjectOp(String... fields) {
-        this(Arrays.asList(fields));
+        this(NONE, Arrays.asList(fields).stream().map(Projection::new).collect(Collectors.toList()));
     }
-    public ProjectOp(List<String> fields) {
-        this(NONE, fields.stream().map(Projection::new).collect(Collectors.toList()));
+    public ProjectOp(List<Projection> projections) {
+        this(NONE,projections);
     }
+
     private ProjectOp(List<? extends Projection> current, List<? extends Projection> projections){
         Assert.notNull(current, "Current projections must not be null!");
         Assert.notNull(projections, "Projections must not be null!");
@@ -64,12 +69,12 @@ public class ProjectOp implements AggregationOp {
         return this;
     }
 
-    public ProjectOp andInclude(String name) {
+    public ProjectOp andProject(String name) {
         this.projections.add(new Projection(name));
         return this;
     }
 
-    public ProjectOp andAlias(String name, String alias) {
+    public ProjectOp andProject(String name, String alias) {
         this.projections.add(new Projection(name, alias));
         return this;
     }

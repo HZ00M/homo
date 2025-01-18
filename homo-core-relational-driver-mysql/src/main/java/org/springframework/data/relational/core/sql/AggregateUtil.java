@@ -11,10 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AggregateUtil {
@@ -26,6 +23,7 @@ public class AggregateUtil {
             switch (opType){
                 case GROUP:
                     spec = convertGroup((GroupOp) op, spec);
+                    break;
                 case SKIP:
                     spec = convertSkip((SkipOp) op, spec);
                     break;
@@ -40,6 +38,7 @@ public class AggregateUtil {
                     break;
                 case MATCH:
                     spec = convertMatch((MatchOp) op, spec);
+                    break;
                 case PROJECT:
                 case UNWIND:
                     break;
@@ -69,13 +68,14 @@ public class AggregateUtil {
         if (projectOpOptional.isPresent()){
             ProjectOp projectOp = (ProjectOp) projectOpOptional.get();
             for (ProjectOp.Projection projection : projectOp.getProjections()) {
-                Optional<LookUpOp> lookupOperation = lookupOps.stream().filter(op -> projection.getName().startsWith(op.getAlias())).findFirst();
+                Optional<LookUpOp> lookupOperation = lookupOps.stream().filter(op -> Arrays.stream(op.getJoinColumns()).anyMatch(col->projection.getName().startsWith(col))).findFirst();
                 TableSchema tableSchema = spec.getTable();
                 String tableName = tableSchema.getIdentifier().getText();
                 String columnName = projection.getName();
+                //判定映射字段是来自源表还是连接表
                 if (lookupOperation.isPresent()){
                     tableName = lookupOperation.get().getFrom().getIdentifier().getText();
-                    columnName = lookupOperation.get().getFrom().getColumnName(columnName.substring(lookupOperation.get().getAlias().length() + 1));
+                    columnName = lookupOperation.get().getFrom().getColumnName(columnName);
                 }else {
                     columnName = tableSchema.getColumnName(columnName);
                 }
@@ -148,10 +148,10 @@ public class AggregateUtil {
             expressions.add(literal);
         }else {
             GroupOp groupOp = (GroupOp) previous;
-            Literal literal = new Literal("DISTINCT" + spec.getTable().getColumnName(groupOp.getField()));
+            Literal literal = new Literal("DISTINCT " + spec.getTable().getColumnName(groupOp.getField()));
             expressions.add(literal);
         }
-        SimpleFunction sum = SimpleFunction.create("count",expressions).as(op.getFieldName());
+        SimpleFunction sum = SimpleFunction.create("count",expressions).as(op.getColumn());
         return spec.select(sum);
     }
 

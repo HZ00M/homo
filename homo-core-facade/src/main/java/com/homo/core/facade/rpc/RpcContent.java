@@ -3,7 +3,7 @@ package com.homo.core.facade.rpc;
 import brave.Span;
 import io.homo.proto.client.ParameterMsg;
 
-//public interface RpcContent<P,R> {
+
 public interface RpcContent<P,R> {
     String getId();
 
@@ -30,4 +30,6 @@ public interface RpcContent<P,R> {
     Span getSpan();
 
     void setSpan(Span span);
+
+    Object unSerializeReturnValue(SerializeInfo returnSerializeInfo);
 }

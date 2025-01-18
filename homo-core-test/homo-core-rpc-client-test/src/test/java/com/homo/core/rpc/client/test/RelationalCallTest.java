@@ -79,7 +79,7 @@ public class RelationalCallTest {
 
     @Test
     public void findAllTest() {
-        QueryDrawCardReq req = QueryDrawCardReq.newBuilder().addIds(1).addIds(2).build();
+        QueryDrawCardReq req = QueryDrawCardReq.newBuilder().addIds(123).addIds(444).build();
         StepVerifier.create(cardFacade.queryFindAll(req))
                 .expectNextMatches(resp -> {
                     // 验证返回的 drawCard 是否符合预期
@@ -91,7 +91,7 @@ public class RelationalCallTest {
 
     @Test
     public void findOneTest() {
-        QueryDrawCardReq req = QueryDrawCardReq.newBuilder().addIds(1).addIds(2).build();
+        QueryDrawCardReq req = QueryDrawCardReq.newBuilder().addIds(10).build();
         StepVerifier.create(cardFacade.queryFindOne(req))
                 .expectNextMatches(resp -> {
                     // 验证返回的 drawCard 是否符合预期
@@ -103,7 +103,7 @@ public class RelationalCallTest {
 
     @Test
     public void findExistTest() {
-        QueryDrawCardReq req = QueryDrawCardReq.newBuilder().addIds(1).addIds(2).build();
+        QueryDrawCardReq req = QueryDrawCardReq.newBuilder().addIds(1).addIds(444).build();
         StepVerifier.create(cardFacade.queryFindExists(req))
                 .expectNextMatches(resp -> {
                     // 验证返回的 drawCard 是否符合预期
@@ -115,7 +115,7 @@ public class RelationalCallTest {
 
     @Test
     public void deleteTest() {
-        DeleteDrawCardReq req = DeleteDrawCardReq.newBuilder().addIds(1).addIds(2).build();
+        DeleteDrawCardReq req = DeleteDrawCardReq.newBuilder().addIds(444).addIds(1239).build();
         StepVerifier.create(cardFacade.delete(req) )
                 .expectNextMatches(resp -> {
                     // 验证返回的 drawCard 是否符合预期
@@ -127,7 +127,7 @@ public class RelationalCallTest {
 
     @Test
     public void updateEntityTest() {
-        DrawCardPb drawCardPb = DrawCardPb.newBuilder().setId(1).setPoolId(33).setUserId("1232222").build();
+        DrawCardPb drawCardPb = DrawCardPb.newBuilder().setId(1).setPoolId(111111).setUserId("22222").build();
         UpdateDrawCardReq req = UpdateDrawCardReq.newBuilder().setDrawCard(drawCardPb).build();
         StepVerifier.create(cardFacade.updateEntity(req))
                 .expectNextMatches(resp -> {
@@ -140,9 +140,22 @@ public class RelationalCallTest {
 
     @Test
     public void updateTest() {
-        DrawCardPb drawCardPb = DrawCardPb.newBuilder().setId(1).setPoolId(33).setUserId("1232222").build();
+        DrawCardPb drawCardPb = DrawCardPb.newBuilder().setId(1).setPoolId(33333).setUserId("44444").build();
         UpdateDrawCardReq req = UpdateDrawCardReq.newBuilder().setDrawCard(drawCardPb).build();
         StepVerifier.create(cardFacade.update(req))
+                .expectNextMatches(resp -> {
+                    // 验证返回的 drawCard 是否符合预期
+                    log.info(" resp {}", resp);
+                    return resp.getCode() == 0;
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    public void executeTest() {
+
+        ExecuteSqlReq req = ExecuteSqlReq.newBuilder().setSql("select count(*) from draw_card_record").build();
+        StepVerifier.create(cardFacade.execute(req))
                 .expectNextMatches(resp -> {
                     // 验证返回的 drawCard 是否符合预期
                     log.info(" resp {}", resp);
@@ -156,6 +169,18 @@ public class RelationalCallTest {
         DrawCardPb drawCardPb = DrawCardPb.newBuilder().setId(1).setPoolId(33).setUserId("1232222").build();
         AggregateReq req = AggregateReq.newBuilder().build();
         StepVerifier.create(cardFacade.aggregate(req))
+                .expectNextMatches(resp -> {
+                    // 验证返回的 drawCard 是否符合预期
+                    log.info(" resp {}", resp);
+                    return resp.getCode() == 0;
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    public void lookupTest() {
+        AggregateReq req = AggregateReq.newBuilder().build();
+        StepVerifier.create(cardFacade.lookUp(req))
                 .expectNextMatches(resp -> {
                     // 验证返回的 drawCard 是否符合预期
                     log.info(" resp {}", resp);
