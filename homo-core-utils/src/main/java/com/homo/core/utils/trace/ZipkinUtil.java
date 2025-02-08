@@ -48,7 +48,7 @@ public class ZipkinUtil implements SupportModule {
     public static final String BEGIN_TAG = "begin";
     public static final String FINISH_TAG = "finish";
     public static Tracing tracing = null;
-    public static RpcTracing rpcTracing;
+    public static RpcTracing grpcTracing;
     public static HttpTracing httpTracing;
     @Autowired
     private ZipKinProperties zipKinProperties;
@@ -108,16 +108,16 @@ public class ZipkinUtil implements SupportModule {
             tracingBuilder.sampler(Sampler.NEVER_SAMPLE);
         }
         tracing = tracingBuilder.build();
-        rpcTracing = RpcTracing.create(tracing);
+        grpcTracing = RpcTracing.create(tracing);
         httpTracing = HttpTracing.create(tracing);
     }
 
     public static ClientInterceptor clientInterceptor() {
-        return GrpcTracing.create(rpcTracing).newClientInterceptor();
+        return GrpcTracing.create(grpcTracing).newClientInterceptor();
     }
 
     public static ServerInterceptor serverInterceptor() {
-        return GrpcTracing.create(rpcTracing).newServerInterceptor();
+        return GrpcTracing.create(grpcTracing).newServerInterceptor();
     }
 
     public static Tracing getTracing() {

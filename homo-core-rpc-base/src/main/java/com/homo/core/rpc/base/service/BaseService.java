@@ -133,17 +133,19 @@ public class BaseService implements Service, IEntityService, ServiceModule {
     }
 
     @Override
-    public Homo<EntityResponse> entityCall(Integer podIndex, ParameterMsg parameterMsg, EntityRequest request) throws Exception {
+    public Homo<EntityResponse> entityCall(Integer podIndex, EntityRequest request) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("entityCall podIndex {} type {} id {} request {}", podIndex, request.getType(), request.getId(), request);
         }
-        Span span = ZipkinUtil.getTracing().tracer().nextSpan()
-                .name("BaseService:entityCall")
-                .tag("type", "entityCall")
-                .tag("funName", request.getFunName())
-                .tag("pod", podIndex.toString())
-                .annotate(ZipkinUtil.CLIENT_SEND_TAG);
-        return callSystem.call(request.getSrcName(), request, podIndex, parameterMsg).consumerValue(ret->span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG).finish());
+        return callSystem.call(request.getSrcName(), request, podIndex, null);
+    }
+
+    @Override
+    public Homo<EntityResponse> entityCallForProxy(Integer podIndex, ParameterMsg parameterMsg, EntityRequest request) throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("entityCallForProxy podIndex {} type {} id {} request {}", podIndex, request.getType(), request.getId(), request);
+        }
+        return callSystem.call(request.getSrcName(), request, podIndex, parameterMsg);
     }
 
     @Override

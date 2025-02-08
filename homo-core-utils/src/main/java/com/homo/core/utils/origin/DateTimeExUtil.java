@@ -3,7 +3,7 @@ package com.homo.core.utils.origin;
 
 import com.homo.core.utils.origin.date.DateAndTimeRange;
 import com.homo.core.utils.origin.date.DatePattern;
-import com.homo.core.utils.origin.tuple.Tuple2;
+import com.homo.core.utils.origin.tuple.HomoTuple2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 
@@ -153,13 +153,13 @@ public  final  class DateTimeExUtil {
 	 * @param intervalHour
 	 * @return
 	 */
-	public static List<Tuple2<LocalDateTime,LocalDateTime>> splitHourByClosed(LocalDateTime start, LocalDateTime end, byte intervalHour){
+	public static List<HomoTuple2<LocalDateTime,LocalDateTime>> splitHourByClosed(LocalDateTime start, LocalDateTime end, byte intervalHour){
 		Assert.notNull(start,"开始时间不能为Null");
 		Assert.notNull(end,"结束时间不能为Null");
 		Assert.isTrue(intervalHour>0,"间隔小时数不能小于等于0");
-		List<Tuple2<LocalDateTime,LocalDateTime>> list=new ArrayList<>();
+		List<HomoTuple2<LocalDateTime,LocalDateTime>> list=new ArrayList<>();
 		if(start.isEqual(end)){
-			list.add(new Tuple2(start,end));
+			list.add(new HomoTuple2(start,end));
 			return list;
 		}
 		LocalDateTime tmpStart=start;
@@ -168,12 +168,12 @@ public  final  class DateTimeExUtil {
 			if(tmpEnd.isEqual(end) || tmpEnd.isAfter(end)){
 				tmpEnd=end;
 			}
-			list.add(new Tuple2(tmpStart,tmpEnd));
+			list.add(new HomoTuple2(tmpStart,tmpEnd));
 			tmpStart=tmpStart.plusHours(intervalHour).withMinute(0).withSecond(0).withNano(0);
 		}
 		return list;
 	}
-	public static List<Tuple2<LocalDateTime,LocalDateTime>> splitHourByClosed(LocalDateTime start, LocalDateTime end){
+	public static List<HomoTuple2<LocalDateTime,LocalDateTime>> splitHourByClosed(LocalDateTime start, LocalDateTime end){
 		return splitHourByClosed(start,end,(byte)1);
 	}
 	/**
@@ -184,24 +184,24 @@ public  final  class DateTimeExUtil {
 	 * @param intervalHour
 	 * @return
 	 */
-	public static List<Tuple2<LocalDateTime,LocalDateTime>> splitHourByOpen(LocalDateTime start,LocalDateTime end,byte intervalHour){
+	public static List<HomoTuple2<LocalDateTime,LocalDateTime>> splitHourByOpen(LocalDateTime start, LocalDateTime end, byte intervalHour){
 		Assert.notNull(start,"开始时间不能为Null");
 		Assert.notNull(end,"结束时间不能为Null");
 		Assert.isFalse(start.isEqual(end),"结束时间为开区间，开始时间不允许与结束时间相等");
 		Assert.isTrue(intervalHour>0,"间隔小时数不能小于等于0");
-		List<Tuple2<LocalDateTime,LocalDateTime>> list=new ArrayList<>();
+		List<HomoTuple2<LocalDateTime,LocalDateTime>> list=new ArrayList<>();
 		LocalDateTime tmpStart=start;
 		while(end.isAfter(tmpStart)){
 			LocalDateTime tmpEnd=tmpStart.plusHours(intervalHour).withMinute(0).withSecond(0).withNano(0);
 			if(tmpEnd.isEqual(end) || tmpEnd.isAfter(end)){
 				tmpEnd=end;
 			}
-			list.add(new Tuple2(tmpStart,tmpEnd));
+			list.add(new HomoTuple2(tmpStart,tmpEnd));
 			tmpStart=tmpEnd;
 		}
 		return list;
 	}
-	public static List<Tuple2<LocalDateTime,LocalDateTime>> splitHourByOpen(LocalDateTime start,LocalDateTime end){
+	public static List<HomoTuple2<LocalDateTime,LocalDateTime>> splitHourByOpen(LocalDateTime start, LocalDateTime end){
 		return splitHourByOpen(start,end,(byte)1);
 	}
 

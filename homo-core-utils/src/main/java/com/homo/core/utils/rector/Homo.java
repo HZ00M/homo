@@ -47,8 +47,6 @@ public class Homo<T> extends Mono<T> {
         return Homo.warp(new ConsumerWithException<HomoSink<T>>() {
             @Override
             public void accept(HomoSink<T> tHomoSink) throws Exception {
-                Span span = ZipkinUtil.getTracing().tracer().currentSpan();
-                TraceLogUtil.setTraceIdBySpan(span, "Homo queue");
                 idCallQueue.addIdTask(callable, errCb, tHomoSink);
             }
         });
@@ -87,8 +85,9 @@ public class Homo<T> extends Mono<T> {
             return CallQueueMgr.getInstance().isThreadChanged(callQueue) ?
                     warp(sink -> {
                         SwitchThreadEvent event;
-                        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
-                        String fromInfo = localQueue == null ? Thread.currentThread().getName() : localQueue.name();
+//                        CallQueue localQueue = CallQueueMgr.getInstance().getLocalQueue();
+//                        String fromInfo = localQueue == null ? Thread.currentThread().getName() : localQueue.name();
+                        String fromInfo = Thread.currentThread().getName();
                         String targetInfo = callQueue.name();
                         if (span == null) {
                             event = new SwitchThreadEvent(fromInfo, targetInfo, sink, ret, ZipkinUtil.getTracing().tracer().currentSpan());
@@ -420,9 +419,9 @@ public class Homo<T> extends Mono<T> {
                         // 到这里为止都是同步的， 为每个对象的读取请求创建一个专属的回调队列
                         ConcurrentLinkedDeque<CallBack<Object>> concurrentLinkedDeque =
                                 tagToZipCallContext.computeIfAbsent(tag, newTag -> new ConcurrentLinkedDeque<>());
+                        CallBack<Object> previousFun = concurrentLinkedDeque.peek();
                         concurrentLinkedDeque.add(retFunc);
                         //第一次加入的时候，才需要发起请求,直接调用size会有性能问题
-                        CallBack<Object> previousFun = concurrentLinkedDeque.peek();
                         if (previousFun == null){
                             fromSupplier(supplier)
                                     .consumerValue(
@@ -451,7 +450,7 @@ public class Homo<T> extends Mono<T> {
                                     }).start();
                         }else {
                             if (log.isDebugEnabled()) {
-                                log.debug("zipToBeforeCalling waiting to call tag_{}", tag);
+                                log.debug("zipToBeforeCalling waiting to call tag_{} queue.size {}", tag,concurrentLinkedDeque.size());
                             }
                         }
                     });

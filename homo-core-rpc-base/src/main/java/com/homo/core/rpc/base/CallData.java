@@ -1,6 +1,8 @@
 package com.homo.core.rpc.base;
 
 import brave.Span;
+import com.homo.core.facade.rpc.RpcContent;
+import com.homo.core.facade.rpc.SerializeInfo;
 import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.utils.concurrent.queue.CallQueueMgr;
 import com.homo.core.utils.concurrent.queue.IdCallQueue;
@@ -21,22 +23,24 @@ public class CallData implements RpcInterceptor {
     private Span span;
     private boolean needInsertQueue;
     private String choiceThreadStrategy;
+    private RpcContent rpcContent;
+//
+//    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName, Span span) {
+//        this(o, methodDispatchInfo, params, queueId, srcName, null, span, false, null);
+//    }
 
-    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName, Span span) {
-        this(o, methodDispatchInfo, params, queueId, srcName, null, span, false, null);
-    }
 
-
-    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName, IdCallQueue idCallQueue, Span span, boolean needInsertQueue, String choiceThreadStrategyKey) {
+    public CallData(Object o, MethodDispatchInfo methodDispatchInfo, Object[] params, Integer queueId, String srcName, IdCallQueue idCallQueue, RpcContent rpcContent, boolean needInsertQueue, String choiceThreadStrategyKey) {
         this.o = o;
         this.methodDispatchInfo = methodDispatchInfo;
         this.params = params;
         this.queueId = queueId;
         this.srcName = srcName;
         this.idCallQueue = idCallQueue;
-        this.span = span;
+        this.span = rpcContent.getSpan();
         this.needInsertQueue = needInsertQueue;
         this.choiceThreadStrategy = choiceThreadStrategyKey;
+        this.rpcContent = rpcContent;
     }
 
 
@@ -73,5 +77,11 @@ public class CallData implements RpcInterceptor {
                 }
             }
         });
+    }
+
+    public Object serializeForReturn(Object ret) {
+        SerializeInfo returnSerializeInfo = methodDispatchInfo.getReturnSerializeInfo();
+        Object object = rpcContent.serializeReturn(ret, returnSerializeInfo);
+        return object;
     }
 }

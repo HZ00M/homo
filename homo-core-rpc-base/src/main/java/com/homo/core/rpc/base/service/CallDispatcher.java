@@ -49,7 +49,7 @@ public class CallDispatcher {
             unSerializeParam = rpcHandleInfo.unSerializeParamForInvokeLocalMethod(funName, rpcContent, podId, parameterMsg);
         }
         Homo<CallData> callTask = Homo.result(new CallData(handler, methodDispatchInfo, unSerializeParam, queueId, srcService, locKQueue,
-                rpcContent.getSpan(),true, CallQueueMgr.DEFAULT_CHOICE_THREAD_STRATEGY));
+                rpcContent,true, CallQueueMgr.DEFAULT_CHOICE_THREAD_STRATEGY));
         Homo retPromise;
         if (interceptor != null) {
             retPromise = callTask.nextDo(call -> interceptor.onCall(handler, funName, unSerializeParam, call));

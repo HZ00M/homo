@@ -34,7 +34,7 @@ public class CallEvent extends AbstractTraceEvent implements CallQueueProducer {
                         })
                         .consumerValue(ret -> {
 //                            Object[] resParam = new Object[]{ret};
-                            Object serializeParamForBack = callData.getMethodDispatchInfo().serializeForReturn(ret);
+                            Object serializeParamForBack = callData.serializeForReturn(ret);
                             sink.success(serializeParamForBack);
                         })
                         .catchError(throwable -> {

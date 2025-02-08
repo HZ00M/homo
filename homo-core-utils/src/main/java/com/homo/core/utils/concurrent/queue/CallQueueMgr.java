@@ -137,7 +137,7 @@ public class CallQueueMgr {
     public CallQueue getLocalQueue() {
         CallQueue queue = localQueue.get();
         if (queue == null) {
-            log.warn("CallQueueMgr.getLocalQueue error! [{}]:", Thread.currentThread());
+            log.warn("getLocalQueue queue == null thread", Thread.currentThread());
         }
         return queue;
     }
@@ -262,6 +262,8 @@ public class CallQueueMgr {
 
     /**
      * 在指定的队列，执行一个任务，异步返回结果
+     * R是homo时，将不会调用homo获取响应值而是直接返回
+     * R是homo是要注意辨别是否应该替换成call(Homo<R> homo, int queueId)方法
      */
     public <R> Homo<R> call(Callable<R> callable, int queueId) {
         return Homo.warp(sink -> task(() -> {
@@ -272,6 +274,24 @@ public class CallQueueMgr {
             }
         }, queueId));
     }
+
+    /**
+     * 在指定的队列，执行一个任务，异步返回结果
+     *
+     */
+    public <R> Homo<R> call(Homo<R> homo, int queueId) {
+        return Homo.warp(sink -> task(() -> {
+            try {
+                homo.
+                        consumerValue(ret -> {
+                            sink.success(ret);
+                        }).start();
+            } catch (Exception e) {
+                sink.error(e);
+            }
+        }, queueId));
+    }
+
 
     /**
      * 根据callQueueProducer执行一个任务，异步返回结果

@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONValidator;
-import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.base.serial.FileRpcContent;
 import com.homo.core.rpc.http.HttpServer;
 import com.homo.core.utils.module.Module;
@@ -128,23 +127,25 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                                         String msg;
                                         JSONValidator.Type type = JSONValidator.from(reqStr).setSupportMultiValue(true).getType();
                                         List<Object> list = new ArrayList<>();
-
+                                        list.add(headerInfo);
                                         if (type == JSONValidator.Type.Array) {
-                                            //参数是列表(json1,json2,...,headerInfo)
+                                            //参数是列表(headerInfo,JSONArray)
                                             JSONArray bodyArr = JSON.parseArray(reqStr);
-                                            for (Object item : bodyArr) {
-                                                list.add(item);
-                                            }
+                                            list.add(bodyArr);
+                                            //参数是列表(headerInfo,json1,json2,...,)
+//                                            for (Object item : bodyArr) {
+//                                                list.add(item);
+//                                            }
                                         } else if (type == JSONValidator.Type.Object) {
-                                            //参数是单个json (json,headerInfo)
+                                            //参数是单个json (headerInfo,json)
                                             JSONObject bodyJson = JSON.parseObject(reqStr);
                                             list.add(bodyJson);
                                         } else {
-                                            //参数是字符串(reqStr,headerInfo)
+                                            //参数是字符串(headerInfo,reqStr)
                                             list.add(reqStr);
                                         }
 
-                                        list.add(headerInfo);
+
                                         msg = JSON.toJSONString(list);
                                         log.info("httpJsonPost begin port {} msgId {} msg {}", port, msgId, msg);
                                         HttpServer httpServer = routerHttpServerMap.get(port);
@@ -184,13 +185,23 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                         Mono.create(monoSink -> {
                             try {
                                 checkDataBufferSize(dataBuffer);
-                                byte[] msgContent = new byte[dataBuffer.readableByteCount()];
-                                //参数格式 (pb协议,http头信息)
+                                byte[] protoData = new byte[dataBuffer.readableByteCount()];
+
+                                // ClientRouterHeader在反序列化时，可以被序列化成相同pb结构的HttpHeadInfo
+                                /**
+                                 * message ClientRouterHeader{
+                                 *   map<string,string> headers = 1;
+                                 * }
+                                 * message HttpHeadInfo{
+                                 *   map<string,string> headers = 1;
+                                 * }
+                                 */
+                                //参数格式 (http头信息,pb协议)
                                 ClientRouterHeader routerHeader = ClientRouterHeader.newBuilder()
                                         .putAllHeaders(headerInfo).build();
-                                byte[][] msg = {msgContent, routerHeader.toByteArray()};
+                                byte[][] msg = {routerHeader.toByteArray(), protoData};
                                 log.info("httpProtoPost begin port {} msgId {} ", port, msgId);
-                                dataBuffer.read(msgContent);
+                                dataBuffer.read(protoData);
                                 HttpServer httpServer = routerHttpServerMap.get(port);
                                 Mono<DataBuffer> bufferMono = httpServer.onBytesCall(msgId, msg, response);
                                 monoSink.success(bufferMono);
@@ -244,7 +255,7 @@ public class DeFaultHttpMapping extends AbstractHttpMapping implements Module, A
                     DefaultUploadFile uploadFile = new DefaultUploadFile(filename, headers, request.getQueryParams(), formDataMap, content);
 
                     FileRpcContent fileRpcContent = new FileRpcContent();
-                    fileRpcContent.setId(msgId);
+                    fileRpcContent.setMsgId(msgId);
                     fileRpcContent.setSpan(span);
                     fileRpcContent.setParam(uploadFile);
 

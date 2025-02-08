@@ -46,7 +46,7 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
         addIdTask(callable, null, sink);
     }
 
-    public <T> void addIdTask(Callable callable, Runnable errorCallBack, HomoSink sink) {
+    public <T> void addIdTask(Callable<Homo<T>> callable, Runnable errorCallBack, HomoSink<T> sink) {
         Span span = ZipkinUtil.getTracing().tracer().currentSpan();
         IdTask task = new IdTask(this, callable, errorCallBack, span, sink);
         log.info("IdCallQueue addIdTask id {} task {}", id, task.hashCode());
@@ -104,11 +104,11 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
     }
 
 
-    public class IdTask implements Runnable {
+    public class IdTask <T>implements Runnable {
         IdCallQueue ownerQueue;
-        Callable callable;
+        Callable<Homo<T>> callable;
         Runnable errorCallBack;
-        HomoSink homoSink;
+        HomoSink<T> homoSink;
         Span span;
         @Getter
         int runCount;
@@ -124,7 +124,7 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
             this.span = span;
         }
 
-        public IdTask(IdCallQueue ownerQueue, Callable callable, Runnable errorCallBack, Span span, HomoSink sink) {
+        public IdTask(IdCallQueue ownerQueue, Callable<Homo<T>> callable, Runnable errorCallBack, Span span, HomoSink<T> sink) {
             this.ownerQueue = ownerQueue;
             this.callable = callable;
             this.errorCallBack = errorCallBack;
@@ -136,7 +136,7 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
         public void run() {
             try {
                 TraceLogUtil.setTraceIdBySpan(span, "idTask run " + id);
-                log.info("IdCallQueue task star id {} task {} state {}", id, IdTask.this.hashCode(), state);
+                log.info("IdCallQueue start id {} task {} state {}", id, IdTask.this.hashCode(), state);
                 if (state == State.CANCEL) {
                     if (homoSink != null) {
                         homoSink.error(new RuntimeException("IdCallQueue task cancel"));
@@ -145,24 +145,18 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
                     return;
                 }
                 state = State.PROCESS;
-                log.info("IdCallQueue task id {} run start  task {} state {}", id, IdTask.this.hashCode(), state);
+                log.info("IdCallQueue call id {} {} state {}", id, IdTask.this.hashCode(), state);
                 startTime = System.currentTimeMillis();
-                Object call = callable.call();
+                Homo<T> call = callable.call();
                 if (homoSink != null) {
-//                    homoSink.success(call);
-                    if (call instanceof Homo) {
-                        ((Homo) call).consumerValue(ret -> {
-                            state = State.FINISH;
-                            log.info("IdCallQueue task id {} run end promise task {} state {}", id, IdTask.this.hashCode(), state);
-                            homoSink.success(ret);
-                            runNextTask();
-                        }).start();
-                    } else {
+                    call.consumerValue(ret -> {
                         state = State.FINISH;
-                        log.info("IdCallQueue task id {} run end task {} state {}", id, IdTask.this.hashCode(), state);
-                        homoSink.success(call);
+                        IdCallQueue.log.info("IdCallQueue Homo run end id {} task {} state {} ret {}",
+                                id, IdTask.this.hashCode(), state,ret);
+
+                        homoSink.success(ret);
                         runNextTask();
-                    }
+                    }).start();
                 }
             } catch (Exception e) {
                 log.error("IdCallQueue task id {} run error task {}", id, IdTask.this.hashCode(), e);
@@ -186,8 +180,8 @@ public class IdCallQueue extends ConcurrentLinkedDeque<IdCallQueue.IdTask> {
             IdTask nextTask = peek();
             if (nextTask != null) {
                 nextTask.run();
+                log.info("IdCallQueue runNextTask id {} task {} state {} finishCounter {}", id, IdTask.this.hashCode(), state, ownerQueue.finishCounter.get());
             }
-            log.info("IdCallQueue task runNextTask id {} task {} state {} finishCounter {}", id, IdTask.this.hashCode(), state, ownerQueue.finishCounter.get());
         }
 
         private boolean tryCancel() {

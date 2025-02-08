@@ -12,20 +12,25 @@
     <modules>
         <module>homo-core-storage-test</module>
         <module>homo-core-persistent-test</module>
-        <module>homo-core-rpc-server-test</module>
+
         <module>homo-core-rpc-client-test</module>
-        <module>homo-core-rpc-server-facade-test</module>
         <module>homo-core-rpc-client-facade-test</module>
         <module>homo-core-tcp-gate-test</module>
         <module>homo-service-tread-test</module>
-        <module>homo-core-entity-test</module>
-        <module>homo-core-entity-facade-test</module>
         <module>homo-core-entity-client-test</module>
-        <module>homo-core-mq-producer-test</module>
-        <module>homo-core-mq-consumer-test</module>
-        <module>homo-core-mq-base-test</module>
         <module>homo-core-relational-storage-mysql-test</module>
         <module>homo-core-relational-facade-test</module>
+
+        <module>homo-client-mock</module>
+        <module>homo-http-server-demo</module>
+        <module>homo-http-server-demo-facade</module>
+        <module>homo-grpc-server-demo</module>
+        <module>homo-grpc-server-demo-facade</module>
+        <module>homo-stateful-entity-demo</module>
+        <module>homo-stateful-entity-demo-facade</module>
+        <module>homo-mq-common-demo</module>
+        <module>homo-mq-producer-demo</module>
+        <module>homo-mq-consumer-demo</module>
     </modules>
     <artifactId>homo-core-test</artifactId>
 
@@ -116,7 +121,7 @@
             </dependency>
             <dependency>
                 <groupId>com.homo</groupId>
-                <artifactId>homo-core-mq-consumer-test</artifactId>
+                <artifactId>homo-core-mq-consumer-demo</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
@@ -126,7 +131,7 @@
             </dependency>
             <dependency>
                 <groupId>com.homo</groupId>
-                <artifactId>homo-core-mq-base-test</artifactId>
+                <artifactId>homo-mq-common-demo</artifactId>
                 <version>${revision}</version>
             </dependency>
 <!--            <dependency>-->
@@ -146,12 +151,12 @@
             </dependency>
             <dependency>
                 <groupId>com.homo</groupId>
-                <artifactId>homo-core-entity-test</artifactId>
+                <artifactId>homo-stateful-entity-demo</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.homo</groupId>
-                <artifactId>homo-core-entity-facade-test</artifactId>
+                <artifactId>homo-stateful-entity-demo-facade</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
@@ -161,12 +166,12 @@
             </dependency>
             <!--            单元测试-->
             <dependency>
-                <artifactId>homo-core-rpc-server-facade-test</artifactId>
+                <artifactId>homo-grpc-server-demo-facade</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-rpc-server-test</artifactId>
+                <artifactId>homo-grpc-server-demo</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
@@ -195,6 +200,23 @@
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
+
+            <dependency>
+                <artifactId>homo-client-mock</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-http-server-demo-facade</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-http-server-demo</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 </project>

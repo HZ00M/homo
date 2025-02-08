@@ -180,7 +180,7 @@ public class MethodDispatchInfo implements RpcSecurity {
         }else {
             rpcContent = new ByteRpcContent();
         }
-        rpcContent.setId(funName);
+        rpcContent.setMsgId(funName);
         rpcContent.setReturnType(returnSerializeInfo.getParamType());
         rpcContent.setParam(rpcContent.serializeRawParams(rawParams, paramSerializeInfos, paddingOffset));
         return rpcContent;

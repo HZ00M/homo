@@ -20,11 +20,11 @@
     <dependencies>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-entity-facade-test</artifactId>
+            <artifactId>homo-stateful-entity-demo-facade</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-ability-base</artifactId>
+            <artifactId>homo-core-entity-ability</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>

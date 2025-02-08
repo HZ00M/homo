@@ -1,6 +1,6 @@
 package com.homo.core.rpc.client;
 
-import com.homo.core.rpc.server.facade.RpcStatefulServiceFacade;
+import com.homo.core.rpc.server.facade.GrpcStatefulServiceFacade;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -15,7 +15,7 @@ import java.util.concurrent.CountDownLatch;
 public class TestRpcClientApplication implements CommandLineRunner {
     static CountDownLatch countDownLatch = new CountDownLatch(1);
     @Autowired
-    RpcStatefulServiceFacade rpcService;
+    GrpcStatefulServiceFacade rpcService;
     public static void main(String[] args) {
         SpringApplication.run(TestRpcClientApplication.class);
         try {

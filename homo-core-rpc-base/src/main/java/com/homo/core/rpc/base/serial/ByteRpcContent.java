@@ -7,8 +7,7 @@ import com.homo.core.facade.rpc.SerializeInfo;
 import io.homo.proto.client.ParameterMsg;
 import lombok.Data;
 
-@Data
-public class ByteRpcContent implements RpcContent<byte[][],byte[]> {
+public class ByteRpcContent implements RpcContent<byte[][], byte[]> {
     private String msgId;
     private byte[][] paramData;
     private byte[] returnData;
@@ -16,11 +15,12 @@ public class ByteRpcContent implements RpcContent<byte[][],byte[]> {
     Span span;
 
     @Override
-    public String getId() {
+    public String getMsgId() {
         return msgId;
     }
+
     @Override
-    public void setId(String id) {
+    public void setMsgId(String id) {
         this.msgId = id;
     }
 
@@ -41,25 +41,28 @@ public class ByteRpcContent implements RpcContent<byte[][],byte[]> {
     }
 
     @Override
+    public void setReturn(byte[] returnData) {
+        this.returnData = returnData;
+    }
+
+    @Override
     public byte[] getReturn() {
         return returnData;
     }
 
     @Override
-    public void setReturn(byte[] data) {
-        this.returnData = data;
-    }
-
-    @Override
-    public Object[] unSerializeToActualParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId , ParameterMsg parameterMsg) {
+    public Object[] unSerializeToActualParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId, ParameterMsg parameterMsg) {
         int paramCount = paramSerializeInfoList.length;
         if (paramCount <= 0) {
             return null;
         }
         Object[] actualParam = new Object[paramCount];
-        if (frameParamOffset == 2){
+        if (frameParamOffset == 2 && podId != null && parameterMsg != null) {
+            //有传填充参数使用填充的参数
             actualParam[0] = podId;
             actualParam[1] = parameterMsg;
+        }else {
+            frameParamOffset = 0;
         }
         byte[][] data = getParam();
         int dataIndex = 0;
@@ -78,10 +81,16 @@ public class ByteRpcContent implements RpcContent<byte[][],byte[]> {
         }
         byte[][] byteParams = new byte[paramSerializeInfoList.length][];
         int dataIndex = 0;
+        if (params.length >= 2) {
+            if (params[0] instanceof Integer && params[1] instanceof ParameterMsg){
+                //rpc client直接传填充参数时，不进行参数偏移
+                frameParamOffset = 0;
+            }
+        }
         for (int i = frameParamOffset; i < paramSerializeInfoList.length; i++) {
             Object obj = params[dataIndex];
             byteParams[i] = paramSerializeInfoList[i].processor.writeByte(obj);
-            dataIndex ++;
+            dataIndex++;
         }
         return byteParams;
     }
@@ -98,8 +107,18 @@ public class ByteRpcContent implements RpcContent<byte[][],byte[]> {
     }
 
     @Override
+    public Span getSpan() {
+        return span;
+    }
+
+    @Override
+    public void setSpan(Span span) {
+        this.span = span;
+    }
+
+    @Override
     public Object unSerializeReturnValue(SerializeInfo returnSerializeInfo) {
-        return returnSerializeInfo.processor.readValue(returnData,returnSerializeInfo.paramType);
+        return returnSerializeInfo.processor.readValue(returnData, returnSerializeInfo.paramType);
     }
 
 }

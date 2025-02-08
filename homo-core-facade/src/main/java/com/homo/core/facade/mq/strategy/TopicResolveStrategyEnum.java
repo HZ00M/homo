@@ -6,18 +6,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum TopicResolveStrategyEnum implements TopicResolveStrategy {
+    /**
+     * 原型模式
+     */
     DEFAULT{
         @Override
         public String getRealTopic(@NotNull String originTopic, @NotNull String appId, @NotNull String regionId) {
             return originTopic;
         }
     },
+    /**
+     * originTopic + appId
+     */
     APPEND_APP_ID{
         @Override
         public String getRealTopic(@NotNull String originTopic, @NotNull String appId, @NotNull String regionId) {
             return String.format("%s-%s",originTopic,appId);
         }
     },
+    /**
+     * originTopic + appId + regionId
+     */
     APPEND_APP_ID_SERVER_ID{
         @Override
         public String getRealTopic(@NotNull String originTopic, @NotNull String appId, @NotNull String regionId) {

@@ -7,5 +7,9 @@ public enum MQType {
     /**
      * apache kafka
      */
-    KAFKA;
+    KAFKA,
+    /**
+     * redis
+     */
+    REDIS;
 }

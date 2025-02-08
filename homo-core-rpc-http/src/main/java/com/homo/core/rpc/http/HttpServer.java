@@ -93,19 +93,20 @@ public class HttpServer {
      * @param <T>
      * @return
      */
-    public <T> Mono<DataBuffer> onJsonCall(String msgId, String data, ServerHttpResponse response) {
+    public Mono<DataBuffer> onJsonCall(String msgId, String data, ServerHttpResponse response) {
         Span span = ZipkinUtil.getTracing().tracer().currentSpan();
         JsonRpcContent rpcContent = new JsonRpcContent();
-        rpcContent.setId(msgId);
+        rpcContent.setMsgId(msgId);
         rpcContent.setSpan(span);
         rpcContent.setParam(data);
         return rpcServer.onCall("HttpServer", msgId, rpcContent)
                 .nextDo(ret -> {
-                    ResponseMsg msg = ResponseMsg.builder().msgId(msgId).codeDesc("ok").msgContent(ret).code(HttpStatus.OK.value()).build();
-                    String resStr = JSON.toJSONString(msg);
-                    log.info("onCall success msgId {} responseMsg {}", msgId, resStr);
+                    //这里对业务结果进行了封装，先不进行封装，
+//                    ResponseMsg msg = ResponseMsg.builder().msgId(msgId).codeDesc("ok").msgContent(ret).code(HttpStatus.OK.value()).build();
+//                    String resStr = JSON.toJSONString(msg);
+                    log.info("onCall success msgId {} responseMsg {}", msgId, ret);
                     NettyDataBufferFactory dataBufferFactory = (NettyDataBufferFactory) response.bufferFactory();
-                    DataBuffer buffer = dataBufferFactory.wrap(resStr.getBytes(StandardCharsets.UTF_8));
+                    DataBuffer buffer = dataBufferFactory.wrap(ret.getBytes(StandardCharsets.UTF_8));
                     return Mono.just(buffer);
                 })
                 .onErrorContinue(throwable -> {

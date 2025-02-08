@@ -102,7 +102,7 @@ public interface ServiceStateMgr extends ServiceModule {
      * @param serviceName
      * @return
      */
-    Homo<Map<Integer,LoadInfo>> geAllStateInfo(String serviceName);
+    Homo<Map<Integer,LoadInfo>> getAllStateInfo(String serviceName);
 
     Homo<Boolean> setServiceInfo(String tag, ServiceInfo serviceInfo);
 

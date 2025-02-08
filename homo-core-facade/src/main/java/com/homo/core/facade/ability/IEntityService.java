@@ -11,9 +11,12 @@ import io.homo.proto.entity.Pong;
 @InnerService
 public interface IEntityService {
     String default_entity_call_method = "entityCall";
+    String default_entity_call_proxy_method = "entityCallForProxy";
     String default_entity_ping_method = "ping";
 
-    Homo<EntityResponse> entityCall(Integer podIndex, ParameterMsg parameterMsg, EntityRequest request) throws Exception;
+    Homo<EntityResponse> entityCall(Integer podIndex,  EntityRequest request) throws Exception;
+
+    Homo<EntityResponse> entityCallForProxy(Integer podIndex, ParameterMsg parameterMsg, EntityRequest request) throws Exception;
 
 
     Homo<Pong> ping(Integer podIndex, ParameterMsg parameterMsg, Ping request);

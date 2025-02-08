@@ -9,10 +9,6 @@ import com.homo.core.facade.rpc.RpcContent;
 import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.facade.rpc.SerializeInfo;
 import io.homo.proto.client.ParameterMsg;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 public class JsonRpcContent implements RpcContent<String, String> {
     private String msgId;
@@ -21,12 +17,12 @@ public class JsonRpcContent implements RpcContent<String, String> {
     private Span span;
     private Class<?> returnType;
     @Override
-    public String getId() {
+    public String getMsgId() {
         return msgId;
     }
 
     @Override
-    public void setId(String id) {
+    public void setMsgId(String id) {
         this.msgId = id;
     }
 
@@ -45,14 +41,12 @@ public class JsonRpcContent implements RpcContent<String, String> {
         this.paramData = data;
     }
 
-    @Override
-    public String getReturn() {
-        return returnData;
+    public void setReturn(String returnData){
+        this.returnData = returnData;
     }
 
-    @Override
-    public void setReturn(String data) {
-        this.returnData = data;
+    public String getReturn(){
+        return returnData;
     }
 
     @Override

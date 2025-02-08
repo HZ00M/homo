@@ -30,29 +30,16 @@ public class SpanInterceptor implements ServerInterceptor {
             String msgId = "";
             if (message instanceof StreamReq) {
                 StreamReq req = (StreamReq) message;
-                span = getSpan(req.getMsgId(),req.getTraceInfo());
-                TraceLogUtil.setTraceIdBySpan(span,msgId);
-                try (Tracer.SpanInScope scope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)) {
-                    delegate().onMessage(message);
-                }finally {
-                    TraceLogUtil.clearTrace();
-                }
-            }else {
-                delegate().onMessage(message);
+                span = getSpan(req.getMsgId(), req.getTraceInfo());
+            } else {
+                span = ZipkinUtil.getTracing().tracer().currentSpan();
             }
-            //非stream的是无状态的？不能使用该方式直接赋值span，待研究
-//            else if (message instanceof Req){
-//                Req req = (Req) message;
-//                msgId = req.getMsgId();
-//                span = getSpan(req.getMsgId(),req.getTraceInfo());
-//            }else if (message instanceof JsonReq){
-//                JsonReq req = (JsonReq) message;
-//                msgId = req.getMsgId();
-//                span = getSpan(req.getMsgId(),req.getTraceInfo());
-//            } else {
-//                span = ZipkinUtil.getTracing().tracer().currentSpan();
-//            }
-
+            TraceLogUtil.setTraceIdBySpan(span, msgId);
+            try (Tracer.SpanInScope scope = ZipkinUtil.getTracing().tracer().withSpanInScope(span)) {
+                delegate().onMessage(message);
+            } finally {
+                TraceLogUtil.clearTrace();//是否需要
+            }
         }
     }
 
@@ -66,14 +53,15 @@ public class SpanInterceptor implements ServerInterceptor {
         public void sendMessage(OUT message) {
             log.info("SpanInterceptor message OUT");
             //发送到客户端
-//            span.tag(ZipkinUtil.FINISH_TAG, "sendMessage")
-//                    .annotate(ZipkinUtil.SERVER_SEND_TAG)
-//                    .finish();
+            span.tag(ZipkinUtil.FINISH_TAG, "sendMessage")
+                    .tag(ZipkinUtil.SERVER_SEND_TAG, "SpanInterceptor send")
+                    .annotate(ZipkinUtil.SERVER_SEND_TAG)
+                    .finish();
             delegate().sendMessage(message);
         }
     }
 
-    public static Span getSpan(String msgId,TraceInfo traceInfo) {
+    public static Span getSpan(String msgId, TraceInfo traceInfo) {
         TraceContext traceContext =
                 TraceContext.newBuilder()
                         .spanId(traceInfo.getSpanId())

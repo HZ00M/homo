@@ -18,6 +18,7 @@ import io.homo.proto.rpc.StreamReq;
 import io.homo.proto.rpc.TraceInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
+import reactor.util.function.Tuple2;
 
 import java.io.IOException;
 
@@ -55,26 +56,38 @@ public class GrpcRpcAgentClient implements RpcAgentClient {
             Homo rpcResult;
             if (content.getType().equals(RpcContentType.BYTES)) {
                 ByteRpcContent byteRpcContent = (ByteRpcContent) content;
-                byte[][] paramData = byteRpcContent.getParamData();
+                byte[][] paramData = byteRpcContent.getParam();
                 if (srcIsStateFul && targetIsStateful) {
                     log.debug("asyncBytesStreamCall {} {}", funName, content);
-                    rpcResult = asyncBytesStreamCall(funName, paramData);
+                    rpcResult = asyncBytesStreamCall(funName, paramData)
+                            .consumerValue(ret->{
+                                Tuple2<String,byte[][]> result = ret;
+                                byteRpcContent.setReturn(result.getT2()[0]);
+                            });
                 } else {
                     //无状态客户端访问有状态服务端 或 有状态客户端访问无状态服务端 都不需要建立长连接
                     log.debug("asyncBytesCall {} {}", funName, content);
-                    rpcResult = asyncBytesCall(funName, paramData);
+                    rpcResult = asyncBytesCall(funName, paramData)
+                            .consumerValue(ret->{
+                                Tuple2<String,byte[][]> result = ret;
+                                byteRpcContent.setReturn(result.getT2()[0]);
+                            });
                 }
             } else if (content.getType().equals(RpcContentType.JSON)) {
                 JsonRpcContent jsonRpcContent = (JsonRpcContent) content;
                 String data = jsonRpcContent.getParam();
-                rpcResult = asyncJsonCall(funName, data);
+                rpcResult = asyncJsonCall(funName, data)
+                        .consumerValue(ret->{
+                            Tuple2<String,String> result = (Tuple2<String, String>) ret;
+                            jsonRpcContent.setReturn(result.getT2());
+                        })
+                ;
             } else {
                 log.error("asyncCall contentType unknown, targetServiceName {} funName {} contentType {}", targetServiceName, funName, content.getType());
                 rpcResult = Homo.error(new RuntimeException("rpcCall contentType unknown"));
             }
             return rpcResult.consumerValue(ret -> {
                 span.finish();
-                content.setReturn(ret);
             });
         } catch (Exception e) {
             return Homo.error(e);
@@ -82,7 +95,7 @@ public class GrpcRpcAgentClient implements RpcAgentClient {
 
     }
 
-    private Homo asyncBytesCall(String funName, byte[][] data) {
+    private Homo<Tuple2<String, byte[][]>> asyncBytesCall(String funName, byte[][] data) {
         Span span = ZipkinUtil.currentSpan();
         Req.Builder builder = Req.newBuilder().setSrcService(srcServiceName).setMsgId(funName);
         if (data != null) {
@@ -106,7 +119,7 @@ public class GrpcRpcAgentClient implements RpcAgentClient {
         return rpcClient.asyncBytesCall(req);
     }
 
-    private Homo asyncBytesStreamCall(String funName, byte[][] paramData) throws IOException {
+    private Homo<Tuple2<String, byte[][]>> asyncBytesStreamCall(String funName, byte[][] paramData) throws IOException {
         Span span = ZipkinUtil.currentSpan();
         StreamReq.Builder builder = StreamReq.newBuilder()
                 .setSrcService(srcServiceName)

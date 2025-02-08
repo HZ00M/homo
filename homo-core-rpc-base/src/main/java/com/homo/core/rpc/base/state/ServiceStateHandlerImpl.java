@@ -88,7 +88,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
     }
 
     private Homo<Boolean> updateService(String serviceName) {
-        return stateMgr.geAllStateInfo(serviceName)
+        return stateMgr.getAllStateInfo(serviceName)
                 .nextDo(map -> {
                     if (map == null || map.size() == 0) {
                         goodServiceMap.put(serviceName, new ArrayList<>());
@@ -192,7 +192,7 @@ public class ServiceStateHandlerImpl implements ServiceStateHandler, Runnable, M
 
     @Override
     public Homo<Map<Integer, LoadInfo>> getServiceAllStateInfo(String serviceName) {
-        return stateMgr.geAllStateInfo(serviceName);
+        return stateMgr.getAllStateInfo(serviceName);
     }
 
     public void setChoiceFun(BiFunction<String, List<Integer>, Integer> choiceFun) {

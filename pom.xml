@@ -34,7 +34,7 @@
         <module>homo-core-gate-tcp</module>
         <module>homo-core-gate</module>
         <module>homo-service-tread</module>
-        <module>homo-core-ability-base</module>
+        <module>homo-core-entity-ability</module>
         <module>homo-core-storage</module>
         <module>homo-maven-plugin</module>
         <module>homo-core-extend-utils</module>
@@ -167,7 +167,7 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-ability-base</artifactId>
+                <artifactId>homo-core-entity-ability</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

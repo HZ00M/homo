@@ -207,9 +207,9 @@ public class GrpcRpcClient implements RpcClient {
         CallQueue callQueue = CallQueueMgr.getInstance().getLocalQueue();
         Span span = ZipkinUtil.currentSpan().annotate(ZipkinUtil.CLIENT_SEND_TAG);;
         TraceLogUtil.setTraceIdBySpan(span,"rpcClient asyncBytesCall");
-        Homo<Tuple2<String, byte[][]>> warp = Homo.warp(new ConsumerWithException<HomoSink<Tuple2<String, byte[][]>>>() {
+        Homo<Tuple2<String, byte[]>> warp = Homo.warp(new ConsumerWithException<HomoSink<Tuple2<String, byte[]>>>() {
             @Override
-            public void accept(HomoSink<Tuple2<String, byte[][]>> sink) throws Exception {
+            public void accept(HomoSink<Tuple2<String, byte[]>> sink) throws Exception {
                 StreamObserver<Res> observer = new StreamObserver<Res>() {
                     private byte[][] results = null;
                     private String msgId;
@@ -239,9 +239,10 @@ public class GrpcRpcClient implements RpcClient {
                     @Override
                     public void onCompleted() {
                         TraceLogUtil.setTraceIdBySpan(span,"asyncBytesCall onCompleted");
-                        log.trace("asyncBytesCall onCompleted, serviceName {} msgId {}", host, msgId);
+                        log.trace("asyncBytesCall onCompleted, serviceName {} msgId {} resultsSize {}", host, msgId,results.length);
                         span.annotate(ZipkinUtil.CLIENT_RECEIVE_TAG);
-                        sink.success(Tuples.of(msgId, results));
+                        //目前看来返回值不大可能会有多个，所以这里暂时只返回result[0]
+                        sink.success(Tuples.of(msgId, results[0]));
                         releaseChannel(callChannel);
                     }
                 };
@@ -279,7 +280,7 @@ public class GrpcRpcClient implements RpcClient {
                     log.info("asyncBytesStreamCall reply msgId {} contentSize {} ReqId {}", msgId, reply.getMsgContentCount(), reply.getReqId());
                     log.info("requestContextMap remove sink timeout reqId {}", reply.getReqId());
                     requestContextMap.remove(reply.getReqId());
-                    sink.success(Tuples.of(msgId, null));
+                    sink.success(Tuples.of(msgId, results));
                 }
             }
 

@@ -115,18 +115,18 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                         statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, weightLoad, AVAILABLE)
                                 .consumerValue(ret -> {
                                     if (ret) {
-                                        log.info("set service state success, service {}, load {} weightLoad {}", serviceName, load, weightLoad);
+                                        log.info("setServiceState AVAILABLE success, service {} load {} weightLoad {} ", serviceName, load, weightLoad);
                                     } else {
-                                        log.error("set service state fail, service {}, load {} weightLoad {}", serviceName, load, weightLoad);
+                                        log.error("setServiceState AVAILABLE fail, service {} load {} weightLoad {}", serviceName, load, weightLoad);
                                     }
                                 })
                                 .catchError(throwable -> {
-                                    log.error("set service state error, service {}, load {} weightLoad {}", serviceName, load, weightLoad, throwable);
+                                    log.error("setServiceState AVAILABLE error, service {}, load {} weightLoad {}", serviceName, load, weightLoad, throwable);
 
                                 })
                                 .start();
                     }
-                }, 10000, serverStateProperties.getServiceStateUpdatePeriodMillSeconds(), HomoTimerMgr.UNLESS_TIMES);
+                }, 0, serverStateProperties.getServiceStateUpdatePeriodMillSeconds(), HomoTimerMgr.UNLESS_TIMES);
             }
         });
     }
@@ -143,13 +143,13 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
             statefulDriver.setServiceState(appId, regionId, stateLogicType, serviceName, podIndex, weightLoad,UNAVAILABLE)
                     .consumerValue(ret -> {
                         if (ret) {
-                            log.info("beforeClose set service state success, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
+                            log.info("setServiceState UNAVAILABLE success, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
                         } else {
-                            log.error("beforeClose set service state fail, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
+                            log.error("setServiceState UNAVAILABLE fail, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE);
                         }
                     })
                     .catchError(throwable -> {
-                        log.error("beforeClose set service state error, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE, throwable);
+                        log.error("setServiceState UNAVAILABLE error, service {}, load {} weightLoad {}", serviceName, load, UNAVAILABLE, throwable);
 
                     }).block(Duration.ofMillis(10000));
         }
@@ -297,7 +297,8 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
                         log.error("no best pod for uid {}, serviceName {}", uid, serviceName);
                         return Homo.result(null);
                     }
-                }).zipCalling(tag);
+                })
+                .zipCalling(tag);
     }
 
     /**
@@ -339,7 +340,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
 
 
     @Override
-    public Homo<Map<Integer, LoadInfo>> geAllStateInfo(String serviceName) {
+    public Homo<Map<Integer, LoadInfo>> getAllStateInfo(String serviceName) {
         String appId = rootModule.getServerInfo().appId;
         String regionId = rootModule.getServerInfo().namespace;
         String logicType = stateLogicType;
@@ -400,7 +401,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
 
 
     private Homo<Boolean> updateGoodServiceCache(String serviceName) {
-        return stateMgr.geAllStateInfo(serviceName)
+        return stateMgr.getAllStateInfo(serviceName)
                 .nextDo(map -> {
                     if (map == null || map.size() == 0) {
                         goodServiceMap.put(serviceName, new ArrayList<>());
@@ -512,7 +513,7 @@ public class ServiceStateMgrImpl implements ServiceStateMgr {
 
     @Override
     public Homo<Map<Integer, LoadInfo>> getServiceAllStateInfo(String serviceName) {
-        return stateMgr.geAllStateInfo(serviceName);
+        return stateMgr.getAllStateInfo(serviceName);
     }
 
     public void setChoiceFun(BiFunction<String, List<Integer>, Integer> choiceFun) {

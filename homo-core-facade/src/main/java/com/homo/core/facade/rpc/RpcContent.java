@@ -5,9 +5,9 @@ import io.homo.proto.client.ParameterMsg;
 
 
 public interface RpcContent<P,R> {
-    String getId();
+    String getMsgId();
 
-     void setId(String id);
+     void setMsgId(String id);
 
     RpcContentType getType();
 
@@ -15,9 +15,9 @@ public interface RpcContent<P,R> {
 
     void setParam(P data);
 
-    R getReturn();
+    public void setReturn(R returnData);
 
-    void setReturn(R data);
+    public R getReturn();
 
     Object[] unSerializeToActualParams(SerializeInfo[] paramSerializeInfoList, int frameParamOffset, Integer podId , ParameterMsg parameterMsg);
 

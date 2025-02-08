@@ -6,7 +6,6 @@ import com.homo.core.facade.rpc.RpcType;
 import com.homo.core.facade.service.ServiceExport;
 import com.homo.core.facade.service.ServiceInfo;
 import com.homo.core.facade.service.ServiceStateMgr;
-import com.homo.core.rpc.base.serial.MethodDispatchInfo;
 import com.homo.core.rpc.base.service.ServiceMgr;
 import com.homo.core.rpc.base.utils.ServiceUtil;
 import com.homo.core.rpc.client.ExchangeHostName;
@@ -114,7 +113,7 @@ public class RpcProxy implements MethodInterceptor {
 
     @NotNull
     private Homo processReturn(String methodName, RpcContent rpcContent) throws HomoException {
-        String msgId = rpcContent.getId();
+        String msgId = rpcContent.getMsgId();
         if (!msgId.equals(methodName)) {//返回的msgId不等于方法名  抛出异常
             return Homo.error(HomoError.throwError(HomoError.defaultError, msgId));
         }

@@ -28,7 +28,7 @@
         <!--        目标服务器的接口-->
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-rpc-server-facade-test</artifactId>
+            <artifactId>homo-grpc-server-demo-facade</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>

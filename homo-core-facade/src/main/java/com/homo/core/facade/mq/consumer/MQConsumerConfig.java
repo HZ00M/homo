@@ -9,10 +9,28 @@ import lombok.ToString;
 @Data
 @ToString
 @AllArgsConstructor
+/**
+ * 消费者配置
+ */
 public class MQConsumerConfig {
+    /**
+     * 队列类型
+     */
     MQType type;
+    /**
+     * appId
+     */
     String appId;
+    /**
+     * 区服id
+     */
     String regionId;
+    /**
+     * 消费者组
+     */
     String groupId;
+    /**
+     * topic解析策略
+     */
     TopicResolveStrategy topicResolveStrategy;
 }

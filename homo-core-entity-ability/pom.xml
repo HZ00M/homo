@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.homo</groupId>
+        <artifactId>homo-core</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>homo-core-entity-ability</artifactId>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-facade</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-core-rpc-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-service-persistence-storage-redis-mysql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-service-cache-storage-redis</artifactId>
+        </dependency>
+    </dependencies>
+</project>

@@ -144,7 +144,7 @@ public class GrpcRpcCallService extends RpcCallServiceGrpc.RpcCallServiceImplBas
         Span span = SpanInterceptor.getSpan(req.getMsgId(), req.getTraceInfo());
         try {
             JsonRpcContent rpcContent = new JsonRpcContent();
-            rpcContent.setId(msgId);
+            rpcContent.setMsgId(msgId);
             rpcContent.setParam(msgContent);
             rpcContent.setSpan(span);
             rpcServer.onCall(req.getSrcService(), req.getMsgId(), rpcContent)

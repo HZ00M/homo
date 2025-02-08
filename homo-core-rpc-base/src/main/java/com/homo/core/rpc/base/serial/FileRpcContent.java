@@ -21,12 +21,12 @@ public class FileRpcContent implements RpcContent<UploadFile,byte[]> {
     private Class<?> returnType;
 
     @Override
-    public String getId() {
+    public String getMsgId() {
         return msgId;
     }
 
     @Override
-    public void setId(String id) {
+    public void setMsgId(String id) {
         this.msgId = id;
     }
 
@@ -45,14 +45,15 @@ public class FileRpcContent implements RpcContent<UploadFile,byte[]> {
         this.fileData = data;
     }
 
+
     @Override
-    public byte[] getReturn() {
-        return returnData;
+    public void setReturn(byte[] returnData) {
+        this.returnData = returnData;
     }
 
     @Override
-    public void setReturn(byte[] data) {
-        this.returnData = data;
+    public byte[] getReturn() {
+        return returnData;
     }
 
     @Override

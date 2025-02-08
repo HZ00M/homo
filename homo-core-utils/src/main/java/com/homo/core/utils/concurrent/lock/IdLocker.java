@@ -23,7 +23,7 @@ public class IdLocker {
             lockBlock.count.incrementAndGet();
         }
         try {
-            lockBlock.lock.unlock();
+            lockBlock.lock.lock();
             log.info("lock id {} idLock {} begin",lockBlock, id);
             runnable.run();
             log.info("lock id {} idLock {} end",lockBlock, id);

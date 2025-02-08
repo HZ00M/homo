@@ -8,7 +8,6 @@ import com.homo.core.facade.rpc.RpcContentType;
 import com.homo.core.rpc.base.serial.ByteRpcContent;
 import com.homo.core.rpc.base.serial.FileRpcContent;
 import com.homo.core.rpc.base.serial.JsonRpcContent;
-import com.homo.core.rpc.http.dto.ResponseMsg;
 import com.homo.core.utils.rector.Homo;
 import com.homo.core.utils.trace.ZipkinUtil;
 import com.homo.core.utils.upload.UploadFile;
@@ -52,22 +51,30 @@ public class HttpRpcAgentClient implements RpcAgentClient {
             if (content.getType().equals(RpcContentType.BYTES)) {
                 ByteRpcContent byteRpcContent = (ByteRpcContent) content;
                 byte[][] data = byteRpcContent.getParam();
-                rpcResult = httpProtoHandle(funName, data);
+                rpcResult = httpProtoHandle(funName, data)
+                        .consumerValue(ret->{
+                            byteRpcContent.setReturn(ret);
+                        });
             } else if (content.getType().equals(RpcContentType.JSON)) {
                 JsonRpcContent jsonRpcContent = (JsonRpcContent) content;
                 String data = jsonRpcContent.getParam();
-                rpcResult = httpJsonHandle(funName, jsonRpcContent);
+                rpcResult = httpJsonHandle(funName, data)
+                        .consumerValue(ret->{
+                            jsonRpcContent.setReturn(ret);
+                        });
             } else if (content.getType().equals(RpcContentType.FILE)) {
                 FileRpcContent fileRpcContent = (FileRpcContent) content;
                 UploadFile uploadFile = fileRpcContent.getParam();
-                rpcResult = httpFormHandle(funName, uploadFile);
+                rpcResult = httpFormHandle(funName, uploadFile)
+                        .consumerValue(ret->{
+                            fileRpcContent.setReturn(ret);
+                        });
             } else {
                 log.error("rpcCall contentType unknown, targetServiceName {} funName {} contentType {}", targetServiceName, funName, content.getType());
                 rpcResult = Homo.error(new RuntimeException("rpcCall contentType unknown"));
             }
             return rpcResult.consumerValue(ret -> {
                 span.finish();
-                content.setReturn(ret);
             });
         } catch (Exception e) {
             span.error(e);
@@ -75,8 +82,7 @@ public class HttpRpcAgentClient implements RpcAgentClient {
         }
     }
 
-    private Homo httpJsonHandle(String funName, JsonRpcContent content) {
-        String param = content.getParam();
+    private Homo<String> httpJsonHandle(String funName, String param) {
         Span span = ZipkinUtil.currentSpan();
         String uri = URI.create(String.format("http://%s:%d/%s", targetServiceName, targetPort, funName)).toString();
         try {
@@ -89,7 +95,8 @@ public class HttpRpcAgentClient implements RpcAgentClient {
                             .header(HomoHttpHeader.X_SAMPLED.param(), String.valueOf(span.context().sampled()))
                             .bodyValue(param)
                             .retrieve()
-                            .bodyToMono((byte[].class))
+                            .bodyToMono((String.class))
+//                            .bodyToMono((byte[].class))
                             .doOnSuccess(response -> span.finish())
                             .doOnError(span::error)// 阻塞调用，可改为异步处理。
             );
@@ -100,7 +107,7 @@ public class HttpRpcAgentClient implements RpcAgentClient {
         }
     }
 
-    private Homo httpProtoHandle(String funName, byte[][] data) {
+    private Homo<byte[]> httpProtoHandle(String funName, byte[][] data) {
         Span span = ZipkinUtil.currentSpan();
         String uri = URI.create(String.format("http://%s:%d/%s", targetServiceName, targetPort, funName)).toString();
         try {
@@ -123,7 +130,7 @@ public class HttpRpcAgentClient implements RpcAgentClient {
         }
     }
 
-    private Homo httpFormHandle(String funName, UploadFile uploadFile) {
+    private Homo<byte[]> httpFormHandle(String funName, UploadFile uploadFile) {
         Span span = ZipkinUtil.currentSpan();
         String uri = URI.create(String.format("http://%s:%d/%s", targetServiceName, targetPort, funName)).toString();
         try {
