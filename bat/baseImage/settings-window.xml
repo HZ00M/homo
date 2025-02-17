@@ -22,12 +22,12 @@ under the License.
 <!--
  | This is the configuration file for Maven. It can be specified at two levels:
  |
- |  1. User Level. This settings.xml file provides configuration for a single user,
- |                 and is normally provided in ${user.home}/.m2/settings.xml.
+ |  1. User Level. This settings.xml file provides configuration for a single userDocument,
+ |                 and is normally provided in ${userDocument.home}/.m2/settings.xml.
  |
  |                 NOTE: This location can be overridden with the CLI option:
  |
- |                 -s /path/to/user/settings.xml
+ |                 -s /path/to/userDocument/settings.xml
  |
  |  2. Global Level. This settings.xml file provides configuration for all Maven
  |                 users on a machine (assuming they're all using the same Maven
@@ -49,7 +49,7 @@ under the License.
     <!-- localRepository
      | The path to the local repository maven will use to store artifacts.
      |
-     | Default: ${user.home}/.m2/repository
+     | Default: ${userDocument.home}/.m2/repository
     <localRepository>/path/to/local/repo</localRepository>
     -->
     <localRepository>E:\HomoRepository</localRepository>
@@ -319,7 +319,7 @@ under the License.
          | or the command line, profiles have to have an ID that is unique.
          |
          | An encouraged best practice for profile identification is to use a consistent naming convention
-         | for profiles, such as 'env-dev', 'env-test', 'env-production', 'user-jdcasey', 'user-brett', etc.
+         | for profiles, such as 'env-dev', 'env-test', 'env-production', 'userDocument-jdcasey', 'userDocument-brett', etc.
          | This will make it more intuitive to understand what the set of introduced profiles is attempting
          | to accomplish, particularly when you only have a list of profile id's for debug.
          |

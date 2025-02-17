@@ -2,16 +2,18 @@ package com.homo.core.mysql.config;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
+import com.homo.core.configurable.mysql.MysqlProperties;
 import com.homo.core.utils.apollo.ConfigDriver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-;
 
 @Data
 @Slf4j
 public class MysqlInfoHolder {
     private ConfigDriver configDriver;
+
+    private MysqlProperties mysqlProperties;
 
     private String publicMysqlNs;
 
@@ -53,36 +55,37 @@ public class MysqlInfoHolder {
 
     private String privateMysqlNs;
 
-    public MysqlInfoHolder(String publicMysqlNs,String privateMysqlNs,ConfigDriver configDriver){
+    public MysqlInfoHolder(String publicMysqlNs, String privateMysqlNs, ConfigDriver configDriver, MysqlProperties mysqlProperties){
         this.publicMysqlNs = publicMysqlNs;
         this.privateMysqlNs = privateMysqlNs;
         this.configDriver = configDriver;
+        this.mysqlProperties = mysqlProperties;
         load();
         configDriver.listenerNamespace(publicMysqlNs,configChangeEvent -> load());
     }
 
     private void load() {
-        driverClassName = configDriver.getProperty(publicMysqlNs,"spring.datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
-        initialSize = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.initialSize", 5);
-        minIdle = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.minIdle", 5);
-        maxActive = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.maxActive", 20);
-        maxWait = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.maxWait", 60000);
-        timeBetweenEvictionRunsMillis = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.timeBetweenEvictionRunsMillis", 300000);
-        minEvictableIdleTimeMillis = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.minEvictableIdleTimeMillis", 60000);
-        validationQuery = configDriver.getProperty(publicMysqlNs,"spring.datasource.validationQuery", "SELECT 1 FROM DUAL");
-        testWhileIdle = configDriver.getBoolProperty(publicMysqlNs,"spring.datasource.testWhileIdle", true);
-        testOnBorrow = configDriver.getBoolProperty(publicMysqlNs,"spring.datasource.testOnBorrow", false);
-        testOnReturn = configDriver.getBoolProperty(publicMysqlNs,"spring.datasource.testOnReturn", false);
-        poolPreparedStatements = configDriver.getBoolProperty(publicMysqlNs,"spring.datasource.poolPreparedStatements", true);
-        filters = configDriver.getProperty(publicMysqlNs,"spring.datasource.filters", "stat,wall,log4j2");
+        driverClassName = configDriver.getProperty(publicMysqlNs,"spring.datasource.driver-class-name", mysqlProperties.driverClassName);
+        initialSize = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.initialSize", mysqlProperties.initialSize);
+        minIdle = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.minIdle", mysqlProperties.minIdle);
+        maxActive = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.maxActive", mysqlProperties.maxActive);
+        maxWait = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.maxWait", mysqlProperties.maxWait);
+        timeBetweenEvictionRunsMillis = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.timeBetweenEvictionRunsMillis", mysqlProperties.timeBetweenEvictionRunsMillis);
+        minEvictableIdleTimeMillis = configDriver.getIntProperty(publicMysqlNs,"spring.datasource.minEvictableIdleTimeMillis", mysqlProperties.minEvictableIdleTimeMillis);
+        validationQuery = configDriver.getProperty(publicMysqlNs,"spring.datasource.validationQuery", mysqlProperties.validationQuery);
+        testWhileIdle = configDriver.getBoolProperty(publicMysqlNs,"spring.datasource.testWhileIdle", mysqlProperties.testWhileIdle);
+        testOnBorrow = configDriver.getBoolProperty(publicMysqlNs,"spring.datasource.testOnBorrow", mysqlProperties.testOnBorrow);
+        testOnReturn = configDriver.getBoolProperty(publicMysqlNs,"spring.datasource.testOnReturn", mysqlProperties.testOnReturn);
+        poolPreparedStatements = configDriver.getBoolProperty(publicMysqlNs,"spring.datasource.poolPreparedStatements", mysqlProperties.poolPreparedStatements);
+        filters = configDriver.getProperty(publicMysqlNs,"spring.datasource.filters", mysqlProperties.filters);
         log.info("mysql initPublicConfig {}", this);
 
         Config mysqlNsConfig = ConfigService.getConfig(privateMysqlNs);
-        dbUrl = mysqlNsConfig.getProperty("homo.datasource.url", "");
-        dbHost = mysqlNsConfig.getProperty("homo.datasource.host", "");
-        dbParam = mysqlNsConfig.getProperty("homo.datasource.param", "");
-        username = mysqlNsConfig.getProperty("homo.datasource.username", "");
-        password = mysqlNsConfig.getProperty("homo.datasource.password", "");
+        dbUrl = mysqlNsConfig.getProperty("homo.datasource.url", mysqlProperties.dbUrl);
+        dbHost = mysqlNsConfig.getProperty("homo.datasource.host", mysqlProperties.dbHost);
+        dbParam = mysqlNsConfig.getProperty("homo.datasource.param", mysqlProperties.dbParam);
+        username = mysqlNsConfig.getProperty("homo.datasource.username", mysqlProperties.username);
+        password = mysqlNsConfig.getProperty("homo.datasource.password", mysqlProperties.password);
         log.trace("user mysql: mysqlNS: {} userName: {}, password: {}", privateMysqlNs, username, password);
     }
 }

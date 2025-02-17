@@ -81,7 +81,7 @@ copy "iso14651_t1"
 % Digraphs dŽ, lJ and nJ (1st char lower, 2nd char upper)
 % are clearly errors and you'd be hard pressed to
 % find them in any Croatian text. Other slavic locales
-% include those combinations probably because user
+% include those combinations probably because userDocument
 % would expect to find them among ǆ, ǉ and ǌ
 
 collating-element <D-Z<> from "<U0044><U017D>"

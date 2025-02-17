@@ -27,7 +27,7 @@
         <!--        todo 待优化，是否可以由下级依赖-->
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-service-cache-storage-redis</artifactId>
+            <artifactId>homo-core-cache-redis</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>

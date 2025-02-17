@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-;
 
 /**
  * 配置中心属性读取

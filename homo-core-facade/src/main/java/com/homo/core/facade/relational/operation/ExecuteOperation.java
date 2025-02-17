@@ -5,6 +5,9 @@ import com.homo.core.utils.rector.Homo;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 执行sql语句接口
+ */
 public interface ExecuteOperation {
     ExecuteSpec execute(String sql);
 

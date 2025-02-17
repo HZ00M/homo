@@ -1,0 +1,48 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "io.homo.proto.document.demo";     // 指定包名
+option java_outer_classname = "DocumentDomo"; // 指定类名
+
+message GetUserInfoReq {
+  string userId = 1;
+}
+
+message GetUserInfoResp {
+  int32 errorCode = 1;
+  string errorDesc = 2;
+  UserInfoPb userInfo = 3;
+}
+
+message CreateUserReq{
+  string userId = 1;
+  int32 age = 2;
+  string nickName = 3;
+}
+
+message CreateUserResp{
+  int32 errorCode = 1;
+  string errorDesc = 2;
+  UserInfoPb userInfo = 3;
+}
+message UserInfoPb{
+  string userId = 1;
+  int32 age = 2;
+  string nickName = 3;
+}
+
+message QueryUserInfoReq{
+}
+
+message QueryUserInfoResp{
+  int32 errorCode = 1;
+  string errorDesc = 2;
+  repeated UserInfoPb userInfo = 3;
+}
+
+message AggregateUserInfoReq{
+}
+
+message AggregateUserInfoResp{
+  int32 errorCode = 1;
+  string errorDesc = 2;
+}

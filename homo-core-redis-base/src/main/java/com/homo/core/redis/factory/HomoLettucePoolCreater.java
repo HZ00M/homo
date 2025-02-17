@@ -16,7 +16,6 @@ import redis.clients.jedis.JedisPoolConfig;
 
 import java.time.Duration;
 
-;
 
 @Slf4j
 public class HomoLettucePoolCreater {

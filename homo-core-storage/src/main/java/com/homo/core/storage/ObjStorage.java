@@ -13,7 +13,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-;
 
 @Slf4j
 public class ObjStorage implements Module {

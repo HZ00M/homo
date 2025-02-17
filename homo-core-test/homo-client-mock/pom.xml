@@ -43,7 +43,10 @@
             <groupId>com.homo</groupId>
             <artifactId>homo-grpc-server-demo-facade</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.homo</groupId>
+            <artifactId>homo-document-mongo-demo-facade</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.homo</groupId>

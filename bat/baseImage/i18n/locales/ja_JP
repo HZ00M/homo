@@ -15053,8 +15053,7 @@ END LC_ADDRESS
 LC_TELEPHONE
 % This is the ISO_IEC TR14652 Locale definition for the
 %
-tel_int_fmt "+%c ;%a /
-;%l"
+tel_int_fmt "+%c ;%a /%l"
 % 010
 int_select   "010"
 int_prefix  "81"

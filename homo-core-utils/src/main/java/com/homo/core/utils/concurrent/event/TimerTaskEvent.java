@@ -3,7 +3,6 @@ package com.homo.core.utils.concurrent.event;
 import com.homo.core.utils.concurrent.schedule.AbstractHomoTimerTask;
 import lombok.extern.slf4j.Slf4j;
 
-;
 
 @Slf4j
 public class TimerTaskEvent extends AbstractTraceEvent {

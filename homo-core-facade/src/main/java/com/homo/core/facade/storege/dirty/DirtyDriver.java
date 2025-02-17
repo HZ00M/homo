@@ -50,5 +50,5 @@ public interface DirtyDriver {
     String snapShot(String dirtyName);
 
 
-    boolean landing(String dirtyName, String dirtySaving);
+    boolean landing(String dirtyTableName, String dirtySavingTableName);
 }

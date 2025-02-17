@@ -11,15 +11,13 @@
     <packaging>pom</packaging>
     <modules>
         <module>homo-core-storage-test</module>
-        <module>homo-core-persistent-test</module>
+        <module>homo-core-persistent-demo</module>
 
         <module>homo-core-rpc-client-test</module>
         <module>homo-core-rpc-client-facade-test</module>
         <module>homo-core-tcp-gate-test</module>
         <module>homo-service-tread-test</module>
         <module>homo-core-entity-client-test</module>
-        <module>homo-core-relational-storage-mysql-test</module>
-        <module>homo-core-relational-facade-test</module>
 
         <module>homo-client-mock</module>
         <module>homo-http-server-demo</module>
@@ -31,6 +29,10 @@
         <module>homo-mq-common-demo</module>
         <module>homo-mq-producer-demo</module>
         <module>homo-mq-consumer-demo</module>
+        <module>homo-relational-mysql-demo</module>
+        <module>homo-relational-mysql-facade-demo</module>
+        <module>homo-document-mongo-demo</module>
+        <module>homo-document-mongo-demo-facade</module>
     </modules>
     <artifactId>homo-core-test</artifactId>
 
@@ -134,11 +136,16 @@
                 <artifactId>homo-mq-common-demo</artifactId>
                 <version>${revision}</version>
             </dependency>
-<!--            <dependency>-->
-<!--                <artifactId>homo-core-proto</artifactId>-->
-<!--                <groupId>com.homo</groupId>-->
-<!--                <version>${revision}</version>-->
-<!--            </dependency>-->
+            <dependency>
+                <artifactId>homo-document-mongo-demo</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <artifactId>homo-document-mongo-demo-facade</artifactId>
+                <groupId>com.homo</groupId>
+                <version>${revision}</version>
+            </dependency>
             <dependency>
                 <artifactId>homo-core-storage-test</artifactId>
                 <groupId>com.homo</groupId>
@@ -191,12 +198,12 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-relational-facade-test</artifactId>
+                <artifactId>homo-relational-mysql-facade-demo</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-relational-storage-mysql-test</artifactId>
+                <artifactId>homo-relational-mysql-demo</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

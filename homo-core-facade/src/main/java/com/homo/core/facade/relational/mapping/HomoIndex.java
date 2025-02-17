@@ -14,6 +14,10 @@ public @interface HomoIndex {
      */
     String name() default "";
 
+    /**
+     * 索引相关的项
+     * @return
+     */
     String[] columns();
 
     IndexType indexType() default IndexType.NORMAL;

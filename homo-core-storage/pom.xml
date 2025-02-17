@@ -27,7 +27,7 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-service-persistence-storage-redis-mysql</artifactId>
+            <artifactId>homo-core-storage-redis-mysql</artifactId>
         </dependency>
     </dependencies>
 </project>

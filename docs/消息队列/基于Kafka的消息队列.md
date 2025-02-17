@@ -32,6 +32,12 @@
   apollo.bootstrap.namespaces = application,homo_redis_config,redis_connect_info,homo_root_info,homo_zipkin_config,homo_mq_kafka
   spring.main.web-application-type=none
   ```
+homo_mq_kafka参考配置
+```text
+homo.mq.kafka.bootstrap.servers = kafka-service-client:9093
+homo.mq.kafka.consumer.auto.commit = true
+
+```
 - **支持的操作系统**:
     - Windows 10 或更高
     - macOS 10.13 或更高

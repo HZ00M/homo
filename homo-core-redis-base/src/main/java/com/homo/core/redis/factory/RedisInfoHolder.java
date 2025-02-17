@@ -1,16 +1,17 @@
 package com.homo.core.redis.factory;
 
+import com.homo.core.configurable.redis.RedisProperties;
 import com.homo.core.utils.apollo.ConfigDriver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-;
 
 @Data
 @Slf4j
 public class RedisInfoHolder {
 
-    ConfigDriver configDriver;
+    private ConfigDriver configDriver;
+    private RedisProperties properties;
 
     private String publicRedisNs;
 
@@ -45,10 +46,11 @@ public class RedisInfoHolder {
     private String proxyDir;
 
 
-    public RedisInfoHolder(String publicRedisNs, String privateRedisNs, ConfigDriver configDriver) {
+    public RedisInfoHolder(String publicRedisNs, String privateRedisNs, ConfigDriver configDriver, RedisProperties properties) {
         this.publicRedisNs = publicRedisNs;
         this.privateRedisNs = privateRedisNs;
         this.configDriver = configDriver;
+        this.properties = properties;
         load();
         this.configDriver.listenerNamespace(publicRedisNs, configChangeEvent -> {
             load();
@@ -56,16 +58,16 @@ public class RedisInfoHolder {
     }
 
     public void load() {
-        dataBase = configDriver.getIntProperty(publicRedisNs,"redis.dataBase",0);
-        timeOutMs = configDriver.getIntProperty(publicRedisNs,"timeOutMs", 300000);
-        maxTotal = configDriver.getIntProperty(publicRedisNs,"maxTotal", 100);
-        maxIdle = configDriver.getIntProperty(publicRedisNs,"maxIdle", 10);
-        minIdel = configDriver.getIntProperty(publicRedisNs,"minIdle", 10);
-        maxWaitMillis = configDriver.getIntProperty(publicRedisNs,"maxWaitMillis", -1);
-        testOnBorrow = configDriver.getBoolProperty(publicRedisNs,"testOnBorrow", false);
-        soTimeOut = configDriver.getIntProperty(publicRedisNs,"soTimeOut", 30000);
-        maxAttemps = configDriver.getIntProperty(publicRedisNs,"maxAttemps", 5);
-        expireTime = configDriver.getIntProperty(publicRedisNs,"expire",86400);
+        dataBase = configDriver.getIntProperty(publicRedisNs,"homo.redis.dataBase", properties.dataBase);
+        timeOutMs = configDriver.getIntProperty(publicRedisNs,"homo.redis.timeOutMs", properties.timeOutMs);
+        maxTotal = configDriver.getIntProperty(publicRedisNs,"homo.redis.maxTotal", properties.maxTotal);
+        maxIdle = configDriver.getIntProperty(publicRedisNs,"homo.redis.maxIdle", properties.maxIdle);
+        minIdel = configDriver.getIntProperty(publicRedisNs,"homo.redis.minIdle", properties.minIdle);
+        maxWaitMillis = configDriver.getIntProperty(publicRedisNs,"homo.redis.maxWaitMillis", properties.maxWaitMillis);
+        testOnBorrow = configDriver.getBoolProperty(publicRedisNs,"homo.redis.testOnBorrow", properties.testOnBorrow);
+        soTimeOut = configDriver.getIntProperty(publicRedisNs,"homo.redis.soTimeOut", properties.soTimeOut);
+        maxAttemps = configDriver.getIntProperty(publicRedisNs,"homo.redis.maxAttemps", properties.maxAttemps);
+        expireTime = configDriver.getIntProperty(publicRedisNs,"homo.redis.expire",properties.expireTime);
 
         url = configDriver.getProperty(privateRedisNs,"homo.redis.url","");
         port = configDriver.getIntProperty(privateRedisNs,"homo.redis.port",null);

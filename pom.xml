@@ -17,14 +17,14 @@
         <module>homo-core-test</module>
         <module>homo-core-facade</module>
         <module>homo-core-properties</module>
-        <module>homo-service-entity-storage-mongo</module>
-        <module>homo-service-lock-redis</module>
+        <module>homo-core-document-mongo</module>
+        <module>homo-core-lock-redis</module>
         <module>homo-core-redis-base</module>
-        <module>homo-service-cache-storage-redis</module>
-        <module>homo-service-persistence-storage-redis-mysql</module>
+        <module>homo-core-cache-redis</module>
+        <module>homo-core-storage-redis-mysql</module>
         <module>homo-core-mysql-base</module>
-        <module>homo-service-storage-dirty</module>
-        <module>homo-service-mysql-landing</module>
+        <module>homo-core-storage-dirty-redis</module>
+        <module>homo-core-storage-landing-mysql</module>
         <module>homo-core-rpc-server</module>
         <module>homo-core-rpc-client</module>
         <module>homo-core-rpc-base</module>
@@ -258,7 +258,7 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-service-entity-storage-mongo</artifactId>
+                <artifactId>homo-core-document-mongo</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
@@ -268,17 +268,17 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-service-lock-redis</artifactId>
+                <artifactId>homo-core-lock-redis</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-service-cache-storage-redis</artifactId>
+                <artifactId>homo-core-cache-redis</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-service-persistence-storage-redis-mysql</artifactId>
+                <artifactId>homo-core-storage-redis-mysql</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
@@ -288,12 +288,12 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-service-storage-dirty</artifactId>
+                <artifactId>homo-core-storage-dirty-redis</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-service-mysql-landing</artifactId>
+                <artifactId>homo-core-storage-landing-mysql</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

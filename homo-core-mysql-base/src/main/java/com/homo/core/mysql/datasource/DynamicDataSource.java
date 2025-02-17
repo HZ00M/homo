@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-;
 
 /**
  * 动态数据源路由，读写使用主库，只读使用从库

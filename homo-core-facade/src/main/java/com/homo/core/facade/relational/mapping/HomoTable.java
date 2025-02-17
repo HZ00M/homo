@@ -20,8 +20,16 @@ public @interface HomoTable {
      */
     boolean generate() default true;
 
+    /**
+     * 索引
+     * @return
+     */
     HomoIndex[] indices() default {};
 
+    /**
+     * 分表策略
+     * @return
+     */
     Class<? extends HomoTableDivideStrategy> nameStrategy() default DefaultHomoTableDivideStrategy.class;
 
     String driverName() default "";

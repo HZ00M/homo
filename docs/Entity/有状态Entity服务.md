@@ -88,7 +88,7 @@
 
 - 声明一个用户entity，以下声明了一个UserEntityFacade的entity的facade，并声明了每10秒落地1次，二级缓存有效期20秒
   ```java
-  @EntityType(type = "user-entity")
+  @EntityType(type = "userDocument-entity")
           @StorageTime(10000)
           @CacheTime(20000)
           public interface UserEntityFacade {

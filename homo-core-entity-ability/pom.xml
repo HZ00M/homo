@@ -40,11 +40,11 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-service-persistence-storage-redis-mysql</artifactId>
+            <artifactId>homo-core-storage-redis-mysql</artifactId>
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-service-cache-storage-redis</artifactId>
+            <artifactId>homo-core-cache-redis</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -15,7 +15,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 
-;
 
 @Slf4j
 public abstract class AbstractHomoTimerTask<T extends AbstractHomoTimerTask> extends TimerTask {

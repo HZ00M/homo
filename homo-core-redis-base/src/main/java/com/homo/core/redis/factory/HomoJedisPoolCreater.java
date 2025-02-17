@@ -7,7 +7,6 @@ import org.springframework.util.StringUtils;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-;
 
 @Slf4j
 public class HomoJedisPoolCreater {

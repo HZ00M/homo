@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
-;
 
 /**
  * 基于jackson序列化和反序列化处理器

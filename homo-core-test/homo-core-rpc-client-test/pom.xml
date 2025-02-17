@@ -56,7 +56,7 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-core-relational-facade-test</artifactId>
+            <artifactId>homo-relational-mysql-facade-demo</artifactId>
         </dependency>
     </dependencies>
 </project>

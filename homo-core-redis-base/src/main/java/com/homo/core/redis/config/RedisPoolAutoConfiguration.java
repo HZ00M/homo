@@ -1,6 +1,7 @@
 package com.homo.core.redis.config;
 
-import com.homo.core.configurable.redis.RedisConnectProperties;
+import com.homo.core.configurable.redis.RedisNamespaceProperties;
+import com.homo.core.configurable.redis.RedisProperties;
 import com.homo.core.redis.enums.ERedisType;
 import com.homo.core.redis.facade.HomoRedisPool;
 import com.homo.core.redis.factory.HomoJedisPoolCreater;
@@ -17,10 +18,12 @@ import org.springframework.context.annotation.Import;
 
 @AutoConfiguration
 @Slf4j
-@Import(RedisConnectProperties.class)
+@Import({RedisNamespaceProperties.class, RedisProperties.class})
 public class RedisPoolAutoConfiguration {
     @Autowired
-    private RedisConnectProperties connectProperties;
+    private RedisNamespaceProperties connectProperties;
+    @Autowired
+    private RedisProperties properties;
 
     @DependsOn("configDriver")
     @Bean("redisInfoHolder")
@@ -28,7 +31,7 @@ public class RedisPoolAutoConfiguration {
         log.info("register bean redisInfoHolder");
         configDriver.registerNamespace(connectProperties.getPublicNamespace());
         configDriver.registerNamespace(connectProperties.getPrivateNamespace());
-        RedisInfoHolder holder = new RedisInfoHolder(connectProperties.getPublicNamespace(),connectProperties.getPrivateNamespace(),configDriver);
+        RedisInfoHolder holder = new RedisInfoHolder(connectProperties.getPublicNamespace(),connectProperties.getPrivateNamespace(),configDriver,properties);
         return holder;
     }
 

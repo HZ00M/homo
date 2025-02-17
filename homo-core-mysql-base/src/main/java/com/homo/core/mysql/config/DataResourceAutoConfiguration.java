@@ -1,36 +1,41 @@
 package com.homo.core.mysql.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.homo.core.configurable.mysql.MysqlNamespaceProperties;
+import com.homo.core.configurable.mysql.MysqlProperties;
 import com.homo.core.mysql.datasource.DynamicDataSource;
 import com.homo.core.utils.apollo.ConfigDriver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Map;
 
-;
 
 @AutoConfiguration
+@Import({MysqlNamespaceProperties.class,MysqlProperties.class})
 @Slf4j
 public class DataResourceAutoConfiguration {
-    @Value("${mysql.public.namespace:homo_mysql_config}")
-    private String publicNamespace;
-    @Value("${mysql.private.namespace:mysql-connect-info}")
-    private String privateNamespace;
-
+    @Autowired
+    private MysqlNamespaceProperties mysqlNamespaceProperties;
+    @Autowired
+    private MysqlProperties mysqlProperties;
     @Bean("mysqlInfoHolder")
     @DependsOn("configDriver")
     public MysqlInfoHolder mysqlInfoHolder(ConfigDriver configDriver){
-        log.info("register bean mysqlInfoHolder");
+        String publicNamespace = mysqlNamespaceProperties.getPublicNamespace();
+        String privateNamespace = mysqlNamespaceProperties.getPrivateNamespace();
+        log.info("register bean mysqlInfoHolder publicNamespace {} and privateNamespace {}",publicNamespace,privateNamespace);
         configDriver.registerNamespace(publicNamespace);
         configDriver.registerNamespace(privateNamespace);
-        return new MysqlInfoHolder(publicNamespace,privateNamespace,configDriver);
+        return new MysqlInfoHolder(publicNamespace,privateNamespace,configDriver,mysqlProperties);
     }
 
     @Bean("master")

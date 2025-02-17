@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 @ToString
 @Configurable
 public class RelationalProperties {
+    /**
+     * 类扫描路径
+     */
     @Value("${homo.relational.base.package:com.homo}")
     private String basePackage;
 }
