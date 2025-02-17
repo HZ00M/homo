@@ -262,3 +262,6 @@ public interface HttpRpcDemoServiceFacade {
   private int bytesLimit;
 }
 ```
+---
+## 6. 演示案例
+[homo-http-server-demo](。./../../../homo-core-test/homo-http-server-demo)

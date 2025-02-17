@@ -406,5 +406,7 @@ public class DrawCardService extends BaseService implements DrawCardFacade {
     @Value("${homo.relational.mysql.database.prefix:homo_storage}")
     private String prefix;
 }
-``` 
- 
+```
+---
+## 6. 演示案例
+[homo-relational-mysql-demo](。./../../../homo-core-test/homo-relational-mysql-demo) 

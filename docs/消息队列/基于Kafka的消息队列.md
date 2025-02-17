@@ -305,4 +305,7 @@ public class MQProducerTestService implements ServiceModule {
     private String valueDeserializer;
   }
   ``` 
- 
+ ---
+## 6. 演示案例
+[homo-mq-consumer-demo](。./../../../homo-core-test/homo-mq-consumer-demo)
+[homo-mq-producer-demo](。./../../../homo-core-test/homo-mq-producer-demo) 

@@ -210,4 +210,6 @@
     private long saveTimeSecondMills;
   }
 ```
- 
+---
+## 6. 演示案例
+[homo-stateful-entity-demo](。./../../../homo-core-test/homo-stateful-entity-demo)

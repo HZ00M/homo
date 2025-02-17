@@ -63,6 +63,7 @@
 ---
 ## 4. 快速入门
 以下是一个简单的示例代码，展示如何使用如果定义一个基于http的rpc服务器：
+
 - 创建一个homo-grpc-server-demo-facade,并添加相关依赖
 ```xml
 <dependencies>
@@ -332,4 +333,7 @@ public interface GrpcRpcServiceFacade {
     private int permitKeepAliveTime;
 }
 ```
+---
+## 6. 演示案例
+  [homo-grpc-server-demo](。./../../../homo-core-test/homo-grpc-server-demo)
  

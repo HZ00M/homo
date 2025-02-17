@@ -13,11 +13,11 @@
   - [Rpc简介](docs/Rpc/Rpc概要介绍.md)
   - [Rpc-HTTP](docs/Rpc/基于Http的Rpc调用.md)
   - [Rpc-GRPC](docs/Rpc/基于Grpc的Rpc调用.md)
-- ### Storage 【统一结构的自动化存储能力】
+- ### Storage 【自动化存储】
   - [Storage简介](docs/Storage/Storage概要介绍.md)
   - [Landing落地规则](docs/Storage/Landing规则文档)
   - [基于Redis+Mysql的自动落地功能](docs/Storage/Redis_Mysql_Storage.md)
-- ### Entity 【领域驱动的、有状态的、自动存储的、可远程调用的能力】
+- ### Entity 【领域驱动、有状态、远程调用、自存储对象】
   - [有状态Entity存储服务](docs/Entity/有状态Entity服务.md)
 - ### MessageQueue 【生产&发布者】
   - [消息队列简介](docs/消息队列/基于Kafka的消息队列.md)

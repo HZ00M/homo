@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
     <modules>
-        <module>homo-core-storage-test</module>
+        <module>homo-storage-demo</module>
         <module>homo-core-persistent-demo</module>
 
         <module>homo-core-rpc-client-test</module>
@@ -147,7 +147,7 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-core-storage-test</artifactId>
+                <artifactId>homo-storage-demo</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

@@ -339,4 +339,7 @@ public class MongoDriverProperties {
   private String writeConcern;
 }
 ``` 
+---
+## 6. 演示案例
+[homo-document-mongo-demo](。./../../../homo-core-test/homo-document-mongo-demo)
  
