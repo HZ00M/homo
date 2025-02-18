@@ -22,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>com.homo</groupId>
-            <artifactId>homo-service-stateful-driver-redis</artifactId>
+            <artifactId>homo-core-stateful-driver-redis</artifactId>
         </dependency>
         <!--        todo 待优化，是否可以由下级依赖-->
         <dependency>

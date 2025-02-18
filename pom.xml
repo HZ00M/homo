@@ -29,7 +29,7 @@
         <module>homo-core-rpc-client</module>
         <module>homo-core-rpc-base</module>
         <module>homo-core-rpc-grpc</module>
-        <module>homo-service-stateful-driver-redis</module>
+        <module>homo-core-stateful-driver-redis</module>
         <module>homo-core-rpc-http</module>
         <module>homo-core-gate-tcp</module>
         <module>homo-core-gate</module>
@@ -238,7 +238,7 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <artifactId>homo-service-stateful-driver-redis</artifactId>
+                <artifactId>homo-core-stateful-driver-redis</artifactId>
                 <groupId>com.homo</groupId>
                 <version>${revision}</version>
             </dependency>

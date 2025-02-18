@@ -35,6 +35,7 @@ public interface GateServer {
     Homo<Boolean> sendToClient(GateClient gateClient,String msgId, byte[] msg, short sessionId, short sendSeq, short recvSeq);
 
     Homo<Boolean> sendToClient(GateClient gateClient,String msgId, byte[] msg);
+
     Homo<Boolean> sendToClientComplete(GateClient gateClient,String msgId, byte[] msg);
 
     Homo<Boolean> sendToClientComplete(GateClient gateClient,String msgId, byte[] msg, short sessionId, short sendSeq, short recvSeq);
