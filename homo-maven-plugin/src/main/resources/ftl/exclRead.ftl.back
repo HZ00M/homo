@@ -2,13 +2,30 @@
 package ${packagename};
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
-import com.homo.core.utils.lang.Pair;
+import com.homo.config.domain.ConfigChange;
+import com.homo.config.domain.GetConfigRequest;
+import com.homo.config.domain.PropertyChangeType;
+import com.homo.config.domain.common.CommonCode;
+import com.homo.config.domain.common.Response;
+import com.homo.config.domain.constant.ConstantDef;
+import com.homo.config.domain.message.CustomMessage;
+import com.homo.config.facade.ChangeListener;
+import com.homo.config.facade.RecordChange;
+import com.homo.config.facade.ConfigService;
+import com.homo.broadcast.facade.SubscribeFun;
+import com.homo.broadcast.facade.SubscribeHandler;
+import com.homo.service.utils.SystemUtil;
+import com.homo.service.utils.TpfPromise;
+import com.homo.service.utils.queue.CallQueueMgr;
+import com.homo.lang.Pair;
 import lombok.Data;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -20,15 +37,116 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Component
-public class Table_${className}  {
+public class Table_${className} implements SubscribeHandler {
 	private final static Logger logger = LoggerFactory.getLogger(Table_${className}.class);
+
+	List<ChangeListener<Record_${className}>> changeListeners = new ArrayList<>();
+
 	public static String META_INFO = "__META_INFO__";
 
 	public static String ROW_INDEX = "__ROW_INDEX__";
 
 	public static int ROW_OFFSET = 4;
 
+	public static String IGNORE_FILE_CONFIG = "tpf_ignore_file.json";
+
+	@Autowired
+	ConfigService configService;
+
+	private boolean development;
+
+	@Getter
+	private String version;
+
+	private boolean dataLoaded = false;
+
 	public Table_${className}() {
+		development = com.ctrip.framework.apollo.ConfigService.getAppConfig().getBooleanProperty("env.dev", true);
+	}
+
+	public void addChangeListener(ChangeListener<Record_${className}> changeListener) {
+		this.changeListeners.add(changeListener);
+	}
+
+	@SubscribeFun(topic = ConstantDef.TOPIC, events = fileName)
+	public void onConfigChanged(CustomMessage message) {
+		logger.info("changed received: {}", message);
+		if (!dataLoaded) {
+			logger.info("data not loaded, ignore");
+			return;
+		}
+		List<Record_${className}> tmpConfigs = new ArrayList<>(configsAndKeyToIndexPair.getKey());
+		Map<String, Integer> tmpKeyToIndex = new HashMap<>(configsAndKeyToIndexPair.getValue());
+		List<RecordChange<Record_${className}>> changes = new ArrayList<>();
+		int disableDecimalFeature = JSON.DEFAULT_PARSER_FEATURE & ~Feature.UseBigDecimal.getMask();
+		for (ConfigChange configChange : message.getConfigItems()) {
+			if (configChange.getChangeType() == PropertyChangeType.DELETED) {
+				int index = tmpKeyToIndex.get(configChange.getPropertyName());
+				Record_${className} oldValue = tmpConfigs.remove(index);
+				// 重新计算索引
+				tmpKeyToIndex = calcMapIndex(tmpConfigs);
+			    RecordChange<Record_${className}> changeItem = new RecordChange<>();
+				changeItem.setChangeType(configChange.getChangeType());
+				changeItem.setOldValue(oldValue);
+				changeItem.setKey(configChange.getPropertyName());
+				changes.add(changeItem);
+			} else if (configChange.getChangeType() == PropertyChangeType.MODIFIED) {
+				int index = tmpKeyToIndex.get(configChange.getPropertyName());
+				Record_${className} oldValue = tmpConfigs.get(index);
+				Record_${className} record = JSON.parseObject(configChange.getNewValue(), Record_${className}.class, disableDecimalFeature);
+				record.__ROW_INDEX__ = index + ROW_OFFSET;
+				tmpConfigs.set(index, record);
+				RecordChange<Record_${className}> changeItem = new RecordChange<>();
+				changeItem.setChangeType(configChange.getChangeType());
+				changeItem.setOldValue(oldValue);
+				changeItem.setNewValue(record);
+				changeItem.setKey(configChange.getPropertyName());
+				changes.add(changeItem);
+			} else if (configChange.getChangeType() == PropertyChangeType.ADDED) {
+		        JSONObject jsonObject = JSON.parseObject(configChange.getNewValue());
+	            int rowIndex = jsonObject.getIntValue(ROW_INDEX);
+				Record_${className} record = JSON.parseObject(configChange.getNewValue(), Record_${className}.class, disableDecimalFeature);
+				RecordChange<Record_${className}> changeItem = new RecordChange<>();
+				changeItem.setChangeType(configChange.getChangeType());
+				changeItem.setNewValue(record);
+				changeItem.setKey(configChange.getPropertyName());
+				changes.add(changeItem);
+				boolean isAdd = false;
+				for (int i = 0; i < tmpConfigs.size(); i++) {
+					if (rowIndex <= tmpConfigs.get(i).__ROW_INDEX__) {
+						tmpConfigs.add(i, record);
+						tmpKeyToIndex = calcMapIndex(tmpConfigs);
+						isAdd = true;
+						break;
+					}
+				}
+				if (!isAdd) {
+					tmpConfigs.add(record);
+					record.__ROW_INDEX__ = tmpConfigs.size() + ROW_OFFSET - 1;
+					tmpKeyToIndex.put(configChange.getPropertyName(), tmpConfigs.size() - 1);
+				}
+			}
+		}
+		Pair<List<Record_${className}>, Map<String, Integer>> tmpPair = new Pair<>(tmpConfigs, tmpKeyToIndex);
+		configsAndKeyToIndexPair = tmpPair;
+		GetConfigRequest request = new GetConfigRequest();
+		request.setTableName(fileName);
+		configService.getPublishVersion(request).consumerValue(response -> {
+			if (response.getMeta().getErrorCode() == CommonCode.SUCCESS.getCode()) {
+				version = (String)response.getData();
+			}
+			logger.info("version changed: {}", version);
+			changeListeners.forEach(changeListener -> changeListener.onChange(changes));
+		}).start();
+    }
+
+	private Map<String, Integer> calcMapIndex(List<Record_${className}> tmpConfigs) {
+		Map<String, Integer> tmp = new HashMap<>();
+		for (int i = 0; i < tmpConfigs.size(); i++) {
+			tmp.put(tmpConfigs.get(i).getKey__tpf(), i);
+			tmpConfigs.get(i).__ROW_INDEX__ = i + ROW_OFFSET;
+		}
+		return tmp;
 	}
 
 	@Data
@@ -150,6 +268,8 @@ public class Table_${className}  {
 	public void load() {
         int disableDecimalFeature = JSON.DEFAULT_PARSER_FEATURE & ~Feature.UseBigDecimal.getMask();
 		int index = 0;
+		configsAndKeyToIndexPair.getKey().clear();
+		configsAndKeyToIndexPair.getValue().clear();
 		for(Map.Entry<String, Object> entry: getJsonObject().entrySet()){
 			if (META_INFO.equals(entry.getKey())) {
 				continue;
@@ -161,7 +281,51 @@ public class Table_${className}  {
 			configsAndKeyToIndexPair.getValue().put(entry.getKey(), index);
 			index ++;
 		}
+		loadVersion();
+		dataLoaded = true;
 	}
+	private void loadVersion0() {
+		if (development || inIgnoreList()) {
+			version = "dev";
+		} else {
+			Response response = getVersionConfigServer().block();
+			if (response != null && response.getMeta().getErrorCode() == 0) {
+				version = (String)response.getData();
+				logger.info("load version: {}", version);
+			} else {
+				logger.error("load version error: {}", response);
+			}
+		}
+	}
+
+	private TpfPromise<Response> getVersionConfigServer() {
+		return TpfPromise.warpCallback(sink -> {
+			CallQueueMgr.getInstance().task(()->{
+				GetConfigRequest request = new GetConfigRequest();
+				request.setTableName(fileName);
+				configService.getPublishVersion(request).consumerValue(response -> sink.success(response)).start();
+			}, CallQueueMgr.FRAME_QUEUE_ID);
+		});
+	}
+	public void loadVersion() {
+		// 从配置中心获取版本号
+		// 如果发生异常，需要重试
+		for (int i = 0; i < 3; i++) {
+			try {
+				loadVersion0();
+				break;
+			} catch (Exception e) {
+				logger.error("load version error", e);
+			}
+		}
+	}
+    /**
+     * 加载数据Map
+     */
+    public void loadMap() {
+        load();
+    }
+
 	/**
 	 * 获取第i个数据
 	 * @param i
@@ -226,15 +390,6 @@ public class Table_${className}  {
 		configsAndKeyToIndexPair = tmpPair;
 	}
 
-	private Map<String, Integer> calcMapIndex(List<Record_${className}> tmpConfigs) {
-		Map<String, Integer> tmp = new HashMap<>();
-		for (int i = 0; i < tmpConfigs.size(); i++) {
-		tmp.put(tmpConfigs.get(i).getKey__tpf(), i);
-		tmpConfigs.get(i).__ROW_INDEX__ = i + ROW_OFFSET;
-		}
-		return tmp;
-		}
-
 	/**
 	 * 根据key从大到小排序
 	 */
@@ -289,16 +444,67 @@ public class Table_${className}  {
 		return configsAndKeyToIndexPair.getKey().stream().filter(predicate).collect(Collectors.toList());
 	}
 
+	boolean inIgnoreList() {
+		// 读取忽略列表
+		String ignoreListPath = "/json/" + IGNORE_FILE_CONFIG;
+		try {
+			if (finalJsonPath.contains("/")) {
+				ignoreListPath = "/json/" + finalJsonPath.substring(0, finalJsonPath.lastIndexOf("/")) + "/" + IGNORE_FILE_CONFIG;
+			}
+			String ignoreListStr = readFile(ignoreListPath);
+
+			List<String> ignoreList = JSON.parseArray(ignoreListStr, String.class);
+			return ignoreList.contains(fileName);
+		}catch (Exception e){
+			logger.warn("read ignore list fail: {}", ignoreListPath);
+			return false;
+		}
+	}
 
 	private JSONObject getJsonObject(){
 		try {
-			String jsonPath = "/json/" + finalJsonPath;
-			String jsonStr = readFile(jsonPath);
-			return JSON.parseObject(jsonStr, Feature.OrderedField);
+			if (development || inIgnoreList()) {
+				String jsonPath = "/json/" + finalJsonPath;
+				String jsonStr = readFile(jsonPath);
+				return JSON.parseObject(jsonStr, Feature.OrderedField);
+			} else {
+				boolean hasMoreData = true;
+				JSONObject config = new JSONObject(new LinkedHashMap<>());
+				int page = 1;
+				int limit = 3000;
+				while (hasMoreData) {
+					Response response = getConfigFromConfigServer(fileName, page, limit).block();
+					if (response.getMeta().getErrorCode() != CommonCode.SUCCESS.getCode()) {
+						logger.error("load config from configServer fail: {}, {}", fileName, response);
+						SystemUtil.exitAndHalt(-1);
+					}
+					JSONArray configArray = (JSONArray) response.getData();
+					for (int i = 0; i < configArray.size(); i++) {
+						JSONObject configItem = configArray.getJSONObject(i);
+						config.putAll(configItem);
+					}
+					hasMoreData = configArray.size() >= limit;
+					page++;
+				}
+				return config;
+			}
 		}catch (Exception e) {
 			logger.error("load config from configServer fail: {}", fileName, e);
+			SystemUtil.exitAndHalt(-1);
 		}
 		return null;
+	}
+	private TpfPromise<Response> getConfigFromConfigServer(String fileName, int page, int limit) {
+		return TpfPromise.warpCallback(sink -> {
+			CallQueueMgr.getInstance().task(()->{
+				GetConfigRequest request = new GetConfigRequest();
+				request.setTableName(fileName);
+				request.setPage(page);
+				request.setLimit(limit);
+				request.setModifiedOnly(false);
+				configService.getConfig(request).consumerValue(response -> sink.success(response)).start();
+			}, CallQueueMgr.FRAME_QUEUE_ID);
+		});
 	}
 	private String readFile(String path) {
 		BufferedReader reader = null;

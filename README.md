@@ -30,6 +30,9 @@
 - ### Document 【文档型数据库支持】
   - [Document简介](docs/Document/Document概要介绍.md)
   - [Document-Mongo驱动](docs/Document/Mongo驱动.md) 
+- ### Homo-Plugin 【Maven插件】
+  - [一键部署K8S工具](docs/插件/一键部署插件.md)
+  - [一键转表工具](docs/插件/一键导表插件.md)
 - ### Gate  【网关】
   - [Gate-Tcp驱动](docs/交互网关/网关设计使用文档.md)  
 - ### Cache 【缓存】
@@ -38,3 +41,6 @@
   - [Lock-Redis锁驱动](docs/分布式锁/分布式锁设计使用文档.md) 
 - ### Trace 【链路追踪】
   - [Trace-Zipkin](docs/链路追踪/zipkin使用文档.md) 
+
+## 案例工程
+- Homo-game： [github.com/HZ00M/homo-game](https://github.com/HZ00M/homo-game)
