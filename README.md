@@ -43,4 +43,5 @@
   - [Trace-Zipkin](docs/链路追踪/zipkin使用文档.md) 
 
 ## 案例工程
-- Homo-game： [github.com/HZ00M/homo-game](https://github.com/HZ00M/homo-game)
+- homo-game【github】： [github.com/HZ00M/homo-game](https://gitee.com/Hzoom/homo-game)
+- homo-game【gitee】： [gitee.com/Hzoom/homo-game](https://gitee.com/Hzoom/homo-game)
