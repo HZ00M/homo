@@ -15,7 +15,7 @@
   - [Rpc-GRPC](docs/Rpc/基于Grpc的Rpc调用.md)
 - ### Storage 【自动化存储】
   - [Storage简介](docs/Storage/Storage概要介绍.md)
-  - [Landing落地规则](docs/Storage/Landing规则文档)
+  - [Landing落地规则](docs/Storage/Landing规则文档.md)
   - [基于Redis+Mysql的自动落地功能](docs/Storage/Redis_Mysql_Storage.md)
 - ### Entity 【领域驱动、有状态、远程调用、自存储对象】
   - [有状态Entity存储服务](docs/Entity/有状态Entity服务.md)
